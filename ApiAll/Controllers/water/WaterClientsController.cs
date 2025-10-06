@@ -429,28 +429,70 @@ namespace ApiAll.Controllers.water
             return paginationModel;
         }
 
+        // [HttpGet("getPaginationDeletedClients")]
+        // public async Task<ActionResult<TexPaginationModel>> getPaginationDeletedClients([FromQuery] int page, [FromQuery] int size)
+        // {
+        //     TexPaginationModel paginationModel = new TexPaginationModel();
+        //     List<WaterClient> categoryList = await _context.WaterClient
+        //         .Include(p => p.tuman)
+        //         .Include(p => p.addresses)
+        //         .Include(p => p.phone_numbers_list)
+        //         .Where(p => p.active_status == false
+        //         && p.reserverd_number_id_3 == 100)
+        //         .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
+        //     if (categoryList == null)
+        //     {
+        //         categoryList = new List<WaterClient>();
+        //     }
+        //     paginationModel.items_list = JArray.FromObject(categoryList);
+        //     paginationModel.items_count = await _context.WaterClient.Where(p => p.active_status == false
+        //     && p.reserverd_number_id_3 == 100).CountAsync();
+        //     paginationModel.current_item_count = categoryList.Count();
+        //     paginationModel.current_page = page;
+        //     return paginationModel;
+        // }
+
         [HttpGet("getPaginationDeletedClients")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationDeletedClients([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<TexPaginationModel>> getPaginationDeletedClients(
+            [FromQuery] int page, 
+            [FromQuery] int size,
+            [FromQuery] string search = "")
         {
             TexPaginationModel paginationModel = new TexPaginationModel();
-            List<WaterClient> categoryList = await _context.WaterClient
+
+            // Asosiy query
+            var query = _context.WaterClient
                 .Include(p => p.tuman)
                 .Include(p => p.addresses)
                 .Include(p => p.phone_numbers_list)
-                .Where(p => p.active_status == false
-                && p.reserverd_number_id_3 == 100)
-                .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
-            if (categoryList == null)
+                .Where(p => p.active_status == false && p.reserverd_number_id_3 == 100);
+
+            
+            if (!string.IsNullOrEmpty(search))
             {
-                categoryList = new List<WaterClient>();
+                string lowered = search.ToLower();
+                query = query.Where(p =>
+                    (p.fio != null && p.fio.ToLower().Contains(lowered))
+                );
             }
+
+            // Umumiy count
+            paginationModel.items_count = await query.CountAsync();
+
+            // Pagination
+            var categoryList = await query
+                .OrderByDescending(p => p.id)
+                .Skip(page * size)
+                .Take(size)
+                .ToListAsync();
+
             paginationModel.items_list = JArray.FromObject(categoryList);
-            paginationModel.items_count = await _context.WaterClient.Where(p => p.active_status == false
-            && p.reserverd_number_id_3 == 100).CountAsync();
             paginationModel.current_item_count = categoryList.Count();
             paginationModel.current_page = page;
+
             return paginationModel;
         }
+
 
         [HttpGet("getPaginationRestoreDeletedClients")]
         public async Task<ActionResult<TexPaginationModel>> getPaginationRestoreDeletedClients([FromQuery] int page, [FromQuery] int size)

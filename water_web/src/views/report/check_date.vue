@@ -63,6 +63,9 @@
       </div>
 
       <div class="">
+        <div v-if="searchQuery" class="p-0 m-0 d-flex search-loading" style="font-size: 13px;">
+        <span class="icon">🔍</span>
+        <p class="p-0 m-0 px-2 pb-1">Qidirilmoqda:</p> <b>{{ searchQuery }}</b></div>
         <loader v-if="loading"/>
         <table class="myTableCkeckList ">
           <thead>
@@ -161,6 +164,12 @@
             </tr>
           </tbody>
         </table>
+        <!-- Pagination tugmalari -->
+      <Pagination 
+        :totalPages="totalPages" 
+        :currentPage="currentPage" 
+        @page-changed="changePage" 
+      />
       </div>
     </div>
     <mdb-modal :show="delete_show" @close="delete_show = false" size="md" class="text-center" danger>
@@ -183,13 +192,14 @@
 
 <script>
 // import lineSelect from "../../components/lineSelect.vue";
+import Pagination from './pagination.vue'
 import {mdbBtn, mdbIcon, mdbInput, mdbModal, mdbModalHeader, mdbModalBody, mdbModalFooter,mdbBadge,mdbBtnGroup, mdbDropdown, mdbDropdownMenu, mdbDropdownItem,} from 'mdbvue'
 import {mapActions, mapGetters} from 'vuex'
 import month from '../../components/month.vue'
 export default {
   components:{
     mdbBtn, 
-    mdbIcon,mdbInput,
+    mdbIcon,mdbInput,Pagination,
     month,
     mdbModal, mdbModalHeader, mdbModalBody, mdbModalFooter,mdbBadge,mdbBtnGroup, mdbDropdown, mdbDropdownMenu, mdbDropdownItem,
   },
@@ -219,6 +229,11 @@ export default {
       delete_show: false,
       order_id: null,
       client_name: '',
+
+      currentPage: 0,
+      totalPages: 0,
+      pageSize: 2,
+      searchQuery: '',
     }
   },
  
@@ -228,16 +243,39 @@ export default {
     this.b_date = this.today_date;
     this.e_date = this.today_date;
     await this.clickDate();
+    window.addEventListener("keydown", this.handleKey);
   },
+  beforeDestroy() { window.removeEventListener("keydown", this.handleKey); },
   computed: mapGetters(['allGroups', 'group_client_list']),
 
   methods: {
     ...mapActions(['fetchGroups', 'fetchClient', 'fetchGroupsClientList']),
+    async handleKey(e) {
+      if (e.key === "Backspace")
+      {
+        this.searchQuery = this.searchQuery.slice(0, -1);
+        await this.clickDate();
+        this.currentPage = 0;
 
+      }
+      else if (e.key.length === 1) {
+        this.searchQuery += e.key;
+        await this.clickDate();
+        this.currentPage = 0;
+      }
+      if(this.searchQuery == '' || this.searchQuery == null){
+        this.searchQuery = '';
+        await this.clickDate();
+        this.currentPage = 0;
+      }
+    },
     show_infoDebit(i){
       console.log(i)
     },
-
+    changePage (page) {
+      this.currentPage = page;
+      this.clickDate();
+    },
 
     // ===> send client check to base<===
     payDebit(data){
@@ -280,33 +318,54 @@ export default {
         begin_date: this.b_date  + 'T00:00:01.504Z',
         end_date: this.e_date + 'T23:59:01.504Z',
       }
+      await this.all_checkSum(date);
       await this.selectMonth(date);
     },
-
+    async all_checkSum(date){
+      try{
+        this.loading = true;
+        const res = await fetch(this.$store.state.hostname + '/WaterChecks/getSummaryByDateTime?begin_date=' + date.begin_date + '&end_date=' + date.end_date);
+        const data = await res.json();
+        this.loading = false;
+        if(res.status == 200 || res.status == 201){
+          this.all_summ = {
+            cash: data.cash,
+            card: data.card,
+            online:data.online,
+            rasxod: data.rasxod,
+            summ: data.summ,
+          }
+        }
+      }
+      catch(e){
+        this.$refs.message.error(e,'network_ne_connect')
+        this.loading = false;
+      }
+    },
     async selectMonth(date){
       console.log(date)
       this.loading = true;
       try{
-        const res = await fetch(this.$store.state.hostname + '/WaterChecks/getPaginationByDateTime?page=0&size=1000&begin_date=' + date.begin_date + '&end_date=' + date.end_date);
+        const res = await fetch(this.$store.state.hostname + `/WaterChecks/getPaginationByDateTime?page=${this.currentPage}&size=${this.pageSize}&begin_date=` + date.begin_date + '&end_date=' + date.end_date + '&search=' + this.searchQuery);
         const data = await res.json();
         console.log(data)
         if(res.status == 200 || res.status == 201){
-          console.log('das')
           this.checkList = data.items_list;
-          this.all_summ = {
-            cash: 0,
-            card: 0,
-            online:0,
-            rasxod: 0,
-            summ: 0,
-          }
-          for(let i=0; i<this.checkList.length; i++){
-            this.all_summ.cash += parseFloat(this.checkList[i].cash)
-            this.all_summ.card += parseFloat(this.checkList[i].card)
-            this.all_summ.online += parseFloat(this.checkList[i].online)
-            this.all_summ.rasxod += parseFloat(this.checkList[i].rasxod)
-            this.all_summ.summ += parseFloat(this.checkList[i].summ)
-          }
+          this.totalPages = Math.ceil(data.items_count / this.pageSize);
+          // this.all_summ = {
+          //   cash: 0,
+          //   card: 0,
+          //   online:0,
+          //   rasxod: 0,
+          //   summ: 0,
+          // }
+          // for(let i=0; i<this.checkList.length; i++){
+          //   this.all_summ.cash += parseFloat(this.checkList[i].cash)
+          //   this.all_summ.card += parseFloat(this.checkList[i].card)
+          //   this.all_summ.online += parseFloat(this.checkList[i].online)
+          //   this.all_summ.rasxod += parseFloat(this.checkList[i].rasxod)
+          //   this.all_summ.summ += parseFloat(this.checkList[i].summ)
+          // }
 
         }
         else{
@@ -403,12 +462,21 @@ tr:nth-child(even){background-color: #ebf5fc;}
   position: -webkit-sticky; /* Safari */
   position: sticky;
   top: 52px;
-  background: #3f6a8b;
+  background: #63a89e;
   color:white;
 }
+.search-loading .icon {
+  margin-right: 0px;
+  margin-left: 10px;
+  display: inline-block;
+  animation: shake 1s infinite;
+}
 
-
-
-
-
+@keyframes shake {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg); }
+  50% { transform: rotate(0deg); }
+  75% { transform: rotate(-15deg); }
+  100% { transform: rotate(0deg); }
+}
 </style>

@@ -366,56 +366,17 @@ const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
     console.log(from)
-    if (to.path != '/') {
+if (to.path != '/') {
         if (localStorage.Login != '') {
             if (localStorage.Type == 1) {
-                if (to.path == '/bron' || to.path == '/medicineMin' || to.path == '/byuzi_date' || to.path == '/groupReport' || to.path == '/bydate' ||
-                    to.path == '/medicine' || to.path == '/apply_admin' || to.path == '/return_report' || to.path == '/m_users' || 
-                    to.path == '/bycont_data' || to.path == '/info'  || to.path == '/biox'  || to.path == '/send_doc' || to.path == '/cashbox'
-                    || to.path == '/bycontragent' || to.path == '/bytime' || to.path == '/dailyForPayment' || to.path == '/kunlik' || to.path == '/return_money'
-                    || to.path == '/bonus_contragent' || to.path == '/bonus_repot' || to.path == '/bonus_full') {
-                    next('/doctor')
+                if (to.path === '/postavchik_list' || to.path === '/postavchik_map') {
+                next()  // shu ikkitasiga ruxsat beramiz
+                } else {
+                next('/postavchik_list') // boshqalari qaytadi
                 }
             } else if (localStorage.Type == 0) {
                 next()
-            } else if (localStorage.Type == 2) {
-                if (to.path == '/doctor' || to.path == '/antigen' || to.path == '/bron' || to.path == '/medicineMin' ||
-                    to.path == '/medicine'  || to.path == '/return_report' || to.path == '/m_users' || 
-                    to.path == '/bycont_data' || to.path == '/result_lab' || to.path == '/info'  || to.path == '/biox'  || to.path == '/send_doc'
-                    || to.path == '/bycontragent' || to.path == '/bytime' || to.path == '/kunlik' || to.path == '/return_money'
-                    || to.path == '/bonus_contragent' || to.path == '/bonus_repot' || to.path == '/bonus_full' || to.path == '/byuzi_date' 
-                    || to.path == '/groupReport' || to.path == '/bydate') {
-                    next('/cashbox')
-                }
-            } else if (localStorage.Type == 3) {
-                if (to.path == '/bron' || to.path == '/medicineMin' || to.path == '/byuzi_date' || to.path == '/groupReport' || to.path == '/bydate' ||
-                    to.path == '/medicine' || to.path == '/apply_admin' || to.path == '/return_report' || to.path == '/m_users' || 
-                    to.path == '/bycont_data' || to.path == '/info'  || to.path == '/send_doc' || to.path == '/cashbox'
-                    || to.path == '/bycontragent' || to.path == '/bytime' || to.path == '/dailyForPayment' || to.path == '/kunlik' || to.path == '/return_money'
-                    || to.path == '/bonus_contragent' || to.path == '/bonus_repot' || to.path == '/bonus_full') {
-                    next('/doctor')
-                }
-                // if (to.path == '/profil' || to.path == '/antigen' || to.path == '/selectShablon' || to.path == '/blankaPrint' ) {
-                //     next()
-                // } else if (to.path != '/doctor') {
-                //     next('/doctor')
-                // }
-            } else if (localStorage.Type == 4) {
-                if (to.path == '/kassa' || to.path == '/antigen' || to.path == '/bron' || to.path == '/doctor' ||
-                    to.path == '/word_search' || to.path == '/apply_admin' || to.path == '/return_report') {
-                    next('/bycont_data')
-                }
-            }
-            else if (localStorage.Type == 5) {
-                if ( to.path == '/medicineMin' || to.path == '/byuzi_date' || to.path == '/groupReport' || to.path == '/bydate' ||
-                    to.path == '/medicine' || to.path == '/apply_admin' || to.path == '/return_report' || 
-                    to.path == '/bycont_data' || to.path == '/info'  || to.path == '/biox'  || to.path == '/doctor'
-                    || to.path == '/bycontragent' || to.path == '/bytime' || to.path == '/dailyForPayment' || to.path == '/kunlik' || to.path == '/return_money'
-                    || to.path == '/bonus_contragent' || to.path == '/bonus_repot' || to.path == '/bonus_full' || to.path == '/cashbox' ) {
-                    next('/send_doc')
-                    // || to.path == '/cashbox'
-                }
-            }
+            } 
              else {
                 next()
             }

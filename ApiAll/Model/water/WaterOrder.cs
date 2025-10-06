@@ -25,6 +25,8 @@ namespace ApiAll.Model.water
         public long? WaterUserid { get; set; }
 
         public long? deleivered_user_auth_id { get; set; }
+        [ForeignKey("deleivered_user_auth_id")]
+        public WaterAuth deleivered_user_auth { get; set; }
 
         [NotMapped]
         public String client_name_str => client != null ? client.fio : "";

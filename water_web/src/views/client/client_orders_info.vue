@@ -2,14 +2,14 @@
   <div>
     <loader v-if="loading"/>
     
-    <div class="m-5 ">
+    <div class="mx-3 mt-2 ">
       
       <div class="d-flex justify-content-center">
               <h5>{{$t('last_order')}}</h5>
             </div>
             <div class="table">
               <table class="w-100 tabled">
-                <thead class="header_table">
+                <thead class="header_table" style="background: #66E4AD;">
                   <tr>
                     <th>№</th>
                     <th>{{$t('fio')}}</th>
@@ -28,8 +28,15 @@
                     <td class="text-center text-primary font-weight-bold" style="font-size: 12px;">{{item.water_count}} / {{item.reserverd_numeric_id_1}}</td>
                     <td>{{item.address.address}}</td>
                     <td>{{item.created_date_time.substr(0,10)}} ( {{item.created_date_time_str.substr(0,5)}} )</td>
-                    <td>{{item.accepted_status}}</td>
-                     <td>{{item.deleivered_user_auth_id}}</td>
+                    <!-- <td>{{item.accepted_status}}</td> -->
+                    <td>
+                      <mdb-badge v-if="item.accepted_status" style="padding: 2px 8px;" pill color="success">Доставлено</mdb-badge>
+                      <mdb-badge v-else style="padding: 2px 8px;" pill color="danger">Не доставлено</mdb-badge>
+                    </td>
+                    <td > 
+                      <span v-if="item.deleivered_user_auth_id">{{item.deleivered_user_auth.user.fio}}</span>
+                      <span v-else>{{item.deleivered_user_auth_id}}</span>
+                    </td>
                     <!-- <td class="m-0 p-0">
                       <mdb-btn class="mr-1 ml-0 mt-0 mt-1 btn-acp"  style="font-size: 8px; width:80px; padding: 5px;"  @click="showOrder(item)" 
                         size="sm">{{$t('accept')}}
@@ -46,22 +53,25 @@
   
 <script>
 
-// import {  mdbRow, mdbCol } from "mdbvue"
+import { mdbBadge } from "mdbvue"
 // import md5 from 'js-md5'
 // import { mdbInput, mdbRow, mdbCol, mdbIcon, mdbBtn,  } from "mdbvue"
 
 // import {mapActions,mapGetters} from 'vuex'
 
 
-
+// import {mdbBadge} from "mdbvue"
 export default {
-  
+  components: {
+    mdbBadge
+  },
   
   data(){
     return{
       client_last_order: [],
       id: 0,
       hostname: this.$store.state.server_ip,
+      loading: false,
     }
   },
   props :
@@ -73,9 +83,6 @@ export default {
       }
       
     },
-  components: {
-   
-  },
    
     
     async created()

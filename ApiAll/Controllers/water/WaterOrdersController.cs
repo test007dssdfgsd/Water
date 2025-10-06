@@ -121,6 +121,8 @@ namespace ApiAll.Controllers.water
                .Include(p => p.client)
                .Include(p => p.address)
                .Include(p => p.user)
+               .Include(p => p.deleivered_user_auth)
+                .ThenInclude(p => p.user)
                 .Where(p => p.active_status == true && p.WaterClientid == client_id)
                 .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
             if (categoryList == null)
@@ -361,6 +363,8 @@ namespace ApiAll.Controllers.water
                 .Include(p => p.user)
                 .Include(p => p.client)
                 .Include(p => p.address)
+                .Include(p => p.deleivered_user_auth)
+                .ThenInclude(p => p.user)
                 .Where(p => p.WaterClientid == client_id)
                 .OrderByDescending( p => p.id).Take(2).ToListAsync();
 

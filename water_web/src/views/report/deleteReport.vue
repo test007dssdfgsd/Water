@@ -40,7 +40,7 @@
             </div>
             <div class="col-sm-4 col-md-1 col-lg-1" >
               <div class="mt-1 text-right">
-                <mdb-btn class="mr-1 ml-0  py-1 px-3"  style="font-size: 9px; height:27.5px; width:80px" color="info"  @click="clickDate()" 
+                <mdb-btn class="mr-1 ml-0  py-1 px-3"  style="font-size: 9px; height:27.5px; width:80px" color="info"  @click="clickDate(0, searchQuery)" 
                   size="sm">{{$t('ok')}}
                 </mdb-btn>
               </div>
@@ -51,6 +51,9 @@
       </div>
 
     <div >
+      <div v-if="searchQuery" class="p-0 m-0 d-flex search-loading" style="font-size: 13px;">
+        <span class="icon">🔍</span>
+        <p class="p-0 m-0 px-2 pb-1">Qidirilmoqda:</p> <b>{{ searchQuery }}</b></div>
       <loader v-if="loading"/>
       <table class="myTableCkeckList ">
         <thead>
@@ -87,28 +90,23 @@
             <td> <span >{{row.fio}}</span> </td>
             <td> <span >{{row.reserverd_note_3}}</span> </td>
             <td> <span >{{row.created_date_time.slice(0,10)}}</span> <span class="ml-2">{{row.created_date_time.slice(11,16)}}</span></td>
-          <td class="m-0 p-0 bg-white">
-                <div class="d-flex align-items-center">
-                  <!-- <div @click="UpdateOrder(item)" style="cursor:pointer" class="">
-                    <mdb-icon icon="edit" style="font-size:16px;" class="p-1 text-warning " far></mdb-icon>
-                  </div> -->
-                  <div @click="return_client(row)" style="cursor:pointer">
-                    <mdb-icon icon="check-circle" style="font-size:16px;" class="p-1 text-success" far></mdb-icon>
-                  </div>
-                  <!-- <div @click="deleteOrder(item)" style="cursor:pointer">
-                    <mdb-icon icon="trash" style="font-size:16px;" class="p-1 text-danger" ></mdb-icon>
-                  </div> -->
+            <td class="m-0 p-0 ">
+              <div class="d-flex align-items-center justify-content-center">
+                <div @click="return_client(row)" style="cursor:pointer">
+                  <mdb-icon icon="check-circle" style="font-size:16px;" class="p-1 text-success" far></mdb-icon>
                 </div>
-                <!-- <mdb-btn class="mr-1 ml-0 mt-0 mt-1 btn-acp"  style="font-size: 8px; width:80px; padding: 5px;"   
-                  size="sm">{{$t('accept')}}
-                </mdb-btn> -->
-              </td>
-            
-            <!-- <td> <span >{{row.lessons_cout}}</span> </td> -->
-      
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>
+
+       <!-- Pagination tugmalari -->
+      <Pagination 
+        :totalPages="totalPages" 
+        :currentPage="currentPage" 
+        @page-changed="changePage" 
+      />
     </div>
    
     </div>
@@ -118,6 +116,7 @@
 
 <script>
 // import lineSelect from "../../components/lineSelect.vue";
+import Pagination from './pagination.vue'
 import {mdbBtn, mdbIcon, mdbInput} from 'mdbvue'
 import {mapActions, mapGetters} from 'vuex'
 import month from '../../components/month.vue'
@@ -125,7 +124,7 @@ export default {
   components:{
     mdbBtn, 
     mdbIcon,mdbInput,
-    month,
+    month,Pagination
   },
   data() {
     return {
@@ -141,7 +140,18 @@ export default {
       today_date: '',
       check_client_list: [],
       group_data: {},
+
+      currentPage: 0,
+      totalPages: 0,
+      pageSize: 100,
+      searchQuery: '',
     }
+  },
+  created () {
+    this.clickDate(0, this.searchQuery)
+  },
+  computed: {
+    ...mapGetters(['allGroups', 'group_client_list']),
   },
  
   async mounted() {
@@ -149,9 +159,10 @@ export default {
     this.today_date = date.toISOString().slice(0,10);
     this.b_date = this.today_date;
     this.e_date = this.today_date;
-    await this.clickDate();
+    await this.clickDate(0,this.searchQuery);
+    window.addEventListener("keydown", this.handleKey);
   },
-  computed: mapGetters(['allGroups', 'group_client_list']),
+  beforeDestroy() { window.removeEventListener("keydown", this.handleKey); },
 
   methods: {
     ...mapActions(['fetchGroups', 'fetchClient', 'fetchGroupsClientList']),
@@ -179,23 +190,44 @@ export default {
         this.loading = false;
       }
     },
-
-
     // ===> send client check to base<===
     payDebit(data){
       this.payClient = true;
       this.group_data = data
     },
+    changePage (page) {
+      this.currentPage = page;
+      this.clickDate(page,this.searchQuery);
+    },
+    async handleKey(e) {
+      if (e.key === "Backspace")
+      {
+        this.searchQuery = this.searchQuery.slice(0, -1);
+        await this.clickDate(0,this.searchQuery);
+        this.currentPage = 0;
 
-    async clickDate(){
+      }
+      else if (e.key.length === 1) {
+        this.searchQuery += e.key;
+        await this.clickDate(0,this.searchQuery);
+        this.currentPage = 0;
+      }
+      if(this.searchQuery == '' || this.searchQuery == null){
+        await this.clickDate(0,this.searchQuery);
+        this.currentPage = 0;
+      }
+    },
+
+    async clickDate(page,search){
       this.loading = true;
       try{
-        const res = await fetch(this.$store.state.hostname + '/WaterClients/getPaginationDeletedClients?page=0&size=1000');
+        const res = await fetch(this.$store.state.hostname + `/WaterClients/getPaginationDeletedClients?page=${page}&size=${this.pageSize}&search=${search}`);
         const data = await res.json();
         console.log(data)
         if(res.status == 200 || res.status == 201){
           console.log('das')
           this.checkList = data.items_list;
+          this.totalPages = Math.ceil(data.items_count / this.pageSize);
         }
         else{
           this.$refs.message.error('not_found')
@@ -209,6 +241,7 @@ export default {
       }
 
     },
+
     // ===> send client <===
 
     // ===> sort table <===
@@ -240,7 +273,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .myTableCkeckList {
   /* border-collapse: collapse; */
   table-layout:fixed;
@@ -264,11 +297,11 @@ export default {
 }
 .myTableCkeckList th{
   text-align: left;
-  padding: 8px 10px;
+  padding: 6px 10px;
 }
 
 .myTableCkeckList tr {
-  border-bottom: 1px dashed rgb(240, 240, 240);
+  border-bottom: 0.5px solid rgb(210, 213, 231);
 
   &:nth-child(even){background-color: #ebf5fc;}
 }
@@ -286,9 +319,23 @@ export default {
   position: -webkit-sticky; /* Safari */
   position: sticky;
   top: 52px;
-  background: #3f6a8b;
+  background: #63a89e;
   color:white;
 }
 
 
+.search-loading .icon {
+  margin-right: 0px;
+  margin-left: 10px;
+  display: inline-block;
+  animation: shake 1s infinite;
+}
+
+@keyframes shake {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg); }
+  50% { transform: rotate(0deg); }
+  75% { transform: rotate(-15deg); }
+  100% { transform: rotate(0deg); }
+}
 </style>

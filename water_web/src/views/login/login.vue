@@ -109,7 +109,7 @@ export default {
     localStorage.sidebar = false;
     localStorage.Login = ""
     localStorage.AccessType = 0;
-
+    localStorage.Type = 1;
     localStorage.postavchikAuthId = null;
     localStorage.postavchikId = null;
     localStorage.postavchikName = '';
@@ -197,6 +197,7 @@ export default {
             localStorage.AuthId = data.id;
             localStorage.CompId = 1;
             localStorage.UserId = data.waterUserid;
+            localStorage.Type = data.user_type;
             await this.fetchUserName(data.waterUserid);
             if(data.user_type == 0){
               this.$router.push('/order_Add/0')

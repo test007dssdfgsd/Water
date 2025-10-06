@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="border-bottom navbar_sticky main_info_order">
-      <div class="w-100 d-flex justify-content-between px-5">
+      <div class="w-100 d-flex justify-content-between px-4">
         <div class="d-flex align-items-center">
           <div class="d-flex align-items-center">
             <mdb-icon icon="user-alt" class="text-primary mr-2 mt-2" style="font-size: 18px;"/>
@@ -42,7 +42,7 @@
       </div>
     </div>
     <loader v-if="loading"/>
-    <div v-else class="order_add px-5 pt-1">
+    <div v-else class="order_add px-4 pt-1">
       <form>
         <div class="row">
           <div class="col-12 col-sm-12 col-md-6 col-lg-4 mt-4">
@@ -91,20 +91,20 @@
 
 
         <div class="main_Order" v-if="client_name">
-          <div class="infoOfClient" v-show="showInfo">
+          <div class="infoOfClient container-fluid" v-show="showInfo">
             <div class="d-flex justify-content-center">
               <h5>{{$t('client_info')}}</h5>
             </div>
             <loader-table v-if="loadingSimple" />
             <div v-else class="row">
-              <div class="col-5">
+              <div class="col-5 p-0">
                 <div class="client_info">
                   <p class="text_content_border mb-2">{{$t('fio')}} <span>{{client_name}}</span></p>
                   <p v-for="(item,index) in client_phoneList" :key="index" class="text_content_border mb-2">{{$t('phoneNumber')}} <span>{{item.phone_number}}</span></p>
                   <div class="text-right">
-                    <span @click="orders_info" style="font-size:13.5px; cursor:pointer;" class="text-primary">{{$t('client_info')}}      </span>
+                    <span @click="orders_info" style="font-size:13.5px; cursor:pointer;" class="text-primary mr-3">{{$t('client_info')}}      </span>
 
-                    <span @click="EditFunc" style="font-size:13.5px; cursor:pointer;" class="text-primary">  {{$t('edit')}}</span>
+                    <span @click="EditFunc" style="font-size:13.5px; cursor:pointer;" class="text-primary"> {{$t('edit')}}</span>
                    
                   </div>
                 </div>
@@ -119,12 +119,12 @@
                   </div>
                 </div>
               </div>
-              <div class="col-2">
+              <div class="col-2 border rounded d-flex align-items-center justify-content-center">
                 <div class="text-center">
                   <h6 class="font-weight-bold">{{$t('ostatka_bootle')}} ({{all_water_count}})</h6>
                   <div class="d-flex justify-content-center w-100 align-items-center">
                     <h4 class="m-0 p-0 pt-1 text-danger font-weight-bold">{{ostatik_bootle}} - </h4>
-                    <img  src="../../assets/bootle.jpg" alt="b" width="50" height="45">
+                    <img  src="../../assets/bootle.jpg" alt="b" width="50" height="45" class="bottle">
                   </div>
                    <!-- <div class="text-center mt-2 ml-3">
                     <span @click="EditFunc" style="font-size:13.5px; cursor:pointer;" class="text-primary">{{$t('edit')}}</span>
@@ -137,7 +137,7 @@
             </div>
             <div class="table">
               <table class="w-100 tabled">
-                <thead class="header_table">
+                <thead class="header_table" style="background: #66E4AD;">
                   <tr>
                     <th>№</th>
                     <th>{{$t('fio')}}</th>
@@ -150,14 +150,19 @@
                   </tr>
                 </thead>
                 <tbody class="body_table">
-                  <tr v-for="(item, index) in client_last_order" :key="index">
+                  <tr v-for="(item, index) in client_last_order" :key="index" >
                     <td>{{index+1}}</td>
                     <td class="font-weight-bold" style="font-size: 12px;">{{item.client_name_str}}</td>
                     <td class="text-center text-primary font-weight-bold" style="font-size: 12px;">{{item.water_count}} / {{item.reserverd_numeric_id_1}}</td>
                     <td>{{item.address.address}}</td>
                     <td>{{item.created_date_time.substr(0,10)}} ( {{item.created_date_time_str.substr(0,5)}} )</td>
-                    <td>{{item.accepted_status}}</td>
-                     <td>{{item.deleivered_user_auth_id}}</td>
+                    <td>
+                      <mdb-badge v-if="item.accepted_status" style="padding: 2px 8px;" pill color="success">Доставлено</mdb-badge>
+                      <mdb-badge v-else style="padding: 2px 8px;" pill color="danger">Не доставлено</mdb-badge>
+                    </td>
+                    <td > 
+                      <span v-if="item.deleivered_user_auth_id">{{item.deleivered_user_auth.user.fio}}</span>
+                    </td>
                     <!-- <td class="m-0 p-0">
                       <mdb-btn class="mr-1 ml-0 mt-0 mt-1 btn-acp"  style="font-size: 8px; width:80px; padding: 5px;"  @click="showOrder(item)" 
                         size="sm">{{$t('accept')}}
@@ -550,7 +555,7 @@ export default {
       this.client_addressList = option.addresses;
       this.water_address_id = option.first_address.id;
       await this.fetchOstatka();
-      await this.fetchClientLastOrder();
+      await this.fetchClientLastOrder(this.main_client_id);
       this.focusOrderQty();
 
     },
@@ -565,7 +570,7 @@ export default {
       this.client_addressList = option.addresses;
       this.water_address_id = option.first_address.id;
       await this.fetchOstatka();
-      await this.fetchClientLastOrder();
+      await this.fetchClientLastOrder(this.main_client_id);
       this.focusOrderQty();
     },
     async selectPhone(option){
@@ -579,7 +584,7 @@ export default {
       this.client_addressList = option.addresses;
       this.water_address_id = option.first_address.id;
       await this.fetchOstatka();
-      await this.fetchClientLastOrder();
+      await this.fetchClientLastOrder(this.main_client_id);
       this.focusOrderQty();
 
     },
@@ -594,7 +599,7 @@ export default {
       this.client_addressList = option.addresses;
       this.water_address_id = option.first_address.id;
       await this.fetchOstatka();
-      await this.fetchClientLastOrder();
+      await this.fetchClientLastOrder(this.main_client_id);
       this.focusOrderQty();
     },
     async fetchOstatka(){
@@ -618,14 +623,12 @@ export default {
       }
     },
     
-    async fetchClientLastOrder(){
+    async fetchClientLastOrder(client_id){
       try{
         // this.loadingSimple = true;
-        const response = await fetch(this.$store.state.hostname + "/WaterOrders/getLastOrderTwoOrdersFullInfoByid?client_id=" + this.main_client_id);
+        const response = await fetch(this.$store.state.hostname + "/WaterOrders/getLastOrderTwoOrdersFullInfoByid?client_id=" + client_id);
         const data = await response.json();
         console.log('fetch two order2')
-
-      
         // this.loadingSimple = false;
         if(data.length>0){
           console.log(data)
@@ -667,7 +670,7 @@ export default {
       this.main_client_address = data.address;
       this.water_address_id = data.id;
       await this.fetchOstatka();
-      await this.fetchClientLastOrder();
+      await this.fetchClientLastOrder(this.main_client_id);
     },
     cls_wnd(){
       this.order_qty = 0;
@@ -741,6 +744,7 @@ export default {
             {
               this.$refs.message.success('Added_successfully')
               await this.fetchOrder_list();
+              await this.fetchClientLastOrder(this.main_client_id);
               return true;
             }
             else{
@@ -956,7 +960,7 @@ export default {
 }
 .client_info{
   width: 100%;
-  padding: 10px 10px 10px 25px;
+  padding: 10px 35px 10px 0px ; 
 
   .text_content_border{
     display: flex;
@@ -1009,5 +1013,20 @@ export default {
 .mdb_btn{
   font-size: 10.5px !important; 
   padding: 6px 25px !important;
+}
+.bottle {
+  width: 50px;
+  height: 45px;
+  display: inline-block;
+  animation: swing 3.5s infinite ease-in-out;
+  transform-origin: bottom center; /* pastki o‘q atrofida aylanadi */
+}
+
+@keyframes swing {
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(15deg); }
+  50%  { transform: rotate(-15deg); }
+  75%  { transform: rotate(15deg); }
+  100% { transform: rotate(0deg); }
 }
 </style>

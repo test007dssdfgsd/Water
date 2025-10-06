@@ -90,55 +90,141 @@ namespace ApiAll.Controllers.water
             return paginationModel;
         }
 
+        // [HttpGet("getPaginationByDateTime")]
+        // public async Task<ActionResult<TexPaginationModel>> getPaginationByDateTime([FromQuery] int page, [FromQuery] int size,[FromQuery] DateTime begin_date,[FromQuery] DateTime end_date)
+        // {
+        //     TexPaginationModel paginationModel = new TexPaginationModel();
+        //     List<WaterCheck> categoryList = await _context.WaterCheck
+        //         .Include(p => p.auth)
+        //         .Where(p => p.active_status == true && ( p.created_date_time >= begin_date && p.created_date_time <= end_date))
+        //         .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
+        //     if (categoryList == null)
+        //     {
+        //         categoryList = new List<WaterCheck>();
+        //     }
+
+        //     foreach (WaterCheck itm in categoryList) {
+        //         WaterOrder order = await _context.WaterOrder.FindAsync(itm.reserverd_number_id_3);
+        //         if (order != null) {
+
+        //             List<WaterOrderItem> orderItems = await _context.WaterOrderItem
+        //                 .Include(p => p.product)
+        //                 .Where(p => p.WaterOrderid == order.id).ToListAsync();
+
+        //             if (orderItems != null) {
+
+        //                 String product_name_list = "";
+        //                 String product_name_list1 = "";
+        //                 String product_name_list2 = "";
+        //                 foreach (WaterOrderItem itmord in orderItems) {
+        //                     product_name_list = product_name_list + itmord.product.name+"  ";
+        //                     product_name_list1 = product_name_list1 + itmord.product.name +"_"+itmord.qty.ToString()+ "  ";
+        //                     product_name_list2 = product_name_list2 + itmord.product.name + "==" + itmord.qty.ToString() + "  ";
+        //                 }
+
+        //                 itm.product_name_list_pp = product_name_list;
+        //                 itm.product_name_list_pp_1 = product_name_list1;
+        //                 itm.product_name_list_pp_2 = product_name_list2;
+
+
+        //             }
+
+        //         }
+
+        //     }
+
+
+        //     paginationModel.items_list = JArray.FromObject(categoryList);
+        //     paginationModel.items_count = await _context.WaterCheck.Where(p => p.active_status == true && (p.created_date_time >= begin_date && p.created_date_time <= end_date)).CountAsync();
+        //     paginationModel.current_item_count = categoryList.Count();
+        //     paginationModel.current_page = page;
+        //     return paginationModel;
+        // }
+
+
         [HttpGet("getPaginationByDateTime")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationByDateTime([FromQuery] int page, [FromQuery] int size,[FromQuery] DateTime begin_date,[FromQuery] DateTime end_date)
+        public async Task<ActionResult<TexPaginationModel>> getPaginationByDateTime(
+            [FromQuery] int page, 
+            [FromQuery] int size,
+            [FromQuery] DateTime begin_date,
+            [FromQuery] DateTime end_date,
+            [FromQuery] string search = "")
         {
             TexPaginationModel paginationModel = new TexPaginationModel();
-            List<WaterCheck> categoryList = await _context.WaterCheck
+
+            var query = _context.WaterCheck
                 .Include(p => p.auth)
-                .Where(p => p.active_status == true && ( p.created_date_time >= begin_date && p.created_date_time <= end_date))
-                .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
+                .Where(p => p.active_status == true 
+                    && p.created_date_time >= begin_date 
+                    && p.created_date_time <= end_date);
+
+            // 🔍 Agar search kiritilgan bo‘lsa, user_name bo‘yicha filterlash
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(p => p.user_name.Contains(search));
+            }
+
+            var categoryList = await query
+                .OrderByDescending(p => p.id)
+                .Skip(page * size)
+                .Take(size)
+                .ToListAsync();
+
             if (categoryList == null)
             {
                 categoryList = new List<WaterCheck>();
             }
 
-            foreach (WaterCheck itm in categoryList) {
+            // 🔗 Order va Items ni ulashish
+            foreach (WaterCheck itm in categoryList)
+            {
                 WaterOrder order = await _context.WaterOrder.FindAsync(itm.reserverd_number_id_3);
-                if (order != null) {
-
+                if (order != null)
+                {
                     List<WaterOrderItem> orderItems = await _context.WaterOrderItem
                         .Include(p => p.product)
-                        .Where(p => p.WaterOrderid == order.id).ToListAsync();
+                        .Where(p => p.WaterOrderid == order.id)
+                        .ToListAsync();
 
-                    if (orderItems != null) {
-
-                        String product_name_list = "";
-                        String product_name_list1 = "";
-                        String product_name_list2 = "";
-                        foreach (WaterOrderItem itmord in orderItems) {
-                            product_name_list = product_name_list + itmord.product.name+"  ";
-                            product_name_list1 = product_name_list1 + itmord.product.name +"_"+itmord.qty.ToString()+ "  ";
-                            product_name_list2 = product_name_list2 + itmord.product.name + "==" + itmord.qty.ToString() + "  ";
-                        }
-
-                        itm.product_name_list_pp = product_name_list;
-                        itm.product_name_list_pp_1 = product_name_list1;
-                        itm.product_name_list_pp_2 = product_name_list2;
-
-
+                    if (orderItems != null)
+                    {
+                        itm.product_name_list_pp = string.Join("  ", orderItems.Select(o => o.product.name));
+                        itm.product_name_list_pp_1 = string.Join("  ", orderItems.Select(o => $"{o.product.name}_{o.qty}"));
+                        itm.product_name_list_pp_2 = string.Join("  ", orderItems.Select(o => $"{o.product.name}=={o.qty}"));
                     }
-
                 }
-
             }
 
-
             paginationModel.items_list = JArray.FromObject(categoryList);
-            paginationModel.items_count = await _context.WaterCheck.Where(p => p.active_status == true && (p.created_date_time >= begin_date && p.created_date_time <= end_date)).CountAsync();
+            paginationModel.items_count = await query.CountAsync(); // 🔍 search bilan count qaytadi
             paginationModel.current_item_count = categoryList.Count();
             paginationModel.current_page = page;
+
             return paginationModel;
+        }
+
+
+        [HttpGet("getSummaryByDateTime")]
+        public async Task<ActionResult<object>> getSummaryByDateTime([FromQuery] DateTime begin_date, [FromQuery] DateTime end_date)
+        {
+            var summary = await _context.WaterCheck
+                .Where(p => p.active_status == true && p.created_date_time >= begin_date && p.created_date_time <= end_date)
+                .GroupBy(p => 1) 
+                .Select(g => new {
+                    cash = g.Sum(x => x.cash),
+                    card = g.Sum(x => x.card),
+                    online = g.Sum(x => x.online),
+                    rasxod = g.Sum(x => x.rasxod),
+                    summ = g.Sum(x => x.summ)
+                })
+                .FirstOrDefaultAsync();
+
+            if (summary == null)
+            {
+                return Ok(new { cash = 0, card = 0, online = 0, rasxod = 0, summ = 0 });
+            }
+
+            return Ok(summary);
         }
 
         [HttpGet("getPaginationByAuthIdByDateTime")]

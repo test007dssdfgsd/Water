@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "ulBok5X1ZMs=",
+  "dgSpecHash": "xTJHB3vaX3Y=",
   "success": true,
-  "projectFilePath": "C:\\Github programm\\Water project\\ApiAll\\ApiAll.csproj",
+  "projectFilePath": "C:\\Github programm\\Water project\\Water\\ApiAll\\ApiAll.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Wеsolvе\\.nuget\\packages\\entityframework\\6.2.0\\entityframework.6.2.0.nupkg.sha512",
     "C:\\Users\\Wеsolvе\\.nuget\\packages\\humanizer.core\\2.8.26\\humanizer.core.2.8.26.nupkg.sha512",
@@ -182,9 +182,9 @@
       "code": "NU1902",
       "level": "Warning",
       "message": "У пакета \"Swashbuckle.AspNetCore.SwaggerUI\" 6.2.3 есть известная уязвимость https://github.com/advisories/GHSA-qrmm-w75w-3wpx (уровень серьезности: средний)",
-      "projectPath": "C:\\Github programm\\Water project\\ApiAll\\ApiAll.csproj",
+      "projectPath": "C:\\Github programm\\Water project\\Water\\ApiAll\\ApiAll.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Github programm\\Water project\\ApiAll\\ApiAll.csproj",
+      "filePath": "C:\\Github programm\\Water project\\Water\\ApiAll\\ApiAll.csproj",
       "libraryId": "Swashbuckle.AspNetCore.SwaggerUI",
       "targetGraphs": [
         ".NETCoreApp,Version=v3.1"
@@ -194,9 +194,9 @@
       "code": "NU1904",
       "level": "Warning",
       "message": "У пакета \"System.Drawing.Common\" 5.0.2 есть известная уязвимость https://github.com/advisories/GHSA-rxg9-xrhp-64gj (уровень серьезности: критический)",
-      "projectPath": "C:\\Github programm\\Water project\\ApiAll\\ApiAll.csproj",
+      "projectPath": "C:\\Github programm\\Water project\\Water\\ApiAll\\ApiAll.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Github programm\\Water project\\ApiAll\\ApiAll.csproj",
+      "filePath": "C:\\Github programm\\Water project\\Water\\ApiAll\\ApiAll.csproj",
       "libraryId": "System.Drawing.Common",
       "targetGraphs": [
         ".NETCoreApp,Version=v3.1"
@@ -206,9 +206,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Пакет \"EntityFramework 6.2.0\" был восстановлен с помощью \".NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1\", а не целевой платформы проекта \".NETCoreApp,Version=v3.1\". Этот пакет может быть не полностью совместим с вашим проектом.",
-      "projectPath": "C:\\Github programm\\Water project\\ApiAll\\ApiAll.csproj",
+      "projectPath": "C:\\Github programm\\Water project\\Water\\ApiAll\\ApiAll.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Github programm\\Water project\\ApiAll\\ApiAll.csproj",
+      "filePath": "C:\\Github programm\\Water project\\Water\\ApiAll\\ApiAll.csproj",
       "libraryId": "EntityFramework",
       "targetGraphs": [
         ".NETCoreApp,Version=v3.1"
@@ -218,9 +218,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Пакет \"System.Linq.Dynamic 1.0.8\" был восстановлен с помощью \".NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1\", а не целевой платформы проекта \".NETCoreApp,Version=v3.1\". Этот пакет может быть не полностью совместим с вашим проектом.",
-      "projectPath": "C:\\Github programm\\Water project\\ApiAll\\ApiAll.csproj",
+      "projectPath": "C:\\Github programm\\Water project\\Water\\ApiAll\\ApiAll.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Github programm\\Water project\\ApiAll\\ApiAll.csproj",
+      "filePath": "C:\\Github programm\\Water project\\Water\\ApiAll\\ApiAll.csproj",
       "libraryId": "System.Linq.Dynamic",
       "targetGraphs": [
         ".NETCoreApp,Version=v3.1"

@@ -9574,11 +9574,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Github programm\\Water project\\ApiAll\\ApiAll.csproj",
+      "projectUniqueName": "C:\\Github programm\\Water project\\Water\\ApiAll\\ApiAll.csproj",
       "projectName": "ApiAll",
-      "projectPath": "C:\\Github programm\\Water project\\ApiAll\\ApiAll.csproj",
+      "projectPath": "C:\\Github programm\\Water project\\Water\\ApiAll\\ApiAll.csproj",
       "packagesPath": "C:\\Users\\Wеsolvе\\.nuget\\packages\\",
-      "outputPath": "C:\\Github programm\\Water project\\ApiAll\\obj\\",
+      "outputPath": "C:\\Github programm\\Water project\\Water\\ApiAll\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

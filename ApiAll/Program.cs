@@ -49,11 +49,14 @@ namespace ApiAll
                     webBuilder.UseStartup<Startup>();
                     webBuilder.UseKestrel(opts =>
                     {
-                        opts.Listen(IPAddress.Loopback, port: 5002);
-                        opts.ListenAnyIP(5003);
-                        opts.ListenLocalhost(5004, opts => opts.UseHttps());
-                        opts.ListenLocalhost(5005, opts => opts.UseHttps());
-                        opts.ListenAnyIP(5006, opts => opts.UseHttps());
+                        // HTTP portlar (Linux server uchun)
+                        // IPAddress.Loopback o'chirilgan (faqat localhost da ishlaydi, tashqi IP dan ulanish mumkin emas)
+                        // opts.Listen(IPAddress.Loopback, port: 5002);
+                        opts.ListenAnyIP(5003); // Barcha IP larda ishlaydi (tashqi IP dan ham ulanish mumkin)
+                        // HTTPS portlar o'chirilgan (sertifikat yo'q bo'lsa)
+                        // opts.ListenLocalhost(5004, opts => opts.UseHttps());
+                        // opts.ListenLocalhost(5005, opts => opts.UseHttps());
+                        // opts.ListenAnyIP(5006, opts => opts.UseHttps());
                     });
                 });
     }

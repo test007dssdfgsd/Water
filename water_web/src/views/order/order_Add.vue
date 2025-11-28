@@ -1018,8 +1018,6 @@ export default {
   width: 50px;
   height: 45px;
   display: inline-block;
-  animation: swing 3.5s infinite ease-in-out;
-  transform-origin: bottom center; /* pastki o‘q atrofida aylanadi */
 }
 
 @keyframes swing {

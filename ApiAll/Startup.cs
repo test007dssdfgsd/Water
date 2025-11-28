@@ -141,6 +141,8 @@ namespace ApiAll
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                // Vue SPA fallback uchun (API route lar bo'lmagan barcha route lar uchun index.html qaytaradi)
+                endpoints.MapFallbackToFile("index.html");
             });
         }
     }

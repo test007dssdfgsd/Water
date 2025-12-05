@@ -348,6 +348,13 @@ const routes = [{
         component: () =>
             import ('../views/report/lastOrderReport.vue')
     },
+    {
+        path: '/client_cancel_report',
+        name: 'client_cancel_report',
+        meta: { layout: 'main' },
+        component: () =>
+            import ('../views/report/client_cancel_report.vue')
+    },
     
 
 

@@ -30,5 +30,9 @@ namespace ApiAll.Model.water
         public String client_name_str => client != null ? client.fio : "";
         [NotMapped]
         public JObject clinet_obj { get; set; }
+        [NotMapped]
+        public double? bottle_count { get; set; }
+        [NotMapped]
+        public double? bottle_count_real { get; set; }
     }
 }

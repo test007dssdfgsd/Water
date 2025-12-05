@@ -242,6 +242,40 @@ namespace ApiAll.Controllers.water
             return order_list;
         }
 
+        [HttpGet("getTodayCompletedOrdersByAuthId")]
+        public async Task<ActionResult<IEnumerable<WaterOrder>>> getTodayCompletedOrdersByAuthId([FromQuery] long id_auth)
+        {
+            var today = DateTime.Now.Date;
+            var tomorrow = today.AddDays(1);
+
+            var order_list = await _context.WaterOrder
+                .Include(p => p.client)
+                .Include(p => p.address)
+                .Include(p => p.user)
+                .Include(p => p.deleivered_user_auth)
+                .ThenInclude(p => p.user)
+                .Where(p => p.deleivered_user_auth_id == id_auth 
+                    && p.accepted_status == true
+                    && p.order_accepted_date >= today 
+                    && p.order_accepted_date < tomorrow)
+                .OrderByDescending(p => p.order_accepted_date)
+                .ToListAsync();
+
+            foreach (WaterOrder order in order_list)
+            {
+                order.items = await _context.WaterOrderItem
+                    .Include(p => p.product)
+                    .Where(p => p.WaterOrderid == order.id)
+                    .ToListAsync();
+
+                order.phone_list_obj = await _context.WaterClientPhoneNumber
+                    .Where(p => p.WaterClientid == order.WaterClientid)
+                    .ToListAsync();
+            }
+
+            return order_list;
+        }
+
         [HttpGet("getOrderListByStrList")]
         public async Task<ActionResult<IEnumerable<WaterOrder>>> getOrderListByStrList([FromQuery] String id_str)
         {
@@ -1384,6 +1418,200 @@ namespace ApiAll.Controllers.water
 
             return order;
         }
+
+        // GET: api/WaterOrders/getClientsWithoutOrdersAfterDate
+        [HttpGet("getClientsWithoutOrdersAfterDate")]
+        public async Task<ActionResult<IEnumerable<WaterClient>>> getClientsWithoutOrdersAfterDate([FromQuery] string date)
+        {
+            if (string.IsNullOrEmpty(date))
+            {
+                return BadRequest("Date parameter is required");
+            }
+
+            DateTime targetDate;
+            if (!DateTime.TryParse(date, out targetDate))
+            {
+                return BadRequest("Invalid date format");
+            }
+
+            // Barcha klientlarni olish
+            var allClients = await _context.WaterClient
+                .Include(c => c.addresses)
+                    .ThenInclude(a => a.tuman)
+                .Include(c => c.phone_numbers_list)
+                .Include(c => c.tuman)
+                .Where(c => c.active_status == true)
+                .ToListAsync();
+
+            // Tanlangan sanadan keyin har qanday zakaz bergan klientlar (accepted_status dan qat'iy nazar)
+            var clientsWithOrders = await _context.WaterOrder
+                .Where(o => o.order_date >= targetDate && o.accepted_status == false)
+                .Select(o => o.WaterClientid)
+                .Distinct()
+                .ToListAsync();
+
+            // Zakaz bermagan klientlar
+            var clientsWithoutOrders = allClients
+                .Where(c => !clientsWithOrders.Contains(c.id))
+                .ToList();
+
+            // Har bir klientning oxirgi zakazini tekshirish va otmen zakazlarni filtrlash
+            var clientsToRemove = new List<WaterClient>();
+            foreach (var client in clientsWithoutOrders)
+            {
+                // Klientning oxirgi zakazini topish (tanlangan sanadan oldin)
+                var lastOrder = await _context.WaterOrder
+                    .Where(o => o.WaterClientid == client.id && o.order_date < targetDate)
+                    .OrderByDescending(o => o.order_date)
+                    .FirstOrDefaultAsync();
+
+                // Agar oxirgi zakaz otmen zakaz bo'lsa (reserverd_note_3 == "orange" va reserverd_note_2 == "5")
+                if (lastOrder != null && 
+                    lastOrder.reserverd_note_3 == "orange" && 
+                    lastOrder.reserverd_note_2 == "5")
+                {
+                    clientsToRemove.Add(client);
+                }
+            }
+
+            // Otmen zakazga ega bo'lgan klientlarni ro'yxatdan olib tashlash
+            clientsWithoutOrders = clientsWithoutOrders
+                .Where(c => !clientsToRemove.Contains(c))
+                .ToList();
+
+            // Asosiy product'ni topish
+            var mainProduct = await _context.WaterProduct
+                .Where(p => p.main_product == true)
+                .FirstOrDefaultAsync();
+
+            // Barcha active bottle info ma'lumotlarini olish
+            var allBottleInfos = await _context.WaterClientBottleInfo
+                .Include(bi => bi.product)
+                .Where(bi => bi.active_status == true)
+                .ToListAsync();
+
+            // Har bir client va address uchun bottle count ni to'ldirish
+            foreach (var client in clientsWithoutOrders)
+            {
+                if (client.addresses != null)
+                {
+                    foreach (var address in client.addresses)
+                    {
+                        // Avval asosiy product uchun bottle info ni topish
+                        var bottleInfo = mainProduct != null 
+                            ? allBottleInfos
+                                .FirstOrDefault(bi => bi.WaterClientid == client.id && 
+                                                     bi.WaterClientAddressid == address.id &&
+                                                     bi.WaterProductid == mainProduct.id)
+                            : null;
+                        
+                        // Agar asosiy product uchun topilmasa, barcha product'lar uchun birinchi topilganini olish
+                        if (bottleInfo == null)
+                        {
+                            bottleInfo = allBottleInfos
+                                .FirstOrDefault(bi => bi.WaterClientid == client.id && 
+                                                     bi.WaterClientAddressid == address.id);
+                        }
+                        
+                        if (bottleInfo != null)
+                        {
+                            address.bottle_count = bottleInfo.bottle_count;
+                            address.bottle_count_real = bottleInfo.bottle_count_real;
+                        }
+                        else
+                        {
+                            address.bottle_count = 0;
+                            address.bottle_count_real = 0;
+                        }
+                    }
+                }
+            }
+
+            return clientsWithoutOrders;
+        }
+
+        // POST: api/WaterOrders/cancelMultipleClients
+        [HttpPost("cancelMultipleClients")]
+        public async Task<ActionResult> cancelMultipleClients([FromBody] CancelMultipleClientsDto dto)
+        {
+            if (dto == null || dto.ClientIds == null || dto.ClientIds.Count == 0)
+            {
+                return BadRequest("ClientIds are required");
+            }
+
+            var results = new List<object>();
+            var mainProduct = await _context.WaterProduct
+                .Where(p => p.main_product == true)
+                .FirstOrDefaultAsync();
+
+            if (mainProduct == null)
+            {
+                return BadRequest("Main product not found");
+            }
+
+            // Sana formatlash
+            DateTime selectedDate;
+            if (!DateTime.TryParse(dto.OrderDate, out selectedDate))
+            {
+                return BadRequest("Invalid date format");
+            }
+            string dateStr = selectedDate.ToString("dd.MM.yyyy");
+
+            foreach (var clientId in dto.ClientIds)
+            {
+                try
+                {
+                    var client = await _context.WaterClient
+                        .Include(c => c.addresses)
+                        .FirstOrDefaultAsync(c => c.id == clientId);
+
+                    if (client == null || client.addresses == null || client.addresses.Count == 0)
+                    {
+                        results.Add(new { clientId, success = false, message = "Client or address not found" });
+                        continue;
+                    }
+
+                    // Har bir manzil uchun otmen zakaz yaratish
+                    var orderIds = new List<long>();
+                    foreach (var address in client.addresses)
+                    {
+                        // Otmen zakaz yaratish
+                        var cancelOrder = new WaterOrder
+                        {
+                            order_date = DateTime.Parse(dto.OrderDate + "T12:00:00.000Z"),
+                            WaterClientid = clientId,
+                            water_count = 0,
+                            WaterClientAddressid = address.id,
+                            note = "Otmen -- " + dateStr + " sanadan beri suv olmagan",
+                            reserverd_note_3 = "orange",
+                            reserverd_note_2 = "5", // otmen bugnini bilish uchun
+                            accepted_status = false,
+                            items = new List<WaterOrderItem>()
+                        };
+
+                        _context.WaterOrder.Update(cancelOrder);
+                        await _context.SaveChangesAsync();
+                        orderIds.Add(cancelOrder.id);
+                    }
+
+                    results.Add(new { clientId, success = true, orderIds = orderIds, addressesCount = client.addresses.Count });
+                }
+                catch (Exception ex)
+                {
+                    results.Add(new { clientId, success = false, message = ex.Message });
+                }
+            }
+
+            return Ok(new { results });
+        }
+
+        public class CancelMultipleClientsDto
+        {
+            public List<long> ClientIds { get; set; }
+            public string OrderDate { get; set; }
+            public string Note { get; set; }
+        }
+
         // DELETE: api/WaterOrders/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<WaterOrder>> DeleteWaterOrder(long id)

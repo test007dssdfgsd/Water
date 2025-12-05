@@ -1,87 +1,376 @@
 <template>
-  <div class="all_info_order">
-    <mdb-navbar expand="large" dark color="indigo">
-      <mdb-navbar-brand href="#">
-        {{user_name}}
-      </mdb-navbar-brand>
-      <mdb-navbar-toggler>
-        <mdb-navbar-nav right>
-          <mdb-nav-item  active>{{$t('order')}}: {{all_water_count}}</mdb-nav-item>
-            <mdb-nav-item  active> Tarqatildi : {{all_summ.tarqatildi.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}} / 
-               {{all_summ.vozvrat.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}
-            </mdb-nav-item>
-          <mdb-nav-item  active>{{$t('cash')}}: {{all_summ.cash.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</mdb-nav-item>
-          <mdb-nav-item  active>{{$t('card')}}: {{all_summ.card.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</mdb-nav-item>
-          <mdb-nav-item  active>{{$t('summ')}}: {{all_summ.summ.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</mdb-nav-item>
-          <mdb-nav-item href="/">{{$t('logout')}}</mdb-nav-item>
-        </mdb-navbar-nav>
-      </mdb-navbar-toggler>
-    </mdb-navbar>
-    <div class="order_new_list">
-      <div class="header_menu px-1 mt-2">
-        <div class="row">
-          <div class="col-12 mt-1">
-            <div class="d-flex">
-              <input-icon style="width: 100%; height:30px;" v-model="search" @input="searchClick" :placeholder="$t('search_here')"></input-icon>
-              <mdb-btn class="mr-1 ml-0 mt-0  py-1 px-3"  
-              style="font-size: 9px; height:28px; width:80px; margin-top: 1px !important;" 
-              color="orange"  
-              @click="$router.push('/postavchik_map')"
-                size="sm">{{$t('map')}}
-              </mdb-btn>
-            </div>
+  <div class="delivery-app">
+    <!-- Desktop Header -->
+    <div class="desktop-header">
+      <div class="desktop-app-header">
+        <div class="desktop-header-top">
+          <div class="desktop-user-info">
+            <h2 class="desktop-user-name">{{user_name}}</h2>
+            <button class="desktop-logout-btn" @click="$router.push('/')">
+              <i class="fas fa-sign-out-alt"></i>
+              {{$t('logout')}}
+            </button>
+          </div>
+        </div>
+        
+        <!-- Desktop Stats Cards -->
+        <div class="desktop-stats-container">
+          <div class="desktop-stat-card">
+            <div class="desktop-stat-label">{{$t('order')}}</div>
+            <div class="desktop-stat-value">{{all_water_count}}</div>
+          </div>
+          <div class="desktop-stat-card">
+            <div class="desktop-stat-label">Tarqatildi</div>
+            <div class="desktop-stat-value">{{all_summ.tarqatildi.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</div>
+          </div>
+          <div class="desktop-stat-card">
+            <div class="desktop-stat-label">Vozvrat</div>
+            <div class="desktop-stat-value">{{all_summ.vozvrat.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</div>
+          </div>
+          <div class="desktop-stat-card">
+            <div class="desktop-stat-label">{{$t('cash')}}</div>
+            <div class="desktop-stat-value">{{all_summ.cash.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</div>
+          </div>
+          <div class="desktop-stat-card">
+            <div class="desktop-stat-label">{{$t('card')}}</div>
+            <div class="desktop-stat-value">{{all_summ.card.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</div>
+          </div>
+          <div class="desktop-stat-card desktop-highlight">
+            <div class="desktop-stat-label">{{$t('summ')}}</div>
+            <div class="desktop-stat-value">{{all_summ.summ.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</div>
           </div>
         </div>
       </div>
-      <div class="table w-100 ">
-        <loader-table v-if="loading" />
-        <table v-else class="w-100 tabled">
-          <thead class="header_table ">
-            <tr class="stiky_position">
-              <th>№</th>
-              <th>{{$t('fio')}}</th>
-              <th width="80" class="text-center">{{$t('qty')}}</th>
-              <th width="100" class="text-center">{{$t('product')}}</th>
-              <th width="100" class="text-center">{{$t('note')}}</th>
-              <th width="130">{{$t('date')}}</th>
-              <th width="60">{{$t('Action')}}</th>
-            </tr>
-          </thead>
-          <tbody class="body_table">
-            <tr v-for="(item, index) in order_list" :key="index" class="hoverTr" :style="{background: item.reserverd_note_3}" 
-            :class="{'bg_dark_tr text-white': item.color_value == 'black', 'bg_red_tr text-white': item.color_value == 'green'}">
-              <td>{{index+1}}</td>
-              <td class=" font-weight-bold" style="font-size: 12px;">
-                {{item.client_name_str}}
-                <mdb-icon v-show="item.note != null || item.note != ''" icon="star" color="orange" class="ml-1" />
-              </td>
-              <td class="text-center text-primary font-weight-bold" style="font-size: 12px;">{{item.water_count}}</td>
-              <td>{{item.name_pp}}</td>
-              <td>{{item.note}}</td>
-              <td><a>{{item.order_date.slice(0,10)}}</a></td>
-              <td class="m-0 p-0">
-                <mdb-btn class="mr-1 ml-0 mt-0 mt-1 btn-acp"  style="font-size: 8px; width:80px; padding: 5px;"  @click="showOrder(item)" 
-                  size="sm">{{$t('accept')}}
-                </mdb-btn>
-                <mdb-btn class="mr-1 ml-0 mt-0 mt-1 bg-info"  style="font-size: 8px; width:80px; padding: 5px;"  @click="openYandex(item)" 
-                  size="sm">
-                  <i class="fas fa-map-marked-alt"></i>
-                  Поехали
-                </mdb-btn>
-                
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+      <div class="app-header">
+        <div class="header-top">
+          <div class="user-info">
+            <h3 class="user-name">{{user_name}}</h3>
+            <button class="logout-btn" @click="$router.push('/')">
+              <i class="fas fa-sign-out-alt"></i>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Stats Cards - All Statistics -->
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-label">{{$t('order')}}</div>
+            <div class="stat-value">{{all_water_count}}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Tarqatildi</div>
+            <div class="stat-value">{{all_summ.tarqatildi.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Vozvrat</div>
+            <div class="stat-value">{{all_summ.vozvrat.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">{{$t('cash')}}</div>
+            <div class="stat-value">{{all_summ.cash.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">{{$t('card')}}</div>
+            <div class="stat-value">{{all_summ.card.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</div>
+          </div>
+          <div class="stat-card highlight">
+            <div class="stat-label">{{$t('summ')}}</div>
+            <div class="stat-value">{{all_summ.summ.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <modal-train  :show="pay_show" headerbackColor="white"  titlecolor="black" :title="$t('pay')" 
-        @close="pay_show = false" width="100%">
-          <template v-slot:body>
-            <payNewOrder ref="payNew" @close="closeAcceptOrder" @closeUpdate="closeUpdate"  :orderId="order_id" :shown="pay_show"></payNewOrder>
-          </template>
-      </modal-train>
+    <!-- Desktop Content -->
+    <div class="desktop-content">
+      <!-- Desktop Search and Filter Bar -->
+      <div class="desktop-search-filter-bar">
+        <div class="desktop-search-box">
+          <i class="fas fa-search desktop-search-icon"></i>
+          <input 
+            type="text" 
+            v-model="search" 
+            @input="searchClick" 
+            :placeholder="$t('search_here')"
+            class="desktop-search-input"
+          />
+        </div>
+        <button class="desktop-map-btn" @click="$router.push('/postavchik_map')">
+          <i class="fas fa-map-marked-alt"></i>
+          {{$t('map')}}
+        </button>
+      </div>
+
+      <!-- Desktop Filter Tabs -->
+      <div class="desktop-filter-tabs">
+        <button 
+          class="desktop-filter-tab" 
+          :class="{ active: filterStatus === 'pending' }"
+          @click="setFilterStatus('pending')"
+        >
+          Pending
+        </button>
+        <button 
+          class="desktop-filter-tab" 
+          :class="{ active: filterStatus === 'complete' }"
+          @click="setFilterStatus('complete')"
+        >
+          Complete
+        </button>
+      </div>
+
+      <!-- Desktop Orders Grid -->
+      <div class="desktop-orders-container">
+        <loader-table v-if="loading" />
+        <div v-else class="desktop-orders-grid">
+          <div 
+            v-for="(item, index) in filteredOrderList" 
+            :key="index" 
+            class="desktop-order-card"
+            :class="{
+              'desktop-order-pending': item.color_value === 'green',
+              'desktop-order-overdue': item.color_value === 'black',
+              'desktop-order-complete': item.accepted_status
+            }"
+          >
+            <div class="desktop-order-card-header">
+              <div class="desktop-order-id">#{{item.id}}</div>
+              <div class="desktop-order-status" :class="getStatusClass(item)">
+                {{getStatusText(item)}}
+              </div>
+            </div>
+            
+            <div class="desktop-order-content">
+              <div class="desktop-order-client">
+                <h4 class="desktop-client-name">
+                  {{item.client_name_str}}
+                  <mdb-icon v-if="item.note" icon="star" color="orange" class="ml-1" />
+                </h4>
+                <div class="desktop-order-address" v-if="item.address">
+                  <i class="fas fa-map-marker-alt"></i>
+                  {{item.address.address}}
+                </div>
+              </div>
+
+              <div class="desktop-order-details">
+                <div class="desktop-detail-item">
+                  <span class="desktop-detail-label">{{$t('qty')}}:</span>
+                  <span class="desktop-detail-value desktop-highlight-qty">{{item.water_count}}</span>
+                </div>
+                <div class="desktop-detail-item" v-if="item.name_pp">
+                  <span class="desktop-detail-label">{{$t('product')}}:</span>
+                  <span class="desktop-detail-value">{{item.name_pp}}</span>
+                </div>
+                <div class="desktop-detail-item">
+                  <span class="desktop-detail-label">{{$t('date')}}:</span>
+                  <span class="desktop-detail-value">{{formatDate(item.order_date)}}</span>
+                </div>
+                <div class="desktop-detail-item" v-if="item.note">
+                  <span class="desktop-detail-label">{{$t('note')}}:</span>
+                  <span class="desktop-detail-value">{{item.note}}</span>
+                </div>
+              </div>
+
+              <!-- Desktop Order Items List -->
+              <div v-if="item.items && item.items.length > 0" class="desktop-order-items-list">
+                <div class="desktop-items-header">
+                  <i class="fas fa-box"></i>
+                  <span>Mahsulotlar:</span>
+                </div>
+                <div class="desktop-items-container">
+                  <div 
+                    v-for="(orderItem, idx) in item.items" 
+                    :key="idx" 
+                    class="desktop-order-item-badge"
+                  >
+                    <span class="desktop-item-name">{{orderItem.product ? orderItem.product.name : 'N/A'}}</span>
+                    <span class="desktop-item-qty">{{orderItem.qty}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="desktop-order-actions">
+              <button 
+                v-if="!item.accepted_status" 
+                class="desktop-action-btn desktop-primary-btn" 
+                @click="showOrder(item)"
+              >
+                <i class="fas fa-check-circle"></i>
+                {{$t('accept')}}
+              </button>
+              <button class="desktop-action-btn desktop-secondary-btn" @click="openYandex(item)">
+                <i class="fas fa-map-marked-alt"></i>
+                Поехали
+              </button>
+            </div>
+          </div>
+
+          <div v-if="filteredOrderList.length === 0" class="desktop-empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>Zakazlar topilmadi</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Content -->
+    <div class="mobile-content">
+      <!-- Search and Filter Bar -->
+      <div class="search-filter-bar">
+        <div class="search-box">
+          <i class="fas fa-search search-icon"></i>
+          <input 
+            type="text" 
+            v-model="search" 
+            @input="searchClick" 
+            :placeholder="$t('search_here')"
+            class="search-input"
+          />
+        </div>
+        <button class="map-btn" @click="$router.push('/postavchik_map')">
+          <i class="fas fa-map-marked-alt"></i>
+          <span class="map-btn-text">{{$t('map')}}</span>
+        </button>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="filter-tabs">
+        <button 
+          class="filter-tab" 
+          :class="{ active: filterStatus === 'pending' }"
+          @click="setFilterStatus('pending')"
+        >
+          Pending
+        </button>
+        <button 
+          class="filter-tab" 
+          :class="{ active: filterStatus === 'complete' }"
+          @click="setFilterStatus('complete')"
+        >
+          Complete
+        </button>
+      </div>
+
+      <!-- Orders List -->
+      <div class="orders-container">
+        <loader-table v-if="loading" />
+        <div v-else class="orders-list">
+          <div 
+            v-for="(item, index) in filteredOrderList" 
+            :key="index" 
+            class="order-card"
+            :class="{
+              'order-pending': item.color_value === 'green',
+              'order-overdue': item.color_value === 'black',
+              'order-complete': item.accepted_status
+            }"
+          >
+            <div class="order-card-header">
+              <div class="order-id">№{{item.id}}</div>
+              <div class="order-status" :class="getStatusClass(item)">
+                {{getStatusText(item)}}
+              </div>
+            </div>
+            
+            <div class="order-content">
+              <div class="order-client">
+                <h4 class="client-name">
+                  {{item.client_name_str}}
+                  <mdb-icon v-if="item.note" icon="star" color="orange" class="ml-1" />
+                </h4>
+                <div class="order-address" v-if="item.address">
+                  <i class="fas fa-map-marker-alt"></i>
+                  {{item.address.address}}
+                </div>
+              </div>
+
+              <div class="order-details">
+                <div class="detail-item">
+                  <span class="detail-label">{{$t('qty')}}:</span>
+                  <span class="detail-value highlight-qty">{{item.water_count}}</span>
+                </div>
+                <div class="detail-item" v-if="item.name_pp">
+                  <span class="detail-label">{{$t('product')}}:</span>
+                  <span class="detail-value">{{item.name_pp}}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">{{$t('date')}}:</span>
+                  <span class="detail-value">{{formatDate(item.order_date)}}</span>
+                </div>
+                <div class="detail-item" v-if="item.note">
+                  <span class="detail-label">{{$t('note')}}:</span>
+                  <span class="detail-value">{{item.note}}</span>
+                </div>
+              </div>
+
+              <!-- Order Items List -->
+              <div v-if="item.items && item.items.length > 0" class="order-items-list">
+                <div class="items-header">
+                  <i class="fas fa-box"></i>
+                  <span>Mahsulotlar:</span>
+                </div>
+                <div class="items-container">
+                  <div 
+                    v-for="(orderItem, idx) in item.items" 
+                    :key="idx" 
+                    class="order-item-badge"
+                  >
+                    <span class="item-name">{{orderItem.product ? orderItem.product.name : 'N/A'}}</span>
+                    <span class="item-qty">{{orderItem.qty}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="order-actions">
+              <button 
+                v-if="!item.accepted_status" 
+                class="action-btn primary-btn" 
+                @click="showOrder(item)"
+              >
+                <i class="fas fa-check-circle"></i>
+                {{$t('accept')}}
+              </button>
+              <button class="action-btn secondary-btn" @click="openYandex(item)">
+                <i class="fas fa-map-marked-alt"></i>
+                Поехали
+              </button>
+            </div>
+          </div>
+
+          <div v-if="filteredOrderList.length === 0" class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>Zakazlar topilmadi</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <modal-train  
+      :show="pay_show" 
+      headerbackColor="white"  
+      titlecolor="black" 
+      :title="$t('pay')" 
+      @close="pay_show = false" 
+      width="100%"
+    >
+      <template v-slot:body>
+        <payNewOrder 
+          ref="payNew" 
+          @close="closeAcceptOrder" 
+          @closeUpdate="closeUpdate" 
+          :orderId="order_id" 
+          :shown="pay_show"
+        ></payNewOrder>
+      </template>
+    </modal-train>
+    
     <Toast ref="message"></Toast>
   </div>
 </template>
@@ -116,6 +405,8 @@ export default {
 
       order_list:  [],
       cach_order_list: [],
+      complete_order_list: [],
+      cach_complete_order_list: [],
       order_id: null,
 
       all_water_count: 0,
@@ -137,6 +428,7 @@ export default {
 
       search: '',
       user_name: localStorage.UserName,
+      filterStatus: 'pending', // pending, complete
     }
   },
   async mounted() {
@@ -150,23 +442,57 @@ export default {
   },
   computed: {
     ...mapGetters(['allOrder_list', 'get_postavchik_order_list']),
+    filteredOrderList() {
+      if (this.filterStatus === 'complete') {
+        return this.complete_order_list;
+      } else {
+        // Pending - filter from order_list
+        let filtered = this.order_list;
+        if (this.search) {
+          // Search is already applied in searchClick
+          return filtered;
+        }
+        return filtered;
+      }
+    }
   },
   methods: {
   ...mapActions(['fetchOrder_list', 'fetchPostavchikOrder']),
     searchClick(){
-      this.order_list = this.cach_order_list;
       this.loading = true;
-      if(this.search != ''){
-        let userSearchList = [];
-        for(let i=0; i<this.order_list.length;i++){
-          if(this.order_list[i].client_name_str.toLowerCase().includes(this.search.toLowerCase()) || this.order_list[i].address.address.toLowerCase().includes(this.search.toLowerCase())){
-            userSearchList.push(this.order_list[i])
+      if(this.filterStatus === 'complete'){
+        // Search in complete orders
+        this.complete_order_list = this.cach_complete_order_list;
+        if(this.search != ''){
+          let userSearchList = [];
+          for(let i=0; i<this.complete_order_list.length;i++){
+            if((this.complete_order_list[i].client_name_str && this.complete_order_list[i].client_name_str.toLowerCase().includes(this.search.toLowerCase())) || 
+               (this.complete_order_list[i].address && this.complete_order_list[i].address.address && this.complete_order_list[i].address.address.toLowerCase().includes(this.search.toLowerCase()))){
+              userSearchList.push(this.complete_order_list[i])
+            }
           }
+          this.complete_order_list = userSearchList;
         }
-        this.order_list = userSearchList;
+        else{
+          this.complete_order_list = this.cach_complete_order_list;
+        }
       }
       else{
+        // Search in pending orders
         this.order_list = this.cach_order_list;
+        if(this.search != ''){
+          let userSearchList = [];
+          for(let i=0; i<this.order_list.length;i++){
+            if((this.order_list[i].client_name_str && this.order_list[i].client_name_str.toLowerCase().includes(this.search.toLowerCase())) || 
+               (this.order_list[i].address && this.order_list[i].address.address && this.order_list[i].address.address.toLowerCase().includes(this.search.toLowerCase()))){
+              userSearchList.push(this.order_list[i])
+            }
+          }
+          this.order_list = userSearchList;
+        }
+        else{
+          this.order_list = this.cach_order_list;
+        }
       }
       this.loading = false;
     },
@@ -184,7 +510,6 @@ export default {
           console.log('data.items_list')
           console.log(data)
           this.pos_money_report_list = data.items_list;
-          // this.all_water_count = 0;
           this.all_summ = {
             cash: 0,
             card: 0,
@@ -195,13 +520,13 @@ export default {
             summ: 0,
           }
           for(let i=0; i<this.pos_money_report_list.length; i++){
-            this.all_summ.cash += parseFloat(this.pos_money_report_list[i].cash)
-            this.all_summ.tarqatildi += parseFloat(this.pos_money_report_list[i].reserverd_number_id_2)
-            this.all_summ.vozvrat += parseFloat(this.pos_money_report_list[i].reserverd_number_id_1)
-            this.all_summ.card += parseFloat(this.pos_money_report_list[i].card)
-            this.all_summ.online += parseFloat(this.pos_money_report_list[i].online)
-            this.all_summ.rasxod += parseFloat(this.pos_money_report_list[i].rasxod)
-            this.all_summ.summ += parseFloat(this.pos_money_report_list[i].summ)
+            this.all_summ.cash += parseFloat(this.pos_money_report_list[i].cash || 0)
+            this.all_summ.tarqatildi += parseFloat(this.pos_money_report_list[i].reserverd_number_id_2 || 0)
+            this.all_summ.vozvrat += parseFloat(this.pos_money_report_list[i].reserverd_number_id_1 || 0)
+            this.all_summ.card += parseFloat(this.pos_money_report_list[i].card || 0)
+            this.all_summ.online += parseFloat(this.pos_money_report_list[i].online || 0)
+            this.all_summ.rasxod += parseFloat(this.pos_money_report_list[i].rasxod || 0)
+            this.all_summ.summ += parseFloat(this.pos_money_report_list[i].summ || 0)
           }
            console.log('bak -- ' + this.all_summ.tarqatildi)
         }
@@ -221,8 +546,10 @@ export default {
     },
     openYandex(data){
       console.log(data)
-      const url = `https://yandex.ru/maps/?rtext=~${encodeURIComponent(data.address.latidu + ',' + data.address.longitu)}&rtt=auto`;
-      window.open(url, '_blank', 'noopener');
+      if (data.address && data.address.latidu && data.address.longitu) {
+        const url = `https://yandex.ru/maps/?rtext=~${encodeURIComponent(data.address.latidu + ',' + data.address.longitu)}&rtt=auto`;
+        window.open(url, '_blank', 'noopener');
+      }
     },
 
     async updateList(){
@@ -233,105 +560,1118 @@ export default {
       await this.fetchPostavchikOrder(auth_id);
       this.order_list = this.get_postavchik_order_list;
       this.cach_order_list = this.get_postavchik_order_list;
+      this.all_water_count = 0;
       for(let i=0; i<this.order_list.length; i++){
         this.all_water_count += this.order_list[i].water_count;
+      }
+    },
+
+    async fetchCompleteOrders(){
+      try {
+        this.loading = true;
+        const auth_id = localStorage.AuthId;
+        const res = await fetch(this.$store.state.hostname + '/WaterOrders/getTodayCompletedOrdersByAuthId?id_auth=' + auth_id);
+        const data = await res.json();
+        this.loading = false;
+        if(res.status == 200 || res.status == 201){
+          this.complete_order_list = data;
+          this.cach_complete_order_list = data;
+        }
+        else{
+          this.complete_order_list = [];
+          this.cach_complete_order_list = [];
+        }
+      }
+      catch{
+        this.$refs.message.error('network_ne_connect');
+        this.complete_order_list = [];
+        this.cach_complete_order_list = [];
+        this.loading = false;
+      }
+    },
+
+    async setFilterStatus(status){
+      this.filterStatus = status;
+      if(status === 'complete'){
+        await this.fetchCompleteOrders();
       }
     },
 
     async closeAcceptOrder(){
       this.pay_show = false;
       await this.updateList();
+      await this.fetchPosMoneyReport();
+      // If viewing complete orders, refresh them
+      if(this.filterStatus === 'complete'){
+        await this.fetchCompleteOrders();
+      }
     },
     async closeUpdate(){
       this.pay_show = false;
       await this.updateList();
+      await this.fetchPosMoneyReport();
+      // If viewing complete orders, refresh them
+      if(this.filterStatus === 'complete'){
+        await this.fetchCompleteOrders();
+      }
+    },
+    
+    formatDate(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ru-RU', { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric' 
+      });
+    },
+    
+    getStatusClass(item) {
+      if (item.accepted_status) {
+        return 'status-complete';
+      } else if (item.color_value === 'green') {
+        return 'status-pending';
+      } else if (item.color_value === 'black') {
+        return 'status-overdue';
+      }
+      return 'status-pending';
+    },
+    
+    getStatusText(item) {
+      if (item.accepted_status) {
+        return 'Complete';
+      } else if (item.color_value === 'green') {
+        return 'Pending';
+      } else if (item.color_value === 'black') {
+        return 'Overdue';
+      }
+      return 'Pending';
     }
 
   },
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,600,700);
 
-@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700);
+* {
+  box-sizing: border-box;
+}
 
-$blue:rgb(79, 173, 210);
-$green:rgb(124, 237, 188);
-$yellow:rgba(231,196,104,0.7);
-$orange:rgba(235,118,85,1);
-$dark-bg:rgba(0,0,0,0.9);
-$light-bg:rgba(255,255,255,0.1);
-$text:rgba(255,255,255,0.9);
-body {
-  background:$light-bg;
+.delivery-app {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   font-family: 'Open Sans', sans-serif;
+  padding-bottom: 20px;
 }
-.order_new_list{
-  width:100%;
-  border-right: 1px solid $dark-bg;
-}
-.header_table{
-  th{
-    padding:6px 7px;
-    font-weight: 600;
-    font-size: 11.5px;
-    @media only screen and (max-width:767px) and (min-width:480px) {
-      font-size:12px;
-    }
-  }
-}
-.body_table{
-  tr:nth-child(even){background-color: #ebf5fc;}
-  td{
-    padding:6px 7px;
-    font-size: 13px;
-     @media only screen and (max-width:767px) and (min-width:480px) {
-      font-size:12px;
-    }
-  }
-}
-.table{
-  border-top-left-radius: 50%;
-  border-top-right-radius: 50%;
-  padding: 10px 10px;
-  @media only screen and (max-width:767px) and (min-width:480px) {
-    font-size:12px;
-    padding: 10px 5px;
-  }
-  @media only screen and (max-width:470px) {
-    font-size:12px;
-    padding: 5px 0;
-  }
-}
-.tabled{
-  border-collapse: separate;
-  border-spacing: 0;
-  tr:first-child td:first-child { border-top-left-radius: 10px; }
-  tr:first-child td:last-child { border-top-right-radius: 10px; }
 
-//   td {
-//   border: solid 1px #000;
-//   border-style: none solid solid none;
-//   padding: 10px;
-// }
+// Desktop Styles
+.desktop-header {
+  display: none;
+  
+  @media (min-width: 768px) {
+    display: block;
+  }
 }
-.btn-acp{
-  background-image: radial-gradient( circle 835px at 12.1% 24%,  rgba(93,133,178,1) 25.7%, rgba(50,73,101,1) 100.2% );
+
+.desktop-app-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 30px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  
+  .desktop-header-top {
+    margin-bottom: 20px;
+    
+    .desktop-user-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      .desktop-user-name {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+      }
+      
+      .desktop-logout-btn {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        
+        &:hover {
+          background: rgba(255,255,255,0.3);
+        }
+      }
+    }
+  }
+  
+  .desktop-stats-container {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 15px;
+    
+    .desktop-stat-card {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      transition: all 0.3s;
+      
+      &:hover {
+        background: rgba(255,255,255,0.25);
+        transform: translateY(-2px);
+      }
+      
+      &.desktop-highlight {
+        background: rgba(255,255,255,0.25);
+        border: 2px solid rgba(255,255,255,0.5);
+      }
+      
+      .desktop-stat-label {
+        font-size: 12px;
+        opacity: 0.9;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      
+      .desktop-stat-value {
+        font-size: 20px;
+        font-weight: 700;
+      }
+    }
+  }
 }
-.bg_dark_tr{
-  background: #646465 !important;
+
+.desktop-content {
+  display: none;
+  
+  @media (min-width: 768px) {
+    display: block;
+    padding: 20px 30px;
+  }
 }
-.bg_red_tr{
-  background: #ff5b58 !important;
+
+// Desktop Search and Filter Bar
+.desktop-search-filter-bar {
+  display: flex;
+  gap: 15px;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  border-radius: 12px;
+  margin-bottom: 15px;
+  
+  .desktop-search-box {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    
+    .desktop-search-icon {
+      position: absolute;
+      left: 15px;
+      color: #999;
+      font-size: 16px;
+    }
+    
+    .desktop-search-input {
+      width: 100%;
+      padding: 12px 12px 12px 45px;
+      border: 2px solid #e0e0e0;
+      border-radius: 25px;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s;
+      
+      &:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+    }
+  }
+  
+  .desktop-map-btn {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: all 0.3s;
+    white-space: nowrap;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+    }
+  }
 }
-.hoverTr:hover{
-  background-image: radial-gradient( circle farthest-corner at 1.3% 2.8%,   rgb(211, 224, 245) 100.2%, rgba(239,249,249,1) 100% );
+
+// Desktop Filter Tabs
+.desktop-filter-tabs {
+  display: flex;
+  gap: 10px;
+  padding: 15px 20px;
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  justify-content: center;
+  
+  .desktop-filter-tab {
+    padding: 10px 30px;
+    border: 2px solid #e0e0e0;
+    background: white;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s;
+    min-width: 150px;
+    text-align: center;
+    
+    &:hover {
+      border-color: #667eea;
+      color: #667eea;
+    }
+    
+    &.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-color: transparent;
+    }
+  }
 }
-.stiky_position{
-  position: -webkit-sticky; /* Safari */
-  position: sticky;
-  top: 0px;
-  background: #3f6a8b;
-  color:white;
+
+// Desktop Orders Container
+.desktop-orders-container {
+  display: block;
+  
+  .desktop-orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    
+    @media (min-width: 1400px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    
+    @media (min-width: 992px) and (max-width: 1399px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (min-width: 768px) and (max-width: 991px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      min-width: 0;
+    }
+  }
+}
+
+// Desktop Order Card
+.desktop-order-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  transition: all 0.3s;
+  border-left: 4px solid #667eea;
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+  }
+  
+  &.desktop-order-pending {
+    border-left-color: #ff9800;
+  }
+  
+  &.desktop-order-overdue {
+    border-left-color: #f44336;
+    background: #fff5f5;
+  }
+  
+  &.desktop-order-complete {
+    border-left-color: #4caf50;
+    opacity: 0.9;
+  }
+  
+  .desktop-order-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    
+    .desktop-order-id {
+      font-size: 16px;
+      font-weight: 700;
+      color: #667eea;
+    }
+    
+    .desktop-order-status {
+      padding: 6px 14px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      
+      &.status-pending {
+        background: #fff3e0;
+        color: #ff9800;
+      }
+      
+      &.status-overdue {
+        background: #ffebee;
+        color: #f44336;
+      }
+      
+      &.status-complete {
+        background: #e8f5e9;
+        color: #4caf50;
+      }
+    }
+  }
+  
+  .desktop-order-content {
+    .desktop-order-client {
+      margin-bottom: 15px;
+      
+      .desktop-client-name {
+        margin: 0 0 10px 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #333;
+        display: flex;
+        align-items: center;
+      }
+      
+      .desktop-order-address {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        font-size: 13px;
+        
+        i {
+          color: #f5576c;
+        }
+      }
+    }
+    
+    .desktop-order-details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 15px;
+      
+      .desktop-detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        
+        .desktop-detail-label {
+          font-size: 11px;
+          color: #999;
+          font-weight: 600;
+          text-transform: uppercase;
+        }
+        
+        .desktop-detail-value {
+          font-size: 14px;
+          font-weight: 600;
+          color: #333;
+          
+          &.desktop-highlight-qty {
+            color: #667eea;
+            font-size: 20px;
+            font-weight: 700;
+          }
+        }
+      }
+    }
+    
+    .desktop-order-items-list {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #f0f0f0;
+      
+      .desktop-items-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #667eea;
+        text-transform: uppercase;
+        
+        i {
+          font-size: 14px;
+        }
+      }
+      
+      .desktop-items-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        
+        .desktop-order-item-badge {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 12px;
+          border: 1px solid #e0e0e0;
+          
+          .desktop-item-name {
+            font-weight: 600;
+            color: #333;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          
+          .desktop-item-qty {
+            background: #667eea;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 11px;
+            min-width: 28px;
+            text-align: center;
+          }
+        }
+      }
+    }
+  }
+  
+  .desktop-order-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+    
+    .desktop-action-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s;
+      
+      i {
+        font-size: 16px;
+      }
+      
+      &.desktop-primary-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+      }
+      
+      &.desktop-secondary-btn {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+      }
+    }
+  }
+}
+
+// Desktop Empty State
+.desktop-empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 20px;
+  color: #999;
+  
+  i {
+    font-size: 80px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+  }
+  
+  p {
+    font-size: 18px;
+    margin: 0;
+  }
+}
+
+// Mobile Styles
+.mobile-header {
+  display: block;
+  
+  @media (min-width: 768px) {
+    display: none;
+  }
+}
+
+.mobile-content {
+  display: block;
+  
+  @media (min-width: 768px) {
+    display: none;
+  }
+}
+
+// Mobile Header Section
+.app-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 15px 15px 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  
+  .header-top {
+    margin-bottom: 15px;
+    
+    .user-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      .user-name {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      
+      .logout-btn {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s;
+        
+        &:hover {
+          background: rgba(255,255,255,0.3);
+        }
+      }
+    }
+  }
+  
+  .stats-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    
+    .stat-card {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      transition: all 0.3s;
+      
+      &:hover {
+        background: rgba(255,255,255,0.25);
+        transform: translateY(-2px);
+      }
+      
+      &.highlight {
+        background: rgba(255,255,255,0.25);
+        border: 2px solid rgba(255,255,255,0.5);
+      }
+      
+      .stat-label {
+        font-size: 10px;
+        opacity: 0.9;
+        margin-bottom: 5px;
+        font-weight: 600;
+      }
+      
+      .stat-value {
+        font-size: 16px;
+        font-weight: 700;
+      }
+    }
+  }
+}
+
+// Search and Filter Bar
+.search-filter-bar {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  background: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  
+  .search-box {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      color: #999;
+      font-size: 12px;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 8px 8px 8px 32px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 20px;
+      font-size: 12px;
+      outline: none;
+      transition: all 0.3s;
+      
+      &:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+      }
+    }
+  }
+  
+  .map-btn {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    transition: all 0.3s;
+    white-space: nowrap;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+    }
+    
+    .map-btn-text {
+      @media (max-width: 480px) {
+        display: none;
+      }
+    }
+  }
+}
+
+// Filter Tabs
+.filter-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  background: white;
+  justify-content: center;
+  
+  .filter-tab {
+    flex: 1;
+    padding: 6px 12px;
+    border: 1.5px solid #e0e0e0;
+    background: white;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s;
+    text-align: center;
+    
+    &:hover {
+      border-color: #667eea;
+      color: #667eea;
+    }
+    
+    &.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-color: transparent;
+    }
+  }
+}
+
+// Orders Container
+.orders-container {
+  padding: 12px;
+  
+  .orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+// Order Card
+.order-card {
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: all 0.3s;
+  border-left: 3px solid #667eea;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+  }
+  
+  &.order-pending {
+    border-left-color: #ff9800;
+  }
+  
+  &.order-overdue {
+    border-left-color: #f44336;
+    background: #fff5f5;
+  }
+  
+  &.order-complete {
+    border-left-color: #4caf50;
+    opacity: 0.8;
+  }
+  
+  .order-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0f0f0;
+    
+    .order-id {
+      font-size: 12px;
+      font-weight: 700;
+      color: #667eea;
+    }
+    
+    .order-status {
+      padding: 4px 10px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      
+      &.status-pending {
+        background: #fff3e0;
+        color: #ff9800;
+      }
+      
+      &.status-overdue {
+        background: #ffebee;
+        color: #f44336;
+      }
+      
+      &.status-complete {
+        background: #e8f5e9;
+        color: #4caf50;
+      }
+    }
+  }
+  
+  .order-content {
+    .order-client {
+      margin-bottom: 10px;
+      
+      .client-name {
+        margin: 0 0 6px 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: #333;
+        display: flex;
+        align-items: center;
+      }
+      
+      .order-address {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #666;
+        font-size: 11px;
+        
+        i {
+          color: #f5576c;
+          font-size: 10px;
+        }
+      }
+    }
+    
+    .order-details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+      
+      .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        
+        .detail-label {
+          font-size: 9px;
+          color: #999;
+          font-weight: 600;
+          text-transform: uppercase;
+        }
+        
+        .detail-value {
+          font-size: 12px;
+          font-weight: 600;
+          color: #333;
+          
+          &.highlight-qty {
+            color: #667eea;
+            font-size: 15px;
+            font-weight: 700;
+          }
+        }
+      }
+    }
+    
+    .order-items-list {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #f0f0f0;
+      
+      .items-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+        font-size: 10px;
+        font-weight: 700;
+        color: #667eea;
+        text-transform: uppercase;
+        
+        i {
+          font-size: 11px;
+        }
+      }
+      
+      .items-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        
+        .order-item-badge {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+          padding: 4px 10px;
+          border-radius: 16px;
+          font-size: 10px;
+          border: 1px solid #e0e0e0;
+          
+          .item-name {
+            font-weight: 600;
+            color: #333;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          
+          .item-qty {
+            background: #667eea;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 9px;
+            min-width: 20px;
+            text-align: center;
+          }
+        }
+      }
+    }
+  }
+  
+  .order-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+    
+    .action-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.3s;
+      
+      i {
+        font-size: 14px;
+      }
+      
+      &.primary-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+      }
+      
+      &.secondary-btn {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+      }
+    }
+  }
+}
+
+// Empty State
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+  
+  i {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+  }
+  
+  p {
+    font-size: 16px;
+    margin: 0;
+  }
+}
+
+// Responsive Design for Mobile
+@media (max-width: 480px) {
+  .app-header {
+    .stats-container {
+      grid-template-columns: repeat(2, 1fr);
+      
+      .stat-card {
+        .stat-label {
+          font-size: 9px;
+        }
+        
+        .stat-value {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+  
+  .order-card {
+    padding: 10px;
+    
+    .order-content {
+      .order-details {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+      
+      .order-items-list {
+        margin-top: 8px;
+        padding-top: 8px;
+        
+        .items-header {
+          font-size: 9px;
+          margin-bottom: 6px;
+        }
+        
+        .items-container {
+          gap: 5px;
+          
+          .order-item-badge {
+            font-size: 9px;
+            padding: 3px 8px;
+            
+            .item-name {
+              max-width: 90px;
+              font-size: 9px;
+            }
+            
+            .item-qty {
+              font-size: 8px;
+              padding: 1px 5px;
+            }
+          }
+        }
+      }
+    }
+    
+    .order-actions {
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 8px;
+      
+      .action-btn {
+        width: 100%;
+        padding: 8px;
+        font-size: 11px;
+        
+        i {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}
+
+@media (min-width: 481px) and (max-width: 991px) {
+  .app-header {
+    .stats-container {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
 }
 </style>

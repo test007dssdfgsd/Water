@@ -1,96 +1,106 @@
 <template>
-  <div>
-    <div class="border-bottom navbar_sticky main_info_order">
-      <div class="w-100 d-flex justify-content-between px-4">
+  <div class="order-add-app">
+    <div class="order-header navbar_sticky">
+      <div class="w-100 d-flex justify-content-between px-2">
         <div class="d-flex align-items-center">
-          <div class="d-flex align-items-center">
-            <mdb-icon icon="user-alt" class="text-primary mr-2 mt-2" style="font-size: 18px;"/>
-            <span style="font-size: 16px; margin-top:7px;" class="mt-2 mb-0 ml-1" >{{main_client_name}}</span>
+          <div class="d-flex align-items-center mt-1">
+            <mdb-icon icon="user-alt" class="text-primary mr-3 " style="font-size: 14px;"/>
+            <span style="font-size: 12px;" class="mb-0 ml-1" >{{main_client_name}}</span>
           </div>
           <div class="d-flex align-items-center ml-5">
-            <mdb-icon icon="map-marker-alt" class="text-success mr-2 mt-2" style="font-size: 18px;"/>
-            <span style="font-size: 14px;" class="mt-2 mb-0 ml-2">{{client_addressList.length}}</span>
+            <mdb-icon icon="map-marker-alt" class="text-success mr-3 mt-1" style="font-size: 14px;"/>
+            <span style="font-size: 12px;" class="mb-0 ml-2 mt-1">{{client_addressList.length}}</span>
           </div>
-          <div class="d-flex align-items-center ml-5">
-            <mdb-icon icon="clock" far class="text-success mr-2 mt-2" style="font-size: 18px;"/>
-            <span style="font-size: 14px;" class="mt-2 mb-0 ml-2">{{last_order_date}}</span>
+          <div class="d-flex align-items-center ml-5 mt-1">
+            <mdb-icon icon="clock" far class="text-success mr-3 " style="font-size: 14px;"/>
+            <span style="font-size: 12px;" class="mb-0 ml-2">{{last_order_date}}</span>
           </div>
-          <div class="d-flex align-items-center ml-5">
-            <img  src="../../assets/bootle.jpg" class="text-success mr-1 mt-2" alt="b" width="25" height="20">
-            <span style="font-size: 15px; padding-top:2px;" class="mt-2 mb-0 ml-0 text-danger">  {{ostatik_bootle}}</span>
+          <div class="d-flex align-items-center ml-5 mt-1">
+            <img  src="../../assets/bootle.jpg" class="text-success mr-1 " alt="b" width="22" height="16">
+            <span style="font-size: 13px; padding-top:2px;" class="mb-0 ml-0 text-danger">  {{ostatik_bootle}}</span>
           </div>
 
-          <div class="d-flex align-items-center ml-5" @click="showInfo = !showInfo">
-            <mdb-icon icon="markdown" fab  class="text-success mr-2 mt-2" style="font-size: 18px; cursor:pointer;"/>
+          <div class="d-flex align-items-center ml-5 mt-1" @click="showInfo = !showInfo">
+            <mdb-icon icon="markdown" fab  class="text-success mr-3 " style="font-size: 14px; cursor:pointer;"/>
             <!-- <span style="font-size: 14px;" class="mt-2 mb-0 ml-2">{{last_order_date}}</span> -->
           </div>
 
-          <div class="d-flex align-items-center ml-5">
+          <div class="d-flex align-items-center ml-5 mt-1">
             <router-link to="/know_mark_in_map">
-              <mdb-icon icon="street-view"   class="text-indigo mr-2 mt-2" style="font-size: 18px; cursor:pointer;"/>
+              <mdb-icon icon="street-view"   class="text-indigo mr-3 " style="font-size: 14px; cursor:pointer;"/>
             </router-link>
             <!-- <span style="font-size: 14px;" class="mt-2 mb-0 ml-2">{{last_order_date}}</span> -->
+          </div>
+          
+          <div class="d-flex align-items-center ml-5 mt-1">
+            <router-link to="/client_cancel_report">
+              <mdb-icon icon="file-alt" class="text-warning mr-3" style="font-size: 14px; cursor:pointer;"/>
+              <span style="font-size: 12px;" class="mb-0 ml-1">Otchot</span>
+            </router-link>
           </div>
           <!-- know_mark_in_map -->
         </div>
         
         <div class="admin d-flex align-items-center" >
-            <span style="font-size: 14px;" class="mt-2 mb-0 ml-2">{{user_name}}</span>
+            <span style="font-size: 12px;" class="mb-0 ml-2">{{user_name}}</span>
           <!-- <span style="font-size: 14px;" class="mt-2 mb-0 ml-2">{{}}</span> -->
         </div>
         
       </div>
     </div>
     <loader v-if="loading"/>
-    <div v-else class="order_add px-4 pt-1">
+    <div v-else class="order-content">
       <form>
-        <div class="row">
-          <div class="col-12 col-sm-12 col-md-6 col-lg-4 mt-4">
-            <input-search  @select="selectClient"  
-              url="/WaterClients/getPaginationByName?page=0&size=100&fio="
-              ref="search_client" :option="allClient.rows" icon="user">
-            </input-search>
-            <small class="p-0" style="margin-left:5px; font-size: 12px; top:-17px; color: gray; position:absolute;"  >
-              {{$t('search_client')}}
-            </small>
-            
+        <!-- Search Section -->
+        <div class="search-section">
+          <div class="row pt-2">
+            <div class="col-12 col-sm-12 col-md-6 col-lg-4">
+              <input-search  @select="selectClient"  
+                url="/WaterClients/getPaginationByName?page=0&size=100&fio="
+                ref="search_client" :option="allClient.rows" icon="user">
+              </input-search>
+              <small class="p-0" style="margin-left:5px; font-size: 12px; top:-17px; color: gray; position:absolute;"  >
+                {{$t('search_client')}}
+              </small>
+            </div>
+            <div class="col-12 col-sm-12 col-md-6 col-lg-4">
+              <input-searchArray  @select="selectPhone"
+                url="/WaterClients/getPaginationSearchByPhoneNumberFromArray?page=0&size=100&phone_number="
+                ref="search_client_phone"  icon="phone">
+              </input-searchArray>
+              <small class="p-0" style="margin-left:5px; font-size: 12px; top:-17px; color: gray; position:absolute;"  >
+                {{$t('search_phone')}}
+              </small>
+            </div>
+            <div class="col-12 col-sm-12 col-md-6 col-lg-4">
+              <input-search-array-address @select="selectAdress"
+                url="/WaterClients/getPaginationSearchByAddressFromArray?page=0&size=100&address="
+                ref="search_client_address"  icon="map-marker-alt">
+              </input-search-array-address>
+              <small class="p-0" style="margin-left:5px; font-size: 12px; top:-17px; color: gray; position:absolute;"  >
+                {{$t('search_address')}}
+              </small>
+            </div>
           </div>
-          <div class="col-12 col-sm-12 col-md-6 col-lg-4 mt-4">
-            <input-searchArray  @select="selectPhone"
-              url="/WaterClients/getPaginationSearchByPhoneNumberFromArray?page=0&size=100&phone_number="
-              ref="search_client_phone"  icon="phone">
-            </input-searchArray>
-            <small class="p-0" style="margin-left:5px; font-size: 12px; top:-17px; color: gray; position:absolute;"  >
-              {{$t('search_phone')}}
-            </small>
+          <div class="action-buttons mt-1">
+            <router-link to="/map_order">
+              <mdb-btn outline="orange" class="mdb_btn">
+                <i class="fas fa-map-marked-alt mr-2"></i>
+                {{$t('map')}}
+              </mdb-btn>
+            </router-link>
+            <mdb-btn outline="success" @click="add_client" class="mdb_btn">
+              <i class="fas fa-user-plus mr-2"></i>
+              {{$t('Add_client')}}
+            </mdb-btn>
           </div>
-          <div class="col-12 col-sm-12 col-md-6 col-lg-4 mt-4">
-            <input-search-array-address @select="selectAdress"
-              url="/WaterClients/getPaginationSearchByAddressFromArray?page=0&size=100&address="
-              ref="search_client_address"  icon="map-marker-alt">
-            </input-search-array-address>
-            <small class="p-0" style="margin-left:5px; font-size: 12px; top:-17px; color: gray; position:absolute;"  >
-              {{$t('search_address')}}
-            </small>
-          </div>
-          
-        </div>
-        <div class="d-flex justify-content-end mt-2">
-          <router-link to="/map_order">
-            <mdb-btn outline="orange" class="mdb_btn"
-            >{{$t('map')}}</mdb-btn>
-          </router-link>
-          
-          <mdb-btn outline="success" @click="add_client" class="mdb_btn"
-          >
-          <mdb-icon  />{{$t('Add_client')}}</mdb-btn>
         </div>
         <div class="blue-gradient" v-show="false">
-          <hr class="mt-1 "/>
+          <hr class="mt-0 "/>
         </div>
 
 
-        <div class="main_Order" v-if="client_name">
+        <div class="main_Order " v-if="client_name">
           <div class="infoOfClient container-fluid" v-show="showInfo">
             <div class="d-flex justify-content-center">
               <h5>{{$t('client_info')}}</h5>
@@ -135,7 +145,7 @@
             <div class="d-flex justify-content-center">
               <h5>{{$t('last_order')}}</h5>
             </div>
-            <div class="table">
+            <div class="table mt-0">
               <table class="w-100 tabled">
                 <thead class="header_table" style="background: #66E4AD;">
                   <tr>
@@ -174,20 +184,23 @@
             </div>
           </div>
           
-          <div class="blue-gradient">
-            <hr class="mt-4"/>
-          </div>
+      
 
-          <div class="d-flex justify-content-center mt-2" style="position:relative;">
-            <h5 class="mb-4">{{$t('order')}}:  <span class="text-primary">{{main_client_name}}</span></h5>
-            <mdb-btn outline="primary" @click="add_product" style="font-size: 10.5px; position:absolute; right:0; top:-8px; width:180px;"
-              p="r4 l4 t2 b2">
-            <mdb-icon  />{{$t('Add_product')}}</mdb-btn>
-            <mdb-btn outline="danger" @click="cancel_client_order" style="font-size: 10.5px; position:absolute; right:190px; top:-8px;"
-              p="r4 l4 t2 b2">
-            <mdb-icon  />{{$t('cancel')}}</mdb-btn>
-          </div>
-          <div class="">
+          <!-- Order Form Section -->
+          <div class="order-form-section">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="mb-0">{{$t('order')}}:  <span class="text-primary">{{main_client_name}}</span></h5>
+              <div class="d-flex gap-2">
+                <mdb-btn outline="danger" @click="cancel_client_order" class="mdb_btn">
+                  <i class="fas fa-times mr-2"></i>
+                  {{$t('cancel')}}
+                </mdb-btn>
+                <mdb-btn outline="primary" @click="add_product" class="mdb_btn">
+                  <i class="fas fa-plus mr-2"></i>
+                  {{$t('Add_product')}}
+                </mdb-btn>
+              </div>
+            </div>
             <div class="row">
               <div class="col-5">
                 <div class="row">
@@ -277,25 +290,23 @@
               </div>
             </div>
           </div>
+          
         </div>
 
                            
         <div class="" v-if="client_name">
-          <div class="blue-gradient">
-            <hr class="mt-5 "/>
+          
+          <div class="submit-section">
+            <div class="d-flex justify-content-end gap-2">
+              <mdb-btn @click="submit_continue" color="primary" class="mdb_btn submit-btn">
+                <i class="fas fa-check-circle mr-2"></i>
+                {{$t('Add_and_continue')}}
+              </mdb-btn>
+              <mdb-btn v-show="false" color="success" @click="submit" class="mdb_btn">
+                <mdb-icon/>{{$t('add')}}
+              </mdb-btn>
+            </div>
           </div>
-          <mdb-row class="mt-0">
-            <mdb-col col="12" class="p-0">
-              <div class="mt-0 mb-2 mr-0 text-right">
-                <mdb-btn  @click="submit_continue" color="primary" m="r3" class="mdb_btn"
-                >  {{$t('Add_and_continue')}}
-                </mdb-btn>
-                <mdb-btn v-show="false" color="success"  @click="submit" style="font-size: 10.5px"
-                  p="r4 l4 t2 b2">
-                  <mdb-icon/>{{$t('add')}}</mdb-btn>
-              </div>
-            </mdb-col>
-          </mdb-row>
         </div>
       </form>
 
@@ -857,8 +868,329 @@ export default {
 }
 </script>
 
-<style lang="scss">
-.download{
+<style lang="scss" scoped>
+// Modern, clean, minimal light theme with soft green accents
+.order-add-app {
+  min-height: 100vh;
+  background: #f8fafb;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.order-header {
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 50%, #ecfdf5 100%);
+  border-bottom: 1px solid #d1fae5;
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.08);
+  padding: 8px 16px;
+  z-index: 100;
+  min-height: 48px;
+  
+  .w-100 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .text-primary {
+    color: #10b981 !important;
+  }
+  
+  .text-success {
+    color: #10b981 !important;
+  }
+  
+  .text-danger {
+    color: #ef4444 !important;
+  }
+  
+  .text-indigo {
+    color: #6366f1 !important;
+  }
+  
+  span {
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    letter-spacing: -0.01em;
+  }
+  
+  mdb-icon {
+    color: #10b981;
+    font-size: 14px !important;
+  }
+  
+  img {
+    width: 18px !important;
+    height: 14px !important;
+  }
+  
+  .ml-5 {
+    margin-left: 16px !important;
+  }
+  
+  .mr-2 {
+    margin-right: 6px !important;
+  }
+  
+  .mt-2 {
+    margin-top: 0 !important;
+  }
+}
+
+.order-content {
+  padding: 16px;
+  width: 100%;
+  margin: 0;
+  
+  form {
+    .row {
+      margin: 0;
+    }
+  }
+}
+
+// Search Section - Premium Card Design
+.search-section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 16px;
+  border: 1px solid #f0f0f0;
+  
+  .row {
+    margin: 0;
+  }
+  
+  .col-12, .col-sm-12, .col-md-6, .col-lg-4 {
+    padding: 6px;
+  }
+  
+  small {
+    color: #6b7280;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 12px;
+  
+  .mdb_btn {
+    font-size: 11px !important;
+    padding: 5px 12px !important;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    letter-spacing: -0.01em;
+    border-width: 1.5px;
+    
+    i {
+      font-size: 11px !important;
+      margin-right: 4px !important;
+    }
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+    }
+  }
+}
+
+// Client Info Section - Premium Card
+.main_Order {
+  .infoOfClient {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 16px;
+    border: 1px solid #f0f0f0;
+    
+    h5 {
+      color: #111827;
+      font-weight: 600;
+      margin-bottom: 12px;
+      font-size: 14px;
+      letter-spacing: -0.02em;
+    }
+    
+    .client_info {
+      width: 100%;
+      padding: 10px 12px;
+      
+      .text_content_border {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #f3f4f6;
+        color: #6b7280;
+        font-size: 11px;
+        padding: 6px 0;
+        letter-spacing: -0.01em;
+        
+        span {
+          font-weight: 500;
+          color: #111827;
+        }
+      }
+    }
+    
+    .bg_active {
+      background: #ecfdf5;
+      border: 1.5px solid #10b981;
+      border-radius: 8px;
+      padding: 6px 10px !important;
+    }
+    
+    .border.rounded {
+      border: 1px solid #f3f4f6 !important;
+      border-radius: 10px !important;
+      background: #fafbfc;
+      padding: 10px;
+      
+      h6 {
+        color: #374151;
+        font-weight: 600;
+        font-size: 10px;
+        letter-spacing: -0.01em;
+      }
+      
+      h4 {
+        color: #ef4444;
+        font-weight: 600;
+        font-size: 14px;
+        letter-spacing: -0.02em;
+      }
+    }
+  }
+  
+  .table {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    overflow-x: auto;
+    margin-top: 12px;
+    border: 1px solid #f0f0f0;
+    
+    .tabled {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      
+      thead {
+        background: #10b981;
+        color: white;
+        border-radius: 8px;
+        
+        th {
+          padding: 8px 10px;
+          font-size: 10px;
+          font-weight: 600;
+          text-align: left;
+          white-space: nowrap;
+          letter-spacing: -0.01em;
+          
+          &:first-child {
+            border-top-left-radius: 8px;
+          }
+          
+          &:last-child {
+            border-top-right-radius: 8px;
+          }
+        }
+      }
+      
+      tbody {
+        tr {
+          border-bottom: 1px solid #f3f4f6;
+          transition: all 0.15s ease;
+          
+          &:hover {
+            background: #f9fafb;
+          }
+          
+          &:last-child {
+            border-bottom: none;
+          }
+          
+          td {
+            padding: 8px 10px;
+            font-size: 10px;
+            color: #374151;
+            letter-spacing: -0.01em;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Order Form Section - Premium Card
+.order-form-section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-top: 16px;
+  border: 1px solid #f0f0f0;
+  
+  h5 {
+    color: #111827;
+    font-weight: 600;
+    margin-bottom: 12px;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+    
+    .text-primary {
+      color: #10b981 !important;
+    }
+  }
+  
+  .product {
+    .row {
+      margin: 0;
+      
+      .col-9, .col-3 {
+        padding: 4px;
+      }
+    }
+  }
+  
+  small {
+    color: #6b7280;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  
+  .mdb_btn {
+    font-size: 11px !important;
+    padding: 5px 12px !important;
+    border-radius: 8px;
+    
+    i {
+      font-size: 11px !important;
+      margin-right: 4px !important;
+    }
+  }
+}
+
+.blue-gradient {
+  margin: 16px 0;
+  hr {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 0;
+  }
+}
+
+.download {
   width: 35%;
   height: 33px;
   border: 0.5px solid #4285F4;
@@ -868,152 +1200,97 @@ export default {
   align-items: center;
   color: gray; 
   font-size: 13px;
-  cursor:pointer;
-}
-.download span{
+  cursor: pointer;
+  
+  span {
     margin-left: 10px;
+  }
 }
 
-.free_day{
-
+.free_day {
 }
-.week_day_item{
+
+.week_day_item {
   cursor: pointer;
 }
 
-.item_circle{
+.item_circle {
   margin-right: 10px;
   width: 20px;
   height: 20px;
   border-radius: 50%;
   background: #eee;
 }
-.into_circle{
+
+.into_circle {
   width: 15px;
   height: 15px;
   border-radius: 50%;
   background: rgb(255, 255, 255);
 }
-.into_circle_active{
+
+.into_circle_active {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #0fe22b ;
-  /* box-shadow: 1px 1px 5px #4285F4, -1px -1px 5px #4285F4, -1px 1px 5px #4285F4, 1px -1px 5px #4285F4 ; */
+  background: #0fe22b;
 }
-.user_illSendPatient{
-   overflow: hidden;
+
+.user_illSendPatient {
+  overflow: hidden;
   overflow-y: scroll;
   height: 75vh;
   width: 100%;
-  // background-color: rgba(32, 32, 32,0.75);
-  .item{
-      .user_photo{
-        background-color: #fff;
-          border-radius: 50%;
-          width: 45px;
-          height: 45px;
-          overflow: hidden;
-          
-
-        // img{
-        //   border-radius: 50%;
-        //   overflow: hidden;          
-        // }
-      }
-      width:100%;
-      box-shadow: 2px 2px 8px rgb(224, 224, 224), -1px -1px 2px rgb(224, 224, 224);
-      height: 62px;
-      margin: 5px auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      // background-color: #fff;
-      transition: all 0.5s ease-in-out;
-      .rang{
-        color: rgb(66, 167, 255);
-        font-weight: bold;
-      }
-      &:hover{
-        cursor: pointer;
-        box-shadow: 2px 2px 5px rgb(224, 224, 224);
-        background-color: rgb(215, 242, 255);
-        transform: translate(6px, 0px);
-        transition: all 0.1s ease-in-out;
-      }
-    }
   
+  .item {
+    .user_photo {
+      background-color: #fff;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      overflow: hidden;
+    }
+    
+    width: 100%;
+    box-shadow: 2px 2px 8px rgb(224, 224, 224), -1px -1px 2px rgb(224, 224, 224);
+    height: 62px;
+    margin: 5px auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.5s ease-in-out;
+    
+    .rang {
+      color: rgb(66, 167, 255);
+      font-weight: bold;
+    }
+    
+    &:hover {
+      cursor: pointer;
+      box-shadow: 2px 2px 5px rgb(224, 224, 224);
+      background-color: rgb(215, 242, 255);
+      transform: translate(6px, 0px);
+      transition: all 0.1s ease-in-out;
+    }
+  }
 }
-.activeUser{
+
+.activeUser {
   cursor: pointer;
   box-shadow: 2px 2px 5px rgb(224, 224, 224);
   background-color: rgb(179, 230, 255);
   transform: translate(6px, 0px);
   transition: all 0.1s ease-in-out;
 }
-.main_info_order{
-  min-height: 40px;
-}
 
-.client_full_info{
+.client_full_info {
   background: rgb(245, 247, 248);
 }
-.client_info{
-  width: 100%;
-  padding: 10px 35px 10px 0px ; 
 
-  .text_content_border{
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px dashed #ddd;
-    color:rgb(117, 117, 117);
-    font-style: italic;
-    font-size: 13px;
-    span{
-      font-weight: bold;
-      color:rgb(44, 33, 83)
-    }
-  }
-}
-.border_dashed{
+.border_dashed {
   border-bottom: 1px dashed #ddd;
 }
-.bg_active{
-  background: #ffea9e;
-  border-bottom: 2px solid #4285F4;
-}
-.table{
-  border-top-left-radius: 50%;
-  border-top-right-radius: 50%;
-  padding: 2px 2px;
-  @media only screen and (max-width:767px) and (min-width:480px) {
-    font-size:12px;
-    padding: 10px 5px;
-  }
-  @media only screen and (max-width:470px) {
-    font-size:12px;
-    padding: 5px 0;
-  }
-  
-}
-.tabled{
-  border-collapse: separate;
-  border-spacing: 0;
-  tr:first-child td:first-child { border-top-left-radius: 10px; }
-  tr:first-child td:last-child { border-top-right-radius: 10px; }
-  th{
-    font-size: 12px;
-    padding: 4px;
-  }
-  td{
-    font-size: 12px;
-    padding: 4px;
-  }
-}
-.mdb_btn{
-  font-size: 10.5px !important; 
-  padding: 6px 25px !important;
-}
+
 .bottle {
   width: 50px;
   height: 45px;
@@ -1026,5 +1303,109 @@ export default {
   50%  { transform: rotate(-15deg); }
   75%  { transform: rotate(15deg); }
   100% { transform: rotate(0deg); }
+}
+
+.submit-section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-top: 16px;
+  border: 1px solid #f0f0f0;
+  
+  .submit-btn {
+    min-width: 140px;
+    font-size: 11px !important;
+    padding: 6px 14px !important;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+    transition: all 0.2s ease;
+    letter-spacing: -0.01em;
+    background: #10b981 !important;
+    border: none !important;
+    
+    i {
+      font-size: 11px !important;
+      margin-right: 4px !important;
+    }
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      background: #059669 !important;
+    }
+  }
+}
+
+.gap-2 {
+  gap: 6px;
+}
+
+// Additional styling for better visual consistency
+.text-primary {
+  color: #10b981 !important;
+}
+
+.text-success {
+  color: #10b981 !important;
+}
+
+.text-danger {
+  color: #ef4444 !important;
+}
+
+// Badge styling
+mdb-badge {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  font-size: 11px !important;
+  letter-spacing: -0.01em;
+  padding: 4px 10px !important;
+}
+
+// Button styling improvements
+.mdb_btn {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em;
+  transition: all 0.2s ease;
+  font-size: 11px !important;
+  padding: 5px 12px !important;
+  
+  i {
+    font-size: 11px !important;
+  }
+  
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+// Desktop only - no mobile styles needed
+@media (min-width: 768px) {
+  .order-content {
+    padding: 16px;
+  }
+  
+  .order-header {
+    padding: 8px 16px;
+  }
+  
+  .search-section {
+    padding: 16px;
+  }
+  
+  .order-form-section {
+    padding: 16px;
+  }
+  
+  .infoOfClient {
+    padding: 16px !important;
+  }
+  
+  .table {
+    padding: 12px !important;
+  }
 }
 </style>

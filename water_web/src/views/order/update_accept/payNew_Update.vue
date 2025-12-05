@@ -1,145 +1,201 @@
 <template>
-  <div>
+  <div class="update-payment-app">
     <LoaderTable v-if="loading"/>
-    <div v-else class="pay_page">
-      <div class=" px-4 d-flex justify-content-between mt-2 mb-3">
-        <h5 class="m-0 mb-2 text-primary border-bottom">{{client_name}}</h5>
-        <!-- <h6 class="m-0 mb-1 font-weight-bold">Z - {{order.address.id}}</h6> -->
-        <h5 class="m-0 mb-2 text-success border-bottom" >{{summInString}} сум</h5>
+    <div v-else class="update-payment-content">
+      <div class="payment-header">
+        <h5 class="client-name">{{client_name}}</h5>
+        <h5 class="total-sum">{{summInString}} сум</h5>
       </div>
-      <div class="mx-3 mb-1">
-        <div style="position:relative;">
-          <text-area rows="1" class="w-100"  v-model="note"  validate error="wrong" success="right"/>
-          <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold; " class="testing">
-            {{$t('note')}}
-          </small>
-        </div> 
-        <div style="position:relative;" class="mt-3">
-          <input type="date" v-model="order_date"
-          
-          class="form-control  border mt-2 text-right pr-2" style="border:none; outline:none;font-weight:bold; height:30px;" >
-          <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold; " class="testing">
-            {{$t('date')}}
-          </small>
-        </div> 
-        <div style="position:relative;" class="mt-3">
-          <input type="text" v-model="cashInString"  v-on:keyup.13 = "payed" @keyup="funcCash($event.target.value)"  
-          ref="cashIn"  v-on:click.capture="cashNol"
-          class="form-control  border mt-2 text-right pr-2" style="border:none; outline:none;font-weight:bold; height:30px;" >
-          <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold; " class="testing">
-            {{$t('cash')}}
-          </small>
-        </div> 
-        <div style="position:relative;" class="mt-3">
-          <input type="text" v-model="cardInString"  v-on:keyup.13 = "payed" @keyup="funcCard($event.target.value)"
-          ref="cashIn" v-on:click.capture="cardNol" 
-          class="form-control  border mt-2 text-right pr-2" style="border:none; outline:none;font-weight:bold; height:30px;" >
-          <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold; " class="testing">
-            {{$t('card')}}
-          </small> 
-        </div> 
-        <div style="position:relative;" class="mt-3">
-          <input type="number" v-model="main_product_qty" @blur="funcGiveNol" @keyup="funcGiveBootle($event.target.value)"
-          class="form-control  border mt-2 text-right pr-2" style="border:none; outline:none;font-weight:bold; height:30px;" >
-          <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold; " class="testing">
-            {{$t('give_bootle')}}
-          </small>
+      
+      <div class="payment-form">
+        <div class="form-group">
+          <label class="form-label">{{$t('note')}}</label>
+          <text-area rows="2" class="w-100 form-input" v-model="note" validate error="wrong" success="right"/>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">{{$t('date')}}</label>
+          <input 
+            type="date" 
+            v-model="order_date"
+            class="form-input"
+          />
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">{{$t('cash')}}</label>
+          <input 
+            type="text" 
+            v-model="cashInString"  
+            v-on:keyup.13="payed" 
+            @keyup="funcCash($event.target.value)"  
+            ref="cashIn"  
+            v-on:click.capture="cashNol"
+            class="form-input text-right"
+          />
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">{{$t('card')}}</label>
+          <input 
+            type="text" 
+            v-model="cardInString"  
+            v-on:keyup.13="payed" 
+            @keyup="funcCard($event.target.value)"
+            ref="cardIn" 
+            v-on:click.capture="cardNol" 
+            class="form-input text-right"
+          />
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">{{$t('give_bootle')}}</label>
+          <input 
+            type="number" 
+            v-model="main_product_qty" 
+            @blur="funcGiveNol" 
+            @keyup="funcGiveBootle($event.target.value)"
+            class="form-input text-right"
+          />
         </div>
 
-        <div style="position:relative;" class="mt-3">
-          <input type="number" v-model="get_bootle" @keyup="funcBootle($event.target.value)" @keyup.enter="payed"
-          ref="get_Bootle" v-on:click.capture="funcBootle" @blur="funcGetNol"
-          class="form-control  border mt-2 text-right pr-2" style="border:none; outline:none;font-weight:bold; height:30px;" >
-          <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold; " class="testing">
-            {{$t('getten_bootle')}}
-          </small>
+        <div class="form-group">
+          <label class="form-label">{{$t('getten_bootle')}}</label>
+          <input 
+            type="number" 
+            v-model="get_bootle" 
+            @keyup="funcBootle($event.target.value)" 
+            @keyup.enter="payed"
+            ref="get_Bootle" 
+            v-on:click.capture="funcBootle" 
+            @blur="funcGetNol"
+            class="form-input text-right"
+          />
         </div>
 
-        <div class="row mt-3" v-for="(item,index) in order_item" :key="index">
-          <div class="col-4">
-            <input type="text" v-model="item.product_name" disabled
-            class="form-control  border mt-2 text-left pr-2" style="border:none; font-size: 13px; outline:none; font-weight:bold; height:30px;" >
-          </div>
-          <div class="col-4" >
-            <div style="position:relative;">
-              <input type="text" v-model="item.qty" @input="funcItemProduct(index)"
-                class="form-control  border mt-2 text-right pr-2" style="border:none; outline:none;font-weight:bold; height:30px;" >
-              <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold; " class="testing">
-                {{$t('qty')}}
-              </small>
-            </div>
-          </div>
-          <div class="col-4" >
-            <div style="position:relative;">
-              <input type="text" disabled :value="item.price*item.qty" 
-                class="form-control  border mt-2 text-right pr-2" style="border:none; outline:none;font-weight:bold; height:30px;" >
-              <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold; " class="testing">
-                {{$t('price')}}
-              </small>
-            </div>
-          </div>
-        </div>
-        <div class="row mt-3">
-          <div class="col-12 mb-5" v-show="productList.length>0">
-            <div class="product">
-              <div class="row " v-for="(item,i) in productList" :key="i" :class="{'mt-1': i==0, 'mt-3': i>0}">
-                <div class="col-9">
-                  <erpSelect
-                    size="sm"
-                    :options="all_product_t.rows"
-                    @select="selectOption"
-                    :selected="item.product_name"
-                    :label="$t('province')"
-                    :index="i"
-                  />
-                  <small class="p-0" style="margin-left:5px; font-size: 12px; top:-17px; color: gray; position:absolute;"  >
-                    {{$t('select_product')}}
-                  </small>
-                  <!-- <small v-if="$v.comp_name.$dirty && comp_id == null" class="invalid-text mt-0 ml-2" >
-                    {{$t('select_item')}}
-                  </small> -->
-                </div>
-                <div class="col-3">
-                  <input-img valid  v-model="item.qty" style="height:32px;" error="wrong" success="right" icon="" type="number"/>
-                  <small class="p-0" style="margin-left:5px; font-size: 12px; top:-17px; color: gray; position:absolute;"  >
-                    {{$t('qty')}}
-                  </small>
-                  <div class="added bg-danger rounded"  style="position:absolute; right:-30px; top:1px;" @click="productList.splice(i,1)">
-                    <mdb-icon icon="trash p-2 text-white" style="font-size:12px; cursor:pointer;"/>
-                  </div>
-                </div>
+        <div class="order-items-section" v-if="order_item.length > 0">
+          <h6 class="section-title">{{$t('order_items')}}</h6>
+          <div class="order-items-list">
+            <div class="order-item-row" v-for="(item,index) in order_item" :key="index">
+              <div class="item-col product-name">
+                <input 
+                  type="text" 
+                  v-model="item.product_name" 
+                  disabled
+                  class="form-input"
+                />
+              </div>
+              <div class="item-col qty-col">
+                <label class="item-label">{{$t('qty')}}</label>
+                <input 
+                  type="text" 
+                  v-model="item.qty" 
+                  @input="funcItemProduct(index)"
+                  class="form-input text-right"
+                />
+              </div>
+              <div class="item-col price-col">
+                <label class="item-label">{{$t('price')}}</label>
+                <input 
+                  type="text" 
+                  disabled 
+                  :value="item.price*item.qty" 
+                  class="form-input text-right"
+                />
               </div>
             </div>
           </div>
         </div>
-        
-
-        <div class="d-flex justify-content-between mt-2" style="font-size:13.5px;">
-          <span v-if="parseFloat(defaultSum.toFixed(2)) > summa" class="text-success"> Больше денег </span>
-          <span v-if="parseFloat(defaultSum.toFixed(2)) > summa" class="text-success">{{(parseFloat(defaultSum.toFixed(2))-summa).toFixed(2)}}</span>
+        <div class="additional-products-section" v-show="productList.length>0">
+          <h6 class="section-title">{{$t('additional_products')}}</h6>
+          <div class="product-list">
+            <div class="product-item" v-for="(item,i) in productList" :key="i">
+              <div class="product-select">
+                <erpSelect
+                  size="sm"
+                  :options="all_product_t.rows"
+                  @select="selectOption"
+                  :selected="item.product_name"
+                  :label="$t('province')"
+                  :index="i"
+                />
+                <label class="product-label">{{$t('select_product')}}</label>
+              </div>
+              <div class="product-qty">
+                <input-img 
+                  valid  
+                  v-model="item.qty" 
+                  style="height:32px;" 
+                  error="wrong" 
+                  success="right" 
+                  icon="" 
+                  type="number"
+                />
+                <label class="product-label">{{$t('qty')}}</label>
+                <button 
+                  class="remove-btn" 
+                  @click="productList.splice(i,1)"
+                >
+                  <mdb-icon icon="trash" class="text-white"/>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="d-flex justify-content-between mt-2" style="font-size:13.5px;">
-          <span v-if="parseFloat(defaultSum.toFixed(2)) < summa" class="text-danger"> Не хватить </span>
-          <span v-if="parseFloat(defaultSum.toFixed(2)) < summa" class="text-danger">{{(parseFloat(defaultSum.toFixed(2))-summa).toFixed(2)}}</span>
+
+        <div class="form-group">
+          <label class="form-label">{{$t('select_color')}}</label>
+          <colorSelect
+            size="sm"
+            :options="color_list"
+            @select="selectOptionColor"
+            :selected="color_value"
+            :color_name="color_name"
+            :label="$t('province')"
+          />
+        </div>
+
+        <div class="balance-info">
+          <div class="balance-item success" v-if="parseFloat(defaultSum.toFixed(2)) > summa">
+            <span class="balance-label">Больше денег</span>
+            <span class="balance-value">{{(parseFloat(defaultSum.toFixed(2))-summa).toFixed(2)}}</span>
+          </div>
+          <div class="balance-item danger" v-if="parseFloat(defaultSum.toFixed(2)) < summa">
+            <span class="balance-label">Не хватить</span>
+            <span class="balance-value">{{(parseFloat(defaultSum.toFixed(2))-summa).toFixed(2)}}</span>
+          </div>
         </div>
       </div>
-      <div class="d-flex justify-content-end mx-3 mt-0">
-        <mdb-btn color="success" @click="addProduct"  style="font-size: 9px" class="mr-3"
-            p="r4 l4 t2 b2">
-          {{$t('Add_product')}}</mdb-btn>
-        <mdb-btn color="primary" @click="closeUpdateOrder" style="font-size: 9px"
-            p="r4 l4 t2 b2">
-          {{$t('update')}}</mdb-btn>
+      
+      <div class="payment-actions">
+        <mdb-btn 
+          color="success" 
+          @click="addProduct" 
+          class="action-btn"
+        >
+          <i class="fas fa-plus mr-2"></i>
+          {{$t('Add_product')}}
+        </mdb-btn>
+        <mdb-btn 
+          color="primary" 
+          @click="closeUpdateOrder" 
+          class="action-btn primary-btn"
+        >
+          <i class="fas fa-save mr-2"></i>
+          {{$t('update')}}
+        </mdb-btn>
       </div>
-
-    
     </div>
-      <massage_box :hide="modal_status" :detail_info="modal_info"
-        :m_text="$t('Failed_to_add')" @to_hide_modal="modal_status= false"/>
+    
+    <massage_box 
+      :hide="modal_status" 
+      :detail_info="modal_info"
+      :m_text="$t('Failed_to_add')" 
+      @to_hide_modal="modal_status= false"
+    />
 
-      <Toast ref="message"></Toast>
+    <Toast ref="message"></Toast>
   </div>
-  
 </template>
 
 <script>
@@ -148,6 +204,7 @@ import LoaderTable from "../../../components/loaderTable.vue";
 import InputImg from '@/components/inputImg.vue';
 import {mapActions,mapGetters} from 'vuex'
 import erpSelect from "@/components/erpSelectIndex";
+import colorSelect from "@/components/colorSelect";
 
 export default {
   components:{
@@ -155,7 +212,8 @@ export default {
     LoaderTable,
     erpSelect,
     InputImg,
-    mdbIcon
+    mdbIcon,
+    colorSelect
 },
   data() {
     return {
@@ -194,6 +252,35 @@ export default {
       note: '',
 
       productList: [],
+      
+      color_list: [
+        {
+          name_fio: "Srochniy",
+          name:'brown',
+        },
+        {
+          name:'violet',
+          name_fio: 'Bemalol'
+        },
+        {
+          name:'yellow',
+          name_fio: 'yellow'
+        },
+        {
+          name:'pink',
+          name_fio: 'Pink'
+        },
+        {
+          name:'gray',
+          name_fio: 'Gray'
+        },
+        {
+          name:'olive',
+          name_fio: 'Olive'
+        },
+      ],
+      color_value: '',
+      color_name: '',
     }
   },
   props: {
@@ -233,6 +320,11 @@ export default {
       this.productList[option.index].product_name = option.data.name;
       this.productList[option.index].product_id = option.data.id;
     },
+    selectOptionColor(option){
+      console.log(option)
+      this.color_value = option.name;
+      this.color_name = option.name_fio;
+    },
     addProduct(){
       let item = {
         product_name: '',
@@ -262,6 +354,13 @@ export default {
         this.note = data.note;
         this.order_date = data.order_date.slice(0,10);
         this.deleivered_user_auth_id = data.deleivered_user_auth_id;
+        this.color_value = data.color_value || data.reserverd_note_3 || '';
+        if(this.color_value) {
+          const colorOption = this.color_list.find(c => c.name === this.color_value);
+          if(colorOption) {
+            this.color_name = colorOption.name_fio;
+          }
+        }
         for(let i=0; i<data.items.length; i++){
           this.order_summa += parseFloat(data.items[i].qty* parseFloat(data.items[i].product.info));
           if(data.items[i].product.main_product == true){
@@ -584,6 +683,8 @@ export default {
           "deleivered_user_auth_id": this.deleivered_user_auth_id,
           "note": this.note,
           "items": itemsList,
+          "color_value": this.color_value,
+          "reserverd_note_3": this.color_value,
           "id" : this.invoice_id,
         })
       };
@@ -651,6 +752,369 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss" scoped>
+// Modern, clean, minimal light theme with soft green accents
+.update-payment-app {
+  min-height: 100%;
+  background: #f8fafb;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
 
+.update-payment-content {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  background: #ffffff;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-header {
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 50%, #ecfdf5 100%);
+  border-bottom: 1px solid #d1fae5;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  .client-name {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #10b981;
+    letter-spacing: -0.02em;
+  }
+  
+  .total-sum {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #047857;
+    letter-spacing: -0.02em;
+  }
+}
+
+.payment-form {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.form-group {
+  margin-bottom: 16px;
+  position: relative;
+  
+  .form-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.2s ease;
+    background: #ffffff;
+    
+    &:focus {
+      border-color: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+    
+    &:disabled {
+      background: #f9fafb;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+    
+    &.text-right {
+      text-align: right;
+    }
+  }
+}
+
+.order-items-section {
+  margin: 24px 0;
+  padding: 16px;
+  background: #fafbfc;
+  border-radius: 8px;
+  border: 1px solid #f3f4f6;
+  
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  
+  .order-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .order-item-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 12px;
+    align-items: end;
+    padding: 12px;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #f3f4f6;
+    
+    .item-col {
+      display: flex;
+      flex-direction: column;
+      
+      .item-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 4px;
+        letter-spacing: -0.01em;
+      }
+      
+      .form-input {
+        margin: 0;
+      }
+    }
+  }
+}
+
+.additional-products-section {
+  margin: 24px 0;
+  padding: 16px;
+  background: #fafbfc;
+  border-radius: 8px;
+  border: 1px solid #f3f4f6;
+  
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  
+  .product-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .product-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 12px;
+    align-items: end;
+    padding: 12px;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #f3f4f6;
+    position: relative;
+    
+    .product-select,
+    .product-qty {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      
+      .product-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 4px;
+        letter-spacing: -0.01em;
+      }
+    }
+    
+    .remove-btn {
+      position: absolute;
+      right: -30px;
+      top: 1px;
+      background: #ef4444;
+      border: none;
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: #dc2626;
+        transform: scale(1.05);
+      }
+      
+      mdb-icon {
+        font-size: 12px;
+      }
+    }
+  }
+}
+
+.balance-info {
+  margin: 20px 0;
+  padding: 12px;
+  background: #fafbfc;
+  border-radius: 8px;
+  border: 1px solid #f3f4f6;
+  
+  .balance-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    
+    &.success {
+      .balance-label,
+      .balance-value {
+        color: #10b981;
+        font-weight: 600;
+      }
+    }
+    
+    &.danger {
+      .balance-label,
+      .balance-value {
+        color: #ef4444;
+        font-weight: 600;
+      }
+    }
+    
+    .balance-label {
+      font-size: 12px;
+      letter-spacing: -0.01em;
+    }
+    
+    .balance-value {
+      font-size: 13px;
+      letter-spacing: -0.01em;
+    }
+  }
+}
+
+.payment-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #fafbfc;
+  border-top: 1px solid #f3f4f6;
+  
+  .action-btn {
+    font-size: 11px !important;
+    padding: 8px 16px !important;
+    border-radius: 8px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    transition: all 0.2s ease;
+    
+    i {
+      font-size: 11px !important;
+      margin-right: 6px !important;
+    }
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+    
+    &.primary-btn {
+      background: #10b981 !important;
+      border: none !important;
+      
+      &:hover {
+        background: #059669 !important;
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .update-payment-app {
+    padding: 0;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .update-payment-content {
+    border-radius: 0;
+    height: 100%;
+    overflow-y: auto;
+  }
+  
+  .payment-header {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 50%, #ecfdf5 100%);
+    
+    .client-name,
+    .total-sum {
+      font-size: 16px;
+    }
+  }
+  
+  .payment-form {
+    padding: 16px;
+  }
+  
+  .order-item-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .product-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    
+    .remove-btn {
+      right: 8px;
+      top: 8px;
+    }
+  }
+  
+  .payment-actions {
+    flex-direction: column;
+    padding: 12px 16px;
+    position: sticky;
+    bottom: 0;
+    background: #fafbfc;
+    border-top: 1px solid #f3f4f6;
+    z-index: 10;
+    
+    .action-btn {
+      width: 100%;
+    }
+  }
+}
 </style>

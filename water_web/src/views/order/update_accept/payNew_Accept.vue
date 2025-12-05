@@ -1,112 +1,308 @@
 <template>
-  <div>
+  <div class="payment-app">
     <LoaderTable v-if="loading"/>
-    <div v-else class="pay_page">
-      <div class=" px-4 d-flex justify-content-between mt-2 mb-3">
-        <h5 class="m-0 mb-2 text-primary border-bottom">{{client_name}}</h5>
-        <!-- <h6 class="m-0 mb-1 font-weight-bold">Z - {{order.address.id}}</h6> -->
-        <h5 class="m-0 mb-2 text-success border-bottom" >{{summInString}} сум</h5>
-      </div>
-      <div class="mx-3 mb-1">
-        <div style="position:relative;" v-show="note">
-          <text-area rows="1" class="w-100 applied"   v-model="note"   validate error="wrong" success="right"/>
-          <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold;" class="testing">
-            {{$t('note')}}
-          </small>
-        </div>
-        <div style="position:relative;" class="mt-3">
-          <input type="date" disabled v-model="order_date"
-          
-          class="form-control  border mt-2 text-right pr-2" style="border:none; outline:none;font-weight:bold; height:30px;" >
-          <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold; " class="testing">
-            {{$t('date')}}
-          </small>
-        </div> 
-        <div style="position:relative;" class="mt-3">
-          <input type="text" v-model="cashInString"  v-on:keyup.13 = "payed" @keyup="funcCash($event.target.value)"  
-          ref="cashIn"  v-on:click.capture="cashNol"
-          class="form-control  border mt-2 text-right pr-2" style="border:none; outline:none;font-weight:bold; height:30px;" >
-          <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold; " class="testing">
-            {{$t('cash')}}
-          </small>
-        </div> 
-        <div style="position:relative;" class="mt-3">
-          <input type="text" v-model="cardInString"  v-on:keyup.13 = "payed" @keyup="funcCard($event.target.value)"
-          ref="cashIn" v-on:click.capture="cardNol" 
-          class="form-control  border mt-2 text-right pr-2" style="border:none; outline:none;font-weight:bold; height:30px;" >
-          <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold; " class="testing">
-            {{$t('card')}}
-          </small> 
-        </div> 
-        <div style="position:relative;" class="mt-3">
-          <input type="number" v-model="main_product_qty" @blur="funcGiveNol" @keyup="funcGiveBootle($event.target.value)"
-          class="form-control  border mt-2 text-right pr-2" style="border:none; outline:none;font-weight:bold; height:30px;" >
-          <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold; " class="testing">
-            {{$t('give_bootle')}}
-          </small>
-        </div>
-
-        <div style="position:relative;" class="mt-3">
-          <input type="number" v-model="get_bootle" @keyup="funcBootle($event.target.value)" @keyup.enter="payed"
-          ref="get_Bootle" v-on:click.capture="funcBootle" @blur="funcGetNol"
-          class="form-control  border mt-2 text-right pr-2" style="border:none; outline:none;font-weight:bold; height:30px;" >
-          <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold; " class="testing">
-            {{$t('getten_bootle')}}
-          </small>
-        </div>
-
-        <div class="row mt-3" v-for="(item,index) in order_item" :key="index">
-          <div class="col-4">
-            <input type="text" v-model="item.product_name" disabled
-            class="form-control  border mt-2 text-left pr-2" style="border:none; font-size: 13px; outline:none; font-weight:bold; height:30px;" >
-          </div>
-          <div class="col-4" >
-            <div style="position:relative;">
-              <input type="text" v-model="item.qty" @input="funcItemProduct(index)"
-                class="form-control  border mt-2 text-right pr-2" style="border:none; outline:none;font-weight:bold; height:30px;" >
-              <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold; " class="testing">
-                {{$t('qty')}}
-              </small>
-            </div>
-          </div>
-          <div class="col-4" >
-            <div style="position:relative;">
-              <input type="text" disabled :value="item.price*item.qty" 
-                class="form-control  border mt-2 text-right pr-2" style="border:none; outline:none;font-weight:bold; height:30px;" >
-              <small style="position:absolute; top:-16px; left:3px; font-size:11.5px; font-weight:bold; " class="testing">
-                {{$t('price')}}
-              </small>
-            </div>
-          </div>
-        </div>
-        
-
-        <div class="d-flex justify-content-between mt-2" style="font-size:13.5px;">
-          <span v-if="parseFloat(defaultSum.toFixed(2)) > summa" class="text-success"> Больше денег </span>
-          <span v-if="parseFloat(defaultSum.toFixed(2)) > summa" class="text-success">{{(parseFloat(defaultSum.toFixed(2))-summa).toFixed(2)}}</span>
-        </div>
-        <div class="d-flex justify-content-between mt-2" style="font-size:13.5px;">
-          <span v-if="parseFloat(defaultSum.toFixed(2)) < summa" class="text-danger"> Не хватить </span>
-          <span v-if="parseFloat(defaultSum.toFixed(2)) < summa" class="text-danger">{{(parseFloat(defaultSum.toFixed(2))-summa).toFixed(2)}}</span>
-        </div>
-      </div>
-      <div class="d-flex justify-content-end mx-3 mt-0">
-        <!-- <mdb-btn color="primary" @click="closeUpdateOrder" style="font-size: 9px"
-            p="r4 l4 t2 b2">
-          {{$t('update')}}</mdb-btn> -->
-        <mdb-btn color="success" @click="payed" style="font-size: 9px"
-            p="r4 l4 t2 b2">
-          {{$t('pay')}}</mdb-btn>
-      </div>
-
     
-    </div>
-      <massage_box :hide="modal_status" :detail_info="modal_info"
-        :m_text="$t('Failed_to_add')" @to_hide_modal="modal_status= false"/>
+    <template v-else>
+    <!-- Desktop Version -->
+    <div class="desktop-payment-content">
+      <div class="desktop-payment-card">
+        <div class="desktop-payment-header">
+          <h3 class="desktop-client-name">{{client_name}}</h3>
+          <h3 class="desktop-total-sum">{{summInString}} сум</h3>
+        </div>
 
-      <Toast ref="message"></Toast>
+        <div class="desktop-payment-form">
+          <!-- Note Field -->
+          <div class="desktop-form-group" v-show="note">
+            <label class="desktop-form-label">{{$t('note')}}</label>
+            <textarea 
+              v-model="note" 
+              rows="2" 
+              class="desktop-form-input"
+              :placeholder="$t('note')"
+            ></textarea>
+          </div>
+
+          <!-- Date Field -->
+          <div class="desktop-form-group">
+            <label class="desktop-form-label">{{$t('date')}}</label>
+            <input 
+              type="date" 
+              disabled 
+              v-model="order_date"
+              class="desktop-form-input"
+            />
+          </div>
+
+          <!-- Cash Field -->
+          <div class="desktop-form-group">
+            <label class="desktop-form-label">{{$t('cash')}}</label>
+            <input 
+              type="text" 
+              v-model="cashInString"  
+              v-on:keyup.13="payed" 
+              @keyup="funcCash($event.target.value)"  
+              ref="cashIn"  
+              v-on:click.capture="cashNol"
+              class="desktop-form-input desktop-input-right"
+            />
+          </div>
+
+          <!-- Card Field -->
+          <div class="desktop-form-group">
+            <label class="desktop-form-label">{{$t('card')}}</label>
+            <input 
+              type="text" 
+              v-model="cardInString"  
+              v-on:keyup.13="payed" 
+              @keyup="funcCard($event.target.value)"
+              ref="cashIn" 
+              v-on:click.capture="cardNol" 
+              class="desktop-form-input desktop-input-right"
+            />
+          </div>
+
+          <!-- Give Bottle Field -->
+          <div class="desktop-form-group">
+            <label class="desktop-form-label">{{$t('give_bootle')}}</label>
+            <input 
+              type="number" 
+              v-model="main_product_qty" 
+              @blur="funcGiveNol" 
+              @keyup="funcGiveBootle($event.target.value)"
+              class="desktop-form-input desktop-input-right"
+            />
+          </div>
+
+          <!-- Get Bottle Field -->
+          <div class="desktop-form-group">
+            <label class="desktop-form-label">{{$t('getten_bootle')}}</label>
+            <input 
+              type="number" 
+              v-model="get_bootle" 
+              @keyup="funcBootle($event.target.value)" 
+              @keyup.enter="payed"
+              ref="get_Bootle" 
+              v-on:click.capture="funcBootle" 
+              @blur="funcGetNol"
+              class="desktop-form-input desktop-input-right"
+            />
+          </div>
+
+          <!-- Order Items -->
+          <div class="desktop-order-items" v-for="(item,index) in order_item" :key="index">
+            <div class="desktop-item-row">
+              <div class="desktop-item-name">
+                <input 
+                  type="text" 
+                  v-model="item.product_name" 
+                  disabled
+                  class="desktop-form-input desktop-input-disabled"
+                />
+              </div>
+              <div class="desktop-item-qty">
+                <label class="desktop-form-label-small">{{$t('qty')}}</label>
+                <input 
+                  type="text" 
+                  v-model="item.qty" 
+                  @input="funcItemProduct(index)"
+                  class="desktop-form-input desktop-input-right"
+                />
+              </div>
+              <div class="desktop-item-price">
+                <label class="desktop-form-label-small">{{$t('price')}}</label>
+                <input 
+                  type="text" 
+                  disabled 
+                  :value="item.price*item.qty" 
+                  class="desktop-form-input desktop-input-right desktop-input-disabled"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Balance Messages -->
+          <div class="desktop-balance-messages">
+            <div v-if="parseFloat(defaultSum.toFixed(2)) > summa" class="desktop-balance-success">
+              <span>Больше денег</span>
+              <span>{{(parseFloat(defaultSum.toFixed(2))-summa).toFixed(2)}}</span>
+            </div>
+            <div v-if="parseFloat(defaultSum.toFixed(2)) < summa" class="desktop-balance-danger">
+              <span>Не хватить</span>
+              <span>{{(parseFloat(defaultSum.toFixed(2))-summa).toFixed(2)}}</span>
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <div class="desktop-payment-actions">
+            <mdb-btn 
+              color="success" 
+              @click="payed" 
+              class="desktop-pay-btn"
+            >
+              <i class="fas fa-check-circle"></i>
+              {{$t('pay')}}
+            </mdb-btn>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Version -->
+    <div class="mobile-payment-content">
+      <div class="mobile-payment-card">
+        <div class="mobile-payment-header">
+          <h4 class="mobile-client-name">{{client_name}}</h4>
+          <h4 class="mobile-total-sum">{{summInString}} сум</h4>
+        </div>
+
+        <div class="mobile-payment-form">
+          <!-- Note Field -->
+          <div class="mobile-form-group" v-show="note">
+            <label class="mobile-form-label">{{$t('note')}}</label>
+            <textarea 
+              v-model="note" 
+              rows="2" 
+              class="mobile-form-input"
+              :placeholder="$t('note')"
+            ></textarea>
+          </div>
+
+          <!-- Date Field -->
+          <div class="mobile-form-group">
+            <label class="mobile-form-label">{{$t('date')}}</label>
+            <input 
+              type="date" 
+              disabled 
+              v-model="order_date"
+              class="mobile-form-input"
+            />
+          </div>
+
+          <!-- Cash Field -->
+          <div class="mobile-form-group">
+            <label class="mobile-form-label">{{$t('cash')}}</label>
+            <input 
+              type="text" 
+              v-model="cashInString"  
+              v-on:keyup.13="payed" 
+              @keyup="funcCash($event.target.value)"  
+              ref="cashIn"  
+              v-on:click.capture="cashNol"
+              class="mobile-form-input mobile-input-right"
+            />
+          </div>
+
+          <!-- Card Field -->
+          <div class="mobile-form-group">
+            <label class="mobile-form-label">{{$t('card')}}</label>
+            <input 
+              type="text" 
+              v-model="cardInString"  
+              v-on:keyup.13="payed" 
+              @keyup="funcCard($event.target.value)"
+              ref="cashIn" 
+              v-on:click.capture="cardNol" 
+              class="mobile-form-input mobile-input-right"
+            />
+          </div>
+
+          <!-- Give Bottle Field -->
+          <div class="mobile-form-group">
+            <label class="mobile-form-label">{{$t('give_bootle')}}</label>
+            <input 
+              type="number" 
+              v-model="main_product_qty" 
+              @blur="funcGiveNol" 
+              @keyup="funcGiveBootle($event.target.value)"
+              class="mobile-form-input mobile-input-right"
+            />
+          </div>
+
+          <!-- Get Bottle Field -->
+          <div class="mobile-form-group">
+            <label class="mobile-form-label">{{$t('getten_bootle')}}</label>
+            <input 
+              type="number" 
+              v-model="get_bootle" 
+              @keyup="funcBootle($event.target.value)" 
+              @keyup.enter="payed"
+              ref="get_Bootle" 
+              v-on:click.capture="funcBootle" 
+              @blur="funcGetNol"
+              class="mobile-form-input mobile-input-right"
+            />
+          </div>
+
+          <!-- Order Items -->
+          <div class="mobile-order-items" v-for="(item,index) in order_item" :key="index">
+            <div class="mobile-item-row">
+              <div class="mobile-item-name">
+                <input 
+                  type="text" 
+                  v-model="item.product_name" 
+                  disabled
+                  class="mobile-form-input mobile-input-disabled"
+                />
+              </div>
+              <div class="mobile-item-qty">
+                <label class="mobile-form-label-small">{{$t('qty')}}</label>
+                <input 
+                  type="text"
+                  v-model="item.qty" 
+                  @input="funcItemProduct(index)"
+                  class="mobile-form-input mobile-input-right"
+                />
+              </div>
+              <div class="mobile-item-price">
+                <label class="mobile-form-label-small">{{$t('price')}}</label>
+                <input 
+                  type="text" 
+                  disabled 
+                  :value="item.price*item.qty" 
+                  class="mobile-form-input mobile-input-right mobile-input-disabled"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Balance Messages -->
+          <div class="mobile-balance-messages">
+            <div v-if="parseFloat(defaultSum.toFixed(2)) > summa" class="mobile-balance-success">
+              <span>Больше денег</span>
+              <span>{{(parseFloat(defaultSum.toFixed(2))-summa).toFixed(2)}}</span>
+            </div>
+            <div v-if="parseFloat(defaultSum.toFixed(2)) < summa" class="mobile-balance-danger">
+              <span>Не хватить</span>
+              <span>{{(parseFloat(defaultSum.toFixed(2))-summa).toFixed(2)}}</span>
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <div class="mobile-payment-actions">
+            <mdb-btn 
+              color="success" 
+              @click="payed" 
+              class="mobile-pay-btn"
+            >
+              <i class="fas fa-check-circle"></i>
+              {{$t('pay')}}
+            </mdb-btn>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <massage_box 
+      :hide="modal_status" 
+      :detail_info="modal_info"
+      :m_text="$t('Failed_to_add')" 
+      @to_hide_modal="modal_status= false"
+    />
+
+    <Toast ref="message"></Toast>
+    </template>
   </div>
-  
 </template>
 
 <script>
@@ -697,6 +893,403 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss" scoped>
+.payment-app {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  font-family: 'Open Sans', sans-serif;
+  padding: 15px;
+  
+  @media (max-width: 767px) {
+    padding: 0;
+    min-height: auto;
+  }
+}
 
+// Desktop Styles
+.desktop-payment-content {
+  display: none;
+  
+  @media (min-width: 768px) {
+    display: block;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+}
+
+.desktop-payment-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.desktop-payment-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 25px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  .desktop-client-name {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  
+  .desktop-total-sum {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+  }
+}
+
+.desktop-payment-form {
+  padding: 30px;
+}
+
+.desktop-form-group {
+  margin-bottom: 20px;
+  
+  .desktop-form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
+  }
+  
+  .desktop-form-label-small {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 5px;
+  }
+  
+  .desktop-form-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.3s;
+    background: #f8f9fa;
+    
+    &:focus {
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    &.desktop-input-right {
+      text-align: right;
+      font-weight: 600;
+    }
+    
+    &.desktop-input-disabled {
+      background: #e9ecef;
+      color: #6c757d;
+      cursor: not-allowed;
+    }
+  }
+  
+  textarea.desktop-form-input {
+    resize: vertical;
+    min-height: 60px;
+  }
+}
+
+.desktop-order-items {
+  margin-bottom: 15px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  
+  .desktop-item-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 15px;
+    align-items: end;
+  }
+}
+
+.desktop-balance-messages {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 10px;
+  
+  .desktop-balance-success {
+    display: flex;
+    justify-content: space-between;
+    color: #28a745;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 10px;
+    background: #d4edda;
+    border-radius: 8px;
+  }
+  
+  .desktop-balance-danger {
+    display: flex;
+    justify-content: space-between;
+    color: #dc3545;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 10px;
+    background: #f8d7da;
+    border-radius: 8px;
+  }
+}
+
+.desktop-payment-actions {
+  margin-top: 25px;
+  display: flex;
+  justify-content: flex-end;
+  
+  .desktop-pay-btn {
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    }
+  }
+}
+
+// Mobile Styles
+.mobile-payment-content {
+  display: block;
+  
+  @media (min-width: 768px) {
+    display: none;
+  }
+}
+
+.mobile-payment-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.mobile-payment-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 15px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  .mobile-client-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    flex: 1;
+  }
+  
+  .mobile-total-sum {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: right;
+  }
+}
+
+.mobile-payment-form {
+  padding: 18px;
+}
+
+.mobile-form-group {
+  margin-bottom: 15px;
+  
+  .mobile-form-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 6px;
+  }
+  
+  .mobile-form-label-small {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 4px;
+  }
+  
+  .mobile-form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.3s;
+    background: #f8f9fa;
+    
+    &:focus {
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+    }
+    
+    &.mobile-input-right {
+      text-align: right;
+      font-weight: 600;
+    }
+    
+    &.mobile-input-disabled {
+      background: #e9ecef;
+      color: #6c757d;
+      cursor: not-allowed;
+    }
+  }
+  
+  textarea.mobile-form-input {
+    resize: vertical;
+    min-height: 50px;
+  }
+}
+
+.mobile-order-items {
+  margin-bottom: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  
+  .mobile-item-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 10px;
+    align-items: end;
+    min-width: 280px;
+    
+    .mobile-item-name {
+      min-width: 100px;
+    }
+    
+    .mobile-item-qty {
+      min-width: 70px;
+    }
+    
+    .mobile-item-price {
+      min-width: 80px;
+    }
+  }
+}
+
+.mobile-balance-messages {
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 8px;
+  
+  .mobile-balance-success {
+    display: flex;
+    justify-content: space-between;
+    color: #28a745;
+    font-weight: 600;
+    font-size: 12px;
+    padding: 8px;
+    background: #d4edda;
+    border-radius: 6px;
+  }
+  
+  .mobile-balance-danger {
+    display: flex;
+    justify-content: space-between;
+    color: #dc3545;
+    font-weight: 600;
+    font-size: 12px;
+    padding: 8px;
+    background: #f8d7da;
+    border-radius: 6px;
+  }
+}
+
+.mobile-payment-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  
+  .mobile-pay-btn {
+    padding: 10px 25px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 3px 12px rgba(40, 167, 69, 0.3);
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .payment-app {
+    padding: 10px;
+  }
+  
+  .mobile-payment-header {
+    padding: 12px 15px;
+    
+    .mobile-client-name {
+      font-size: 14px;
+    }
+    
+    .mobile-total-sum {
+      font-size: 14px;
+    }
+  }
+  
+  .mobile-payment-form {
+    padding: 15px;
+  }
+  
+  .mobile-form-group {
+    margin-bottom: 12px;
+    
+    .mobile-form-input {
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+  }
+  
+  .mobile-order-items {
+    padding: 10px;
+    
+    .mobile-item-row {
+      gap: 8px;
+      min-width: 260px;
+      
+      .mobile-item-name {
+        min-width: 90px;
+      }
+      
+      .mobile-item-qty {
+        min-width: 60px;
+      }
+      
+      .mobile-item-price {
+        min-width: 70px;
+      }
+    }
+  }
+}
 </style>

@@ -102,22 +102,56 @@ export default {
   }
   .modal_FP{
     position: fixed;
-    // width: 60%;
-    top:50%;
-    left:50%;
-    transform: translate(-50%,-51%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -51%);
     z-index: 110;
+    max-height: 95vh;
+    display: flex;
+    flex-direction: column;
+    
+    @media (max-width: 767px) {
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      transform: none;
+      max-height: 100vh;
+      width: 100% !important;
+      border-radius: 0;
+    }
+    
      .modal_head_shadow{
       box-shadow: 0px 2px 3px #eee;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      flex-shrink: 0;
+      
+      @media (max-width: 767px) {
+        padding: 12px 15px !important;
+        
+        h5 {
+          font-size: 16px !important;
+          font-weight: 600;
+        }
+        
+        svg {
+          width: 24px !important;
+          height: 24px !important;
+        }
+      }
     }
-
-
-    
   }
   .modal_slot{
-    max-height: 90vh;
+    max-height: calc(95vh - 60px);
     overflow: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
+    flex: 1;
+    
+    @media (max-width: 767px) {
+      max-height: calc(100vh - 60px);
+    }
   }
   .modal_FP .card-body{
     max-height: 680px;

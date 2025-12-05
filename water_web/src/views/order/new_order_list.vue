@@ -1,53 +1,96 @@
 <template>
-  <div class="all_info_order d-flex">
+  <div class="order-list-app">
     <backRouter />
-    <div class="order_new_list">
-      <div class="header_menu px-3 mt-3">
-        <div class="row">
-          <div class="col-3 mt-1">
-            <div class="d-flex">
-              <input-icon style="width: 100%; height:30px;" v-model="search" @input="searchClick" :placeholder="$t('search_here')"></input-icon>
-              <mdb-btn class="mr-1 ml-0 mt-0  py-1 px-3"  
-              style="font-size: 9px; height:28px; width:90px; margin-top: 1px !important;" 
-              color="info"  
-              @click="searchClick()" 
-                size="sm">{{$t('search')}}
+    <div class="order-list-main">
+      <div class="order-list-header">
+        <div class="header-content">
+          <div class="search-section">
+            <div class="search-wrapper">
+              <input-icon 
+                style="width: 300px; height:28px;" 
+                v-model="search" 
+                @input="searchClick" 
+                :placeholder="$t('search_here')"
+              ></input-icon>
+              <mdb-btn 
+                class="search-btn m-0" 
+                color="info"  
+                @click="searchClick()" 
+                size="sm"
+              >
+                {{$t('search')}}
               </mdb-btn>
             </div>
           </div>
-          <div class="col-2 px-1">
-            <mdb-input class="m-0 p-0 " size="sm" v-model="b_date" type="date"></mdb-input>
+          
+          <div class="date-section">
+            <mdb-input 
+              class="date-input m-0 ml-3" 
+              size="sm" 
+              v-model="b_date" 
+              type="date"
+            ></mdb-input>
+            <mdb-input 
+              class="date-input m-0" 
+              size="sm" 
+              v-model="e_date" 
+              type="date"
+            ></mdb-input>
           </div>
-          <div class="col-2 px-1">
-            <mdb-input class="m-0 p-0 " size="sm" v-model="e_date" type="date"></mdb-input>
-          </div>
-          <div class="col-5 d-flex">
-            <mdb-btn class="mr-1 ml-0 mt-0  py-1 px-4 mt-1"  style="font-size: 9px; height:28px; " color="info"  @click="acceptBtn()" 
-              size="sm">{{$t('apply')}}
+          
+          <div class="action-buttons">
+            <mdb-btn 
+              class="action-btn" 
+              color="info"  
+              @click="acceptBtn()" 
+              size="sm"
+            >
+              {{$t('apply')}}
             </mdb-btn>
             
             <router-link to="/map_order">
-              <mdb-btn class="mr-1 ml-0 mt-0  py-1 px-3 mt-1"  style="font-size: 9px; height:28px; " color="orange" 
-                size="sm">{{$t('map')}}
+              <mdb-btn 
+                class="action-btn m-0" 
+                color="orange" 
+                size="sm"
+              >
+                {{$t('map')}}
               </mdb-btn>
             </router-link>
 
-            <mdb-btn class="mr-1 ml-3 mt-0  py-1 px-3 mt-1"  style="font-size: 9px; height:28px; " color="primary"  @click="fetchTodayOrderList" 
-              size="sm">{{$t('today')}}
-            </mdb-btn>
-            <mdb-btn class="mr-1 ml-0 mt-0  py-1 px-3 mt-1"  style="font-size: 9px; height:28px; " color="secondary"  @click="fetchTomorrowOrderList" 
-              size="sm">{{$t('tomorrow')}}
-            </mdb-btn>
-            <mdb-btn class="mr-1 ml-0 mt-0  py-1 px-3 mt-1"  style="font-size: 9px; height:28px; " color="indigo"  @click="fetchAllOrderList" 
-              size="sm">{{$t('all')}}
+            <mdb-btn 
+              class="action-btn ml-5" 
+              color="primary"  
+              @click="fetchTodayOrderList" 
+              size="sm"
+            >
+              {{$t('today')}}
             </mdb-btn>
             
+            <mdb-btn 
+              class="action-btn m-0 " 
+              color="secondary"  
+              @click="fetchTomorrowOrderList" 
+              size="sm"
+            >
+              {{$t('tomorrow')}}
+            </mdb-btn>
+            
+            <mdb-btn 
+              class="action-btn m-0 px-2" 
+              color="indigo"  
+              @click="fetchAllOrderList" 
+              size="sm"
+            >
+              {{$t('all')}}
+            </mdb-btn>
           </div>
         </div>
       </div>
-      <div class="table w-100 ">
+      <div class="order-table-container">
         <loader-table v-if="loading" />
-        <table v-else class="w-100 tabled">
+        <div v-else class="order-table-wrapper">
+          <table class="order-table">
           <thead class="header_table ">
             <tr class="stiky_position">
               <th>№</th>
@@ -98,19 +141,19 @@
               <td>{{item.note}}</td>
               <td>{{item.order_date.slice(0,10)}}</td>
               <td>{{item.deleivered_user_auth_id}}</td>
-              <td class="m-0 p-0 bg-white">
+              <td class="m-0 p-0 px-2 bg-white">
                 <div class="d-flex align-items-center">
                   <div @click="UpdateOrder(item)" style="cursor:pointer" class="">
-                    <mdb-icon icon="edit" style="font-size:16px;" class="p-1 text-warning " far></mdb-icon>
+                    <mdb-icon icon="edit" style="font-size:14px;" class="p-1 text-warning " far></mdb-icon>
                   </div>
                   <div @click="showOrder(item)" style="cursor:pointer">
-                    <mdb-icon icon="check-circle" style="font-size:16px;" class="p-1 text-success" far></mdb-icon>
+                    <mdb-icon icon="check-circle" style="font-size:14px;" class="p-1 text-success" far></mdb-icon>
                   </div>
                   <div @click="deleteOrder(item)" style="cursor:pointer">
-                    <mdb-icon icon="trash" style="font-size:16px;" class="p-1 text-danger" ></mdb-icon>
+                    <mdb-icon icon="trash" style="font-size:14px;" class="p-1 text-danger" ></mdb-icon>
                   </div>
                   <div @click="delete_from_user(item)" style="cursor:pointer" class="">
-                    <mdb-icon icon="minus-square" style="font-size:16px;" class="p-1 text-danger " far></mdb-icon>
+                    <mdb-icon icon="minus-square" style="font-size:14px;" class="p-1 text-danger " far></mdb-icon>
                   </div>
                 </div>
                 <!-- <mdb-btn class="mr-1 ml-0 mt-0 mt-1 btn-acp"  style="font-size: 8px; width:80px; padding: 5px;"   
@@ -120,14 +163,13 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </div>
-    <div class="order_info">
-      <div class="qty borderSolder py-2">
-        <span class="ml-3">{{$t('all')}}</span>
-        <div class="text-right px-3 mt-1">
-          <p>{{all_water_count}}</p>
-        </div>
+    <div class="order-stats-sidebar">
+      <div class="stats-card">
+        <div class="stats-label">{{$t('all')}}</div>
+        <div class="stats-value text-right">{{all_water_count}}</div>
       </div>
     </div>
 
@@ -421,105 +463,395 @@ export default {
 }
 </script>
 
-<style lang="scss">
-
-@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700);
-
-$blue:rgb(79, 173, 210);
-$green:rgb(124, 237, 188);
-$yellow:rgba(231,196,104,0.7);
-$orange:rgba(235,118,85,1);
-$dark-bg:rgba(0,0,0,0.9);
-$light-bg:rgba(255,255,255,0.1);
-$text:rgba(255,255,255,0.9);
-body {
-  background:$light-bg;
-  font-family: 'Open Sans', sans-serif;
+<style lang="scss" scoped>
+// Modern, clean, minimal light theme with soft green accents
+.order-list-app {
+  min-height: 100vh;
+  background: #f8fafb;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  display: flex;
+  overflow: hidden;
 }
-.order_new_list{
-  width:80%;
-  border-right: 1px solid $dark-bg;
-}
-.order_info{
-  width: 20%;
-  height: 100%;
-  .borderSolder{
-    border: 0.5px dashed #D0D3D8;
 
-    span{
-      color:#67676C;
-      font-size: 22px;
+.order-list-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.order-list-header {
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 50%, #ecfdf5 100%);
+  border-bottom: 1px solid #d1fae5;
+  box-shadow: 0 1px 8px rgba(16, 185, 129, 0.08);
+  padding: 8px 16px;
+  
+  @media (max-width: 991px) {
+    padding: 8px 12px;
+  }
+  
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .search-section {
+    flex: 0 0 auto;
+    min-width: 200px;
+    
+    .search-wrapper {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      
+      input-icon {
+        width: 250px !important;
+        flex: 0 0 auto;
+        border-radius: 8px;
+      }
+      
+      .search-btn {
+        font-size: 10px !important;
+        padding: 3px 12px !important;
+        border-radius: 8px;
+        font-weight: 500;
+        // letter-spacing: -0.01em; 
+        height: 28px !important;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+        }
+      }
     }
-    p{
-      color:#525255;
-      font-weight:bold;
-      font-size: 25px;
-      margin:0;
-      padding:0;
+  }
+  
+  .date-section {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    
+    .date-input {
+      border-radius: 8px;
+      font-size: 11px;
+      min-width: 200px;
+    }
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+    
+    .action-btn {
+      font-size: 10px !important;
+      padding: 3px 18px !important;
+      border-radius: 8px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      height: 28px !important;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+      }
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .header-content {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .search-section,
+    .date-section,
+    .action-buttons {
+      width: 100%;
+    }
+    
+    .date-section {
+      flex-direction: column;
+      
+      .date-input {
+        width: 100%;
+      }
+    }
+    
+    .action-buttons {
+      justify-content: flex-start;
     }
   }
 }
-.header_table{
-  // background: $green;
-  th{
-    padding:6px 7px;
+
+.order-table-container {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  background: #f8fafb;
+  
+  @media (max-width: 991px) {
+    padding: 8px 12px;
+  }
+}
+
+.order-table-wrapper {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
+  overflow: hidden;
+}
+
+.order-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  
+  thead {
+    background: #10b981;
+    color: white;
+    
+    th {
+      padding: 7px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: left;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      
+      mdb-icon {
+        color: rgba(255, 255, 255, 0.8);
+        transition: color 0.2s;
+        
+        &:hover {
+          color: white;
+        }
+      }
+    }
+  }
+  
+  tbody {
+    tr {
+      border-bottom: 1px solid #f3f4f6;
+      transition: all 0.15s ease;
+      
+      &:nth-child(even) {
+        background-color: #fafbfc;
+      }
+      
+      &:hover {
+        background: #f0fdf4 !important;
+        transform: translateX(2px);
+      }
+      
+      td {
+        padding: 7px 12px;
+        font-size: 11px;
+        color: #374151;
+        letter-spacing: -0.01em;
+        
+        &.font-weight-bold {
+          font-weight: 600;
+          color: #111827;
+        }
+        
+        &.text-primary {
+          color: #10b981 !important;
+        }
+      }
+      
+      // Color value backgrounds
+      &.bg_dark_tr {
+        background: #6b7280 !important;
+        color: white !important;
+        
+        td {
+          color: white !important;
+        }
+      }
+      
+      &.bg_red_tr {
+        background: #10b981 !important;
+        color: white !important;
+        
+        td {
+          color: white !important;
+        }
+      }
+      
+      &.bg_reded_tr {
+        background: #ef4444 !important;
+        color: white !important;
+        
+        td {
+          color: white !important;
+        }
+      }
+      
+      // Action icons
+      .mdb-icon {
+        transition: all 0.2s ease;
+        
+        &:hover {
+          transform: scale(1.1);
+        }
+      }
+    }
+  }
+}
+
+.order-stats-sidebar {
+  width: 200px;
+  background: #ffffff;
+  border-left: 1px solid #e5e7eb;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  
+  .stats-card {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-radius: 12px;
+    padding: 17px 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #a7f3d0;
+    
+    .stats-label {
+      color: #065f46;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+    
+    .stats-value {
+      color: #047857;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+  }
+}
+
+// Legacy class support
+.all_info_order {
+  min-height: 100vh;
+  background: #f8fafb;
+  display: flex;
+}
+
+.order_new_list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.order_info {
+  width: 200px;
+  background: #ffffff;
+  border-left: 1px solid #e5e7eb;
+  padding: 16px;
+  
+  .borderSolder {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border: 1px solid #a7f3d0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    
+    span {
+      color: #065f46;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    
+    p {
+      color: #047857;
+      font-weight: 700;
+      font-size: 28px;
+      margin: 12px 0 0 0;
+      padding: 0;
+      letter-spacing: -0.02em;
+    }
+  }
+}
+
+.header_table {
+  background: #10b981;
+  color: white;
+  
+  th {
+    padding: 10px 12px;
     font-weight: 600;
-    font-size: 11.5px;
-    @media only screen and (max-width:767px) and (min-width:480px) {
-      font-size:12px;
-    }
+    font-size: 11px;
+    letter-spacing: -0.01em;
   }
 }
-.stiky_position{
-  position: -webkit-sticky; /* Safari */
+
+.stiky_position {
   position: sticky;
-  top: 0px;
-  background: #3f6a8b;
-  color:white;
+  top: 0;
+  background: #10b981;
+  color: white;
+  z-index: 10;
 }
-.hoverTr:hover{
-  background-image: radial-gradient( circle farthest-corner at 1.3% 2.8%,   rgb(211, 224, 245) 100.2%, rgba(239,249,249,1) 100% );
+
+.hoverTr:hover {
+  background: #f0fdf4 !important;
+  transform: translateX(2px);
 }
-.body_table{
-  tr:nth-child(even){background-color: #ebf5fc;}
-  tr:hover{
-    transform: translate(2px, 0px);
-    // transform: scale(1.01);
-  }
-  td{
-    padding:6px 7px;
-    font-size: 13px;
-     @media only screen and (max-width:767px) and (min-width:480px) {
-      font-size:12px;
+
+.body_table {
+  tr {
+    border-bottom: 1px solid #f3f4f6;
+    
+    &:nth-child(even) {
+      background-color: #fafbfc;
+    }
+    
+    td {
+      padding: 10px 12px;
+      font-size: 11px;
+      color: #374151;
+      letter-spacing: -0.01em;
     }
   }
 }
-.table{
-  padding: 10px 5px;
-  @media only screen and (max-width:767px) and (min-width:480px) {
-    font-size:12px;
-    padding: 10px 5px;
-  }
-  @media only screen and (max-width:470px) {
-    font-size:12px;
-    padding: 5px 0;
-  }
+
+.table {
+  padding: 16px;
+  background: #f8fafb;
 }
-.tabled{
+
+.tabled {
   border-collapse: separate;
   border-spacing: 0;
 }
-.btn-acp{
-  background-image: radial-gradient( circle 835px at 12.1% 24%,  rgba(93,133,178,1) 25.7%, rgba(50,73,101,1) 100.2% );
-}
-.bg_dark_tr{
-  background: #646465 !important;
-}
-.bg_red_tr{
-  background: #4e9d49 !important;
-}
-.bg_reded_tr{
-  background: #f45c5c !important;
+
+.bg_dark_tr {
+  background: #6b7280 !important;
+  color: white !important;
 }
 
+.bg_red_tr {
+  background: #10b981 !important;
+  color: white !important;
+}
+
+.bg_reded_tr {
+  background: #ef4444 !important;
+  color: white !important;
+}
 </style>

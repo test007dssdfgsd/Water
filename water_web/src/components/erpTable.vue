@@ -1,9 +1,9 @@
 <template>
 
-  <div class="d_table  p-2">
+  <div class="d_table">
     <loader v-if="loading"/>
 
-      <div class="mx-2 p-0">
+      <div class="controls-section">
         <mdb-row>
           <mdb-col  class="col-12 col-sm-12 col-md-4 col-lg-2" :class="{'applied': !dontShowPagination}">
             <multiselect  v-model="value"  :options="options"
@@ -40,10 +40,8 @@
           </mdb-col>
         </mdb-row>
       </div>
-      <div class="" >
-          <hr class="m-0 p-0 "/>
-        </div>
-      <table  class="myTable mt-3">
+      <div class="table-wrapper">
+        <table  class="myTable">
                 <thead>
                 <tr class="header stiky_position">
                     <th width="60">№</th>
@@ -92,7 +90,8 @@
                 </tbody>
 
       </table>
-      <div class=" m-3 mt-4"  v-if="dontShowPagination">
+      </div>
+      <div class="pagination-section"  v-if="dontShowPagination">
         <div class="d-inline dataTables_info"  role="status" aria-live="polite"> {{get_current_list.current_item_count}} {{$t('to_')}} {{value}} {{$t('of_')}} {{get_current_list.items_count}} </div>
         <mdb-pagination class="float-right" style="font-size:12px">
           <div @click="firstPage">
@@ -436,69 +435,169 @@ export default {
 .applied{
   pointer-events: none;
   background:#fcfcfc;
+  opacity: 0.6;
 }
+
 .d_table{
-  position: relative;
+  padding: 16px;
+  background: #f8fafb;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.controls-section {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.table-wrapper {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
+  overflow: hidden;
+  overflow-x: auto;
 }
 
 .myTable {
-  /* border-collapse: collapse; */
-  table-layout:fixed;
+  table-layout: fixed;
   width: 100%;
-  // border: 1px solid #ddd;
-  font-size: 18px;
-  max-height:80px; overflow-x:auto
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+  
+  tr:nth-child(even) {
+    background-color: #fafbfc;
+  }
 }
-.myTable th{
+
+.myTable th {
   font-weight: 600;
-  font-size:12.5px;
+  font-size: 11px;
+  letter-spacing: -0.01em;
 }
-.myTable td{
+
+.myTable td {
   text-overflow: ellipsis; 
   overflow: hidden; 
   white-space: nowrap;
-  font-size:13.4px;
+  font-size: 11px;
+  color: #374151;
+  letter-spacing: -0.01em;
 }
+
 .myTable th, .myTable td {
   text-align: left;
-  padding: 6px 4px;
+  padding: 8px 12px;
 }
 
-tr:nth-child(even) {
-  background-color: #ebf5fc;
+.myTable tbody tr {
+  border-bottom: 1px solid #f3f4f6;
+  transition: all 0.15s ease;
 }
 
-.stiky_position{
+.myTable tbody tr:hover {
+  background: #f0fdf4 !important;
+  transform: translateX(2px);
+}
+
+.stiky_position {
   position: -webkit-sticky; /* Safari */
   position: sticky;
-  top: 56px;
-  background: #3f6a8b;
-  color:white;
-  z-index: 1;
+  top: 0;
+  background: #10b981;
+  color: white;
+  z-index: 111111;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+  th {
+    color: white;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: -0.01em;
+  }
+  
+  .up_down_icon {
+    color: white;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+  }
 }
 
-
-
-.myTable tr:hover {
-  background-image: radial-gradient( circle farthest-corner at 1.3% 2.8%,   rgb(211, 224, 245) 100.2%, rgba(239,249,249,1) 100% );
-
+.editIcon {
+  color: #10b981;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 4px;
+  border-radius: 4px;
+  
+  &:hover {
+    color: #059669;
+    background: rgba(16, 185, 129, 0.1);
+    transform: scale(1.1);
+  }
 }
 
-.editIcon{
-  color:#01b348;
-  font-size: 13px;
-
+.delIcon {
+  color: #ef4444;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 4px;
+  border-radius: 4px;
+  
+  &:hover {
+    color: #dc2626;
+    background: rgba(239, 68, 68, 0.1);
+    transform: scale(1.1);
+  }
 }
-.editIcon:hover{
-color: #000;
-}
 
-.delIcon:hover{
-color: #000;
-}
-.delIcon{color: rgb(251, 70, 70);
-  font-size: 13px;
-
+.pagination-section {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
+  padding: 16px;
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  
+  .dataTables_info {
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  mdb-pagination {
+    mdb-page-item {
+      &.active {
+        background: #10b981 !important;
+        border-color: #10b981 !important;
+      }
+      
+      &:hover:not(.disabled) {
+        background: rgba(16, 185, 129, 0.1) !important;
+      }
+    }
+    
+    mdb-page-nav {
+      &:hover:not(.disabled) {
+        background: rgba(16, 185, 129, 0.1) !important;
+      }
+    }
+  }
 }
 .delete{
   
@@ -571,9 +670,58 @@ color: #000;
     font-size: 12px;
 }
 .activeTable{
-  background: #4285F4;
-  border-radius: 3px;
-  color:white;
+  background: #10b981;
+  border-radius: 6px;
+  color: white;
+  padding: 4px 8px;
+}
+
+.up_down_icon {
+  transition: all 0.2s ease;
+  padding: 2px;
+  border-radius: 4px;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+// Badge styling
+mdb-badge {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  font-size: 10px !important;
+  letter-spacing: -0.01em;
+  padding: 4px 8px !important;
+}
+
+// Button styling in controls section
+.controls-section {
+  mdb-btn {
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  multiselect {
+    border-radius: 8px;
+    
+    .multiselect__tags {
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      min-height: 36px;
+      
+      &:focus-within {
+        border-color: #10b981;
+      }
+    }
+  }
 }
 
 

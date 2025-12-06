@@ -25,7 +25,8 @@
             imageSize: [43, 55],
             imageOffset: [-22, -55],
             content: mark.client.fio,
-            color: mark.color_value,
+            color: mark.reserverd_note_3,
+
             contentOffset: [-22, -55],
           }"
           :cluster-name="mark.id"

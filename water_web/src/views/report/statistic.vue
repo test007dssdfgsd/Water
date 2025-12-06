@@ -1,83 +1,83 @@
 <template>
-  <div class="all_info_order d-flex">
-    <div class="pos_order_list">
-        <div class="border-bottom navbar_sticky">
-           <div class="d-flex justify-content-between">
-              <router-link to="#">
-                <h5 class="m-0 ml-3 d-flex" style="padding: 14px 0px">
-                    {{$t('statistic')}}</h5>
-              </router-link>
-              <div class="summa d-flex align-items-center">
-                  <div class="mr-5 text-center">
-                    <p style="font-size:12.5px;" class="p-0 m-0 text-success">{{$t('summ')}}</p>
-                    <p style="font-size:12px;" class="p-0 m-0 text-success font-weight-bold">{{all_money.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</p>
-                  </div>
-                  <div class="mr-5 text-center">
-                    <p style="font-size:12.5px;" class="p-0 m-0 text-primary">{{$t('client')}}</p>
-                    <p style="font-size:12px;" class="p-0 m-0 text-primary font-weight-bold">{{real_clients.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</p>
-                  </div>
-                  <!-- <div class="mr-5 text-center">
-                    <p style="font-size:14px;" class="p-0 m-0">{{$t('skidka')}}</p>
-                    <p style="font-size:14px;" class="p-0 m-0">{{all_summ.online.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</p>
-                  </div>
-                  <div class="mr-5 text-center">
-                    <p style="font-size:14px;" class="p-0 m-0">{{$t('rasxod')}}</p>
-                    <p style="font-size:14px;" class="p-0 m-0">{{all_summ.rasxod.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</p>
-                  </div> -->
-                  <!-- <div class="mr-5 text-center">
-                    <p style="font-size:12.5px;" class="p-0 m-0 text-indigo">{{$t('summ')}}</p>
-                    <p style="font-size:12px;" class="p-0 m-0 text-indigo font-weight-bold">{{all_summ.summ.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</p>
-                  </div> -->
-              </div>
-           </div>
+  <div class="report-app">
+    <div class="report-main">
+      <div class="report-header">
+        <div class="header-content">
+          <h4 class="page-title">
+            <mdb-icon icon="chart-bar" class="mr-2" />
+            {{$t('statistic')}}
+          </h4>
+          
+          <div class="stats-summary">
+            <div class="stat-item">
+              <span class="stat-label">{{$t('summ')}}</span>
+              <span class="stat-value total">{{formatMoney(all_money)}}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">{{$t('client')}}</span>
+              <span class="stat-value clients">{{real_clients}}</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="header_menu px-3 mt-3">
-        <div class="row">
-          <div class="col-4 mt-1">
-            <div class="d-flex">
-              <erpSelect
-                size="sm"
-                :options="allDepartment.rows"
-                @select="selectOption"
-                :selected="district_name"
-                :label="$t('province')"
-              />
-              <small v-if="$v.district_name.$dirty && district_id == null" class="invalid-text ml-2" style="margin-top: 35px;">
-                {{$t('select_item')}}
-              </small>
-            </div>
+      
+      <div class="controls-section">
+        <div class="controls-content">
+          <div class="user-select-section">
+            <erpSelect
+              size="sm"
+              :options="allDepartment.rows"
+              @select="selectOption"
+              :selected="district_name"
+              :label="$t('province')"
+            />
+            <small v-if="$v.district_name.$dirty && district_id == null" class="invalid-text">
+              {{$t('select_item')}}
+            </small>
           </div>
-          <div class="col-4 mt-1">
-            <div class="d-flex">
-              <input-search  @select="selectClient"  
-                url="/WaterClients/getPaginationByName?page=0&size=100&fio="
-                ref="search_client" :option="allClient.rows" icon="user" style="height:32px;">
-                </input-search>
-                <small class="p-0" style="margin-left:5px; font-size: 12px; top:-17px; color: gray; position:absolute;"  >
-                {{$t('search_client')}}
-                </small>
-            </div>
+          
+          <div class="client-search-section">
+            <input-search  
+              @select="selectClient"  
+              url="/WaterClients/getPaginationByName?page=0&size=100&fio="
+              ref="search_client" 
+              :option="allClient.rows" 
+              icon="user" 
+              style="height:32px;"
+            />
+            <small class="search-label">
+              {{$t('search_client')}}
+            </small>
           </div>
-          <!-- <div class="col-2 px-1">
-            <mdb-input class="m-0 p-0 " size="sm" v-model="b_date" type="date"></mdb-input>
-          </div>
-          <div class="col-2 px-1">
-            <mdb-input class="m-0 p-0 " size="sm" v-model="e_date" type="date"></mdb-input>
-          </div> -->
-          <div class="col-2 d-flex">
-            <mdb-btn class="mr-1 ml-0 mt-0  py-1 px-3 mt-1"  style="font-size: 9px; height:28px; width:80px" color="info"  @click="acceptBtn()" 
-              size="sm">{{$t('apply')}}
+          
+          <div class="action-buttons">
+            <mdb-btn 
+              class="action-btn apply-btn" 
+              color="info"  
+              @click="acceptBtn()" 
+              size="sm"
+            >
+              <mdb-icon icon="check" class="mr-1" />
+              {{$t('apply')}}
             </mdb-btn>
 
-            <mdb-btn class="mr-1 ml-0 mt-0  py-1 px-3 mt-1"  style="font-size: 9px; height:28px; width:100px" color="primary"  @click="update()" 
-              size="sm">{{$t('update')}}
+            <mdb-btn 
+              class="action-btn update-btn" 
+              color="primary"  
+              @click="update()" 
+              size="sm"
+            >
+              <mdb-icon icon="sync" class="mr-1" />
+              {{$t('update')}}
             </mdb-btn>
           </div>
         </div>
       </div>
-      <div class="table w-100">
+      
+      <div class="table-container">
         <loader-table v-if="loading"/>
-        <table v-else class="w-100 tabled">
+        <div v-else class="table-wrapper">
+          <table class="report-table">
           <thead class="header_table">
             <tr class="header py-3 stiky_position" >
               <th  width="40" class="text-left">№</th>
@@ -142,8 +142,10 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </div>
+    
     <Toast ref="message"></Toast>
   </div>
 </template>
@@ -326,96 +328,271 @@ export default {
         }
 
         this.order_list.sort(compare);
-    }
+    },
     // ===> sort table <===
+    
+    formatMoney(value) {
+      if (!value) return '0';
+      return value.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ');
+    }
 
   },
 }
 </script>
 
-<style lang="scss">
-
-@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700);
-
-$blue:rgb(79, 173, 210);
-$green:rgb(102, 229, 174);
-$yellow:rgba(231,196,104,0.7);
-$orange:rgba(235,118,85,1);
-$dark-bg:rgba(0,0,0,0.9);
-$light-bg:rgba(255,255,255,0.1);
-$text:rgba(255,255,255,0.9);
-body {
-  background:$light-bg;
-  font-family: 'Open Sans', sans-serif;
+<style lang="scss" scoped>
+.report-app {
+  min-height: 100vh;
+  background: #f8fafb;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  padding: 16px;
 }
-.pos_order_list{
-  width:100%;
-  border-right: 1px solid $dark-bg;
-}
-.header_table{
-  background: $green;
-  th{
-    padding:6px 7px;
+
+// Header section
+.report-header {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 12px;
+  padding: 10px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+  
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  
+  .page-title {
+    color: white;
     font-weight: 600;
-    font-size: 11.5px;
-    @media only screen and (max-width:767px) and (min-width:480px) {
-      font-size:11px;
+    font-size: 20px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    
+    mdb-icon {
+      font-size: 22px;
+    }
+  }
+  
+  .stats-summary {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      
+      .stat-label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 4px;
+        font-weight: 500;
+      }
+      
+      .stat-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
+        
+        &.total {
+          color: #fef3c7;
+        }
+        
+        &.clients {
+          color: #d1fae5;
+        }
+      }
     }
   }
 }
-.body_table{
-  td{
-    padding:6px 7px;
-    font-size: 12px;
-     @media only screen and (max-width:767px) and (min-width:480px) {
-      font-size:11.5px;
+
+// Controls section
+.controls-section {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
+  padding: 16px;
+  margin-bottom: 16px;
+  
+  .controls-content {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  
+  .user-select-section {
+    max-width: 300px;
+    width: 100%;
+    
+    .invalid-text {
+      color: #ef4444;
+      font-size: 11px;
+      margin-top: 4px;
+      display: block;
     }
   }
-  tr:nth-child(even){background-color: #ebf5fc;}
-}
-.table{
-  border-bottom-left-radius: 50% !important;
-  border-bottom-right-radius: 50% !important;
-  padding: 10px 0px;
-  @media only screen and (max-width:767px) and (min-width:480px) {
-    font-size:12px;
-    padding: 10px 5px;
+  
+  .client-search-section {
+    flex: 1;
+    min-width: 250px;
+    position: relative;
+    
+    .search-label {
+      position: absolute;
+      left: 5px;
+      top: -17px;
+      font-size: 12px;
+      color: #6b7280;
+    }
   }
-  @media only screen and (max-width:470px) {
-    font-size:12px;
-    padding: 5px 0;
+  
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+    
+    .action-btn {
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 16px;
+      height: 36px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      
+      &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+      
+      &.apply-btn {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border: none;
+      }
+      
+      &.update-btn {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        border: none;
+      }
+      
+      mdb-icon {
+        font-size: 13px;
+      }
+    }
   }
 }
-.tabled{
+
+// Table section
+.table-container {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
+  overflow: hidden;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.report-table {
+  width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  tr:first-child td:first-child { border-top-left-radius: 10px; }
-  tr:first-child td:last-child { border-top-right-radius: 10px; }
+  font-size: 12px;
+  
+  tbody tr:nth-child(even) {
+    background-color: #fafbfc;
+  }
+}
 
-//   td {
-//   border: solid 1px #000;
-//   border-style: none solid solid none;
-//   padding: 10px;
-// }
+.header_table {
+  background: #10b981;
+  
+  th {
+    padding: 10px 12px;
+    font-weight: 600;
+    font-size: 11px;
+    color: white;
+    letter-spacing: -0.01em;
+    text-align: left;
+    
+    .up_down_icon {
+      color: white;
+      transition: all 0.2s ease;
+      padding: 2px;
+      border-radius: 4px;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+    }
+  }
 }
-.btn-acp{
-  background-image: radial-gradient( circle 835px at 12.1% 24%,  rgba(93,133,178,1) 25.7%, rgba(50,73,101,1) 100.2% );
+
+.body_table {
+  td {
+    padding: 10px 12px;
+    font-size: 11px;
+    color: #374151;
+    letter-spacing: -0.01em;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  
+  tr {
+    transition: all 0.15s ease;
+    
+    &:hover {
+      background: #f0fdf4 !important;
+      transform: translateX(2px);
+    }
+  }
 }
-.hoverTr:hover{
-  background-image: radial-gradient( circle farthest-corner at 1.3% 2.8%,   rgb(211, 224, 245) 100.2%, rgba(239,249,249,1) 100% );
-}
-.all_qty_border{
-  background-image: radial-gradient( circle farthest-corner at 1.3% 2.8%,   rgb(211, 224, 245) 100.2%, rgba(239,249,249,1) 100% );
-}
-.up_down_icon:hover{
-  background: #acbbff;
-}
-.stiky_position{
-  position: -webkit-sticky; /* Safari */
+
+.stiky_position {
+  position: -webkit-sticky;
   position: sticky;
-  top: 52px;
-  background: #3f6a8b;
-  color:white;
+  top: 0;
+  z-index: 111111;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+@media (max-width: 768px) {
+  .report-header {
+    .header-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .stats-summary {
+      width: 100%;
+      justify-content: space-around;
+    }
+  }
+  
+  .controls-section {
+    .controls-content {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .client-search-section {
+      width: 100%;
+    }
+    
+    .action-buttons {
+      width: 100%;
+      
+      .action-btn {
+        flex: 1;
+      }
+    }
+  }
+}
 </style>

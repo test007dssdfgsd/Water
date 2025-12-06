@@ -72,13 +72,13 @@
             </tr>
           </thead>
           <tbody>
-            <template v-for="(client, index) in clients">
-              <tr 
-                :key="client.id"
-                class="client-row"
-                :class="{ 'selected': selectedClients.includes(client.id) }"
-                @click="toggleClient(client.id)"
-              >
+            <tr 
+              v-for="(client, index) in clients"
+              :key="client.id"
+              class="client-row"
+              :class="{ 'selected': selectedClients.includes(client.id) }"
+              @click="toggleClient(client.id)"
+            >
                 <td>
                   <input 
                     type="checkbox" 
@@ -146,7 +146,6 @@
                   <span v-else>0</span>
                 </td>
               </tr>
-            </template>
             
             <tr v-if="clients.length === 0">
               <td colspan="9" class="empty-state">

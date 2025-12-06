@@ -318,5 +318,8 @@
     "today": "Cегодня",
     "tomorrow": "Завтра",
     "error_login": "Неверный пароль",
-    "select_color": "Выберите цвет"
+    "select_color": "Выберите цвет",
+    "dashboard": "Панель управления",
+    "postavchik_statistics": "Статистика поставщика",
+    "total_orders": "Всего заказов"
 }

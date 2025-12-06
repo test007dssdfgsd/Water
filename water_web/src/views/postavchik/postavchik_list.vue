@@ -146,10 +146,19 @@
             
             <div class="desktop-order-content">
               <div class="desktop-order-client">
-                <h4 class="desktop-client-name">
-                  {{item.client_name_str}}
-                  <mdb-icon v-if="item.note" icon="star" color="orange" class="ml-1" />
-                </h4>
+                <div class="desktop-client-name-wrapper">
+                  <h4 class="desktop-client-name">
+                    {{item.client_name_str}}
+                    <mdb-icon v-if="item.note" icon="star" color="orange" class="ml-1" />
+                  </h4>
+                  <button 
+                    class="desktop-info-btn" 
+                    @click="showClientInfo(item.client.id)"
+                    title="Client ma'lumotlari"
+                  >
+                    <i class="fas fa-info-circle"></i>
+                  </button>
+                </div>
                 <div class="desktop-order-address" v-if="item.address">
                   <i class="fas fa-map-marker-alt"></i>
                   {{item.address.address}}
@@ -167,7 +176,17 @@
                 </div>
                 <div class="desktop-detail-item">
                   <span class="desktop-detail-label">{{$t('date')}}:</span>
-                  <span class="desktop-detail-value">{{formatDate(item.order_date)}}</span>
+                  <span class="desktop-detail-value">
+                    {{formatDate(item.order_date)}}
+                    <a 
+                      v-for="(list_item,indx) in item.client.phone_numbers_list" 
+                      :key="indx" 
+                      :href="`tel:${list_item.phone_number}`"
+                      class="desktop-phone-number"
+                    >
+                      <i class="fas fa-phone"></i> {{formatPhone(list_item.phone_number)}}
+                    </a>
+                  </span>
                 </div>
                 <div class="desktop-detail-item" v-if="item.note">
                   <span class="desktop-detail-label">{{$t('note')}}:</span>
@@ -261,7 +280,7 @@
         <loader-table v-if="loading" />
         <div v-else class="orders-list">
           <div 
-            v-for="(item, index) in filteredOrderList" 
+            v-for="(item, index) in filteredOrderList" :style="{background: item.reserverd_note_3}"
             :key="index" 
             class="order-card"
             :class="{
@@ -279,10 +298,19 @@
             
             <div class="order-content">
               <div class="order-client">
-                <h4 class="client-name">
-                  {{item.client_name_str}}
-                  <mdb-icon v-if="item.note" icon="star" color="orange" class="ml-1" />
-                </h4>
+                <div class="client-name-wrapper">
+                  <h4 class="client-name">
+                    {{item.client_name_str}}
+                    <mdb-icon v-if="item.note" icon="star" color="orange" class="ml-1" />
+                  </h4>
+                  <button 
+                    class="info-btn" 
+                    @click="showClientInfo(item.client.id)"
+                    title="Client ma'lumotlari"
+                  >
+                    <i class="fas fa-info-circle"></i>
+                  </button>
+                </div>
                 <div class="order-address" v-if="item.address">
                   <i class="fas fa-map-marker-alt"></i>
                   {{item.address.address}}
@@ -300,7 +328,17 @@
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">{{$t('date')}}:</span>
-                  <span class="detail-value">{{formatDate(item.order_date)}}</span>
+                  <span class="desktop-detail-value ">
+                    {{formatDate(item.order_date)}}
+                    <a 
+                      v-for="(list_item,indx) in item.client.phone_numbers_list" 
+                      :key="indx" 
+                      :href="`tel:${list_item.phone_number}`"
+                      class="desktop-phone-number ml-3"
+                    >
+                      <i class="fas fa-phone"></i> {{formatPhone(list_item.phone_number)}}
+                    </a>
+                  </span>
                 </div>
                 <div class="detail-item" v-if="item.note">
                   <span class="detail-label">{{$t('note')}}:</span>
@@ -370,6 +408,60 @@
         ></payNewOrder>
       </template>
     </modal-train>
+
+    <!-- Client Info Modal -->
+    <modal-train  
+      :show="client_info_show" 
+      headerbackColor="white"  
+      titlecolor="black" 
+      title="Client zakazlari tarixi" 
+      @close="client_info_show = false" 
+      width="80%"
+    >
+      <template v-slot:body>
+        <div class="client-info-modal">
+          <loader-table v-if="client_info_loading" />
+          <div v-else class="client-orders-list">
+            <div v-if="client_orders_list.length === 0" class="empty-orders">
+              <i class="fas fa-inbox"></i>
+              <p>Zakazlar topilmadi</p>
+            </div>
+            <div 
+              v-for="(order, index) in client_orders_list" 
+              :key="index" 
+              class="client-order-item"
+            >
+              <div class="client-order-header">
+                <div class="client-order-id">Zakaz #{{order.id}}</div>
+                <div class="client-order-date">{{formatDate(order.order_date)}}</div>
+              </div>
+              <div class="client-order-details">
+                <div class="client-order-detail-row">
+                  <span class="detail-label">Miqdor:</span>
+                  <span class="detail-value">{{order.water_count}}</span>
+                </div>
+                <div class="client-order-detail-row" v-if="order.name_pp">
+                  <span class="detail-label">Mahsulot:</span>
+                  <span class="detail-value">{{order.name_pp}}</span>
+                </div>
+                <div class="client-order-detail-row" v-if="order.address">
+                  <span class="detail-label">Manzil:</span>
+                  <span class="detail-value">{{order.address.address}}</span>
+                </div>
+                <div class="client-order-detail-row" v-if="order.note">
+                  <span class="detail-label">Izoh:</span>
+                  <span class="detail-value">{{order.note}}</span>
+                </div>
+                <div class="client-order-detail-row" v-if="order.accepted_status">
+                  <span class="detail-label">Holat:</span>
+                  <span class="detail-value status-complete">Bajarilgan</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </modal-train>
     
     <Toast ref="message"></Toast>
   </div>
@@ -429,6 +521,11 @@ export default {
       search: '',
       user_name: localStorage.UserName,
       filterStatus: 'pending', // pending, complete
+      
+      // Client info modal
+      client_info_show: false,
+      client_info_loading: false,
+      client_orders_list: [],
     }
   },
   async mounted() {
@@ -626,6 +723,31 @@ export default {
       });
     },
     
+    formatPhone(phone) {
+      if (!phone) return ''
+      // Telefon raqamini formatlash: 99 777 22 47
+      const cleaned = phone.replace(/\D/g, '')
+      
+      // Agar +998 yoki 998 bilan boshlansa, uni olib tashlash
+      let digits = cleaned
+      if (digits.startsWith('998')) {
+        digits = digits.substring(3)
+      } else if (digits.startsWith('+998')) {
+        digits = digits.substring(4)
+      }
+      
+      // 9 raqamli bo'lsa: 99 777 22 47 formatida
+      if (digits.length === 9) {
+        const match = digits.match(/^(\d{2})(\d{3})(\d{2})(\d{2})$/)
+        if (match) {
+          return `${match[1]} ${match[2]} ${match[3]} ${match[4]}`
+        }
+      }
+      
+      // Agar formatlash mumkin bo'lmasa, asl raqamni qaytarish
+      return phone
+    },
+    
     getStatusClass(item) {
       if (item.accepted_status) {
         return 'status-complete';
@@ -646,6 +768,39 @@ export default {
         return 'Overdue';
       }
       return 'Pending';
+    },
+
+    async showClientInfo(clientId) {
+      if (!clientId) {
+        this.$refs.message.warning('Client ID topilmadi');
+        return;
+      }
+      
+      this.client_info_show = true;
+      this.client_info_loading = true;
+      this.client_orders_list = [];
+      
+      try {
+        const res = await fetch(
+          this.$store.state.hostname + 
+          '/WaterOrders/getPaginationOrderByClientId?page=0&size=200&client_id=' + 
+          clientId
+        );
+        const data = await res.json();
+        this.client_info_loading = false;
+        
+        if (res.status == 200 || res.status == 201) {
+          this.client_orders_list = Array.isArray(data.items_list) ? data.items_list : [];
+        } else {
+          this.$refs.message.error('Ma\'lumotlarni yuklashda xatolik');
+          this.client_orders_list = [];
+        }
+      } catch (error) {
+        console.error('Error fetching client orders:', error);
+        this.$refs.message.error('network_ne_connect');
+        this.client_info_loading = false;
+        this.client_orders_list = [];
+      }
     }
 
   },
@@ -953,30 +1108,59 @@ export default {
   }
   
   .desktop-order-content {
-    .desktop-order-client {
-      margin-bottom: 15px;
-      
-      .desktop-client-name {
-        margin: 0 0 10px 0;
-        font-size: 18px;
-        font-weight: 700;
-        color: #333;
-        display: flex;
-        align-items: center;
-      }
-      
-      .desktop-order-address {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #666;
-        font-size: 13px;
+      .desktop-order-client {
+        margin-bottom: 15px;
         
-        i {
-          color: #f5576c;
+        .desktop-client-name-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 10px;
+          
+          .desktop-client-name {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            display: flex;
+            align-items: center;
+            flex: 1;
+          }
+          
+          .desktop-info-btn {
+            background: transparent;
+            border: none;
+            color: #667eea;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.3s;
+            margin-left: 8px;
+            
+            &:hover {
+              background: rgba(102, 126, 234, 0.1);
+              transform: scale(1.1);
+            }
+            
+            i {
+              font-size: 18px;
+            }
+          }
+        }
+        
+        .desktop-order-address {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #666;
+          font-size: 13px;
+          
+          i {
+            color: #f5576c;
+          }
         }
       }
-    }
     
     .desktop-order-details {
       display: grid;
@@ -997,14 +1181,39 @@ export default {
         }
         
         .desktop-detail-value {
-          font-size: 14px;
+          font-size: 12px;
           font-weight: 600;
           color: #333;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
           
           &.desktop-highlight-qty {
             color: #667eea;
             font-size: 20px;
             font-weight: 700;
+          }
+          
+          .desktop-phone-number {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 9px;
+            color: #667eea;
+            font-weight: 500;
+            margin-top: 4px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            
+            &:hover {
+              color: #764ba2;
+              text-decoration: underline;
+            }
+            
+            i {
+              font-size: 10px;
+            }
           }
         }
       }
@@ -1410,13 +1619,42 @@ export default {
     .order-client {
       margin-bottom: 10px;
       
-      .client-name {
-        margin: 0 0 6px 0;
-        font-size: 15px;
-        font-weight: 700;
-        color: #333;
+      .client-name-wrapper {
         display: flex;
         align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+        
+        .client-name {
+          margin: 0;
+          font-size: 15px;
+          font-weight: 700;
+          color: #333;
+          display: flex;
+          align-items: center;
+          flex: 1;
+        }
+        
+        .info-btn {
+          background: transparent;
+          border: none;
+          color: #667eea;
+          font-size: 16px;
+          cursor: pointer;
+          padding: 4px 6px;
+          border-radius: 6px;
+          transition: all 0.3s;
+          margin-left: 6px;
+          
+          &:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.1);
+          }
+          
+          i {
+            font-size: 16px;
+          }
+        }
       }
       
       .order-address {
@@ -1452,14 +1690,31 @@ export default {
         }
         
         .detail-value {
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 600;
           color: #333;
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
           
           &.highlight-qty {
             color: #667eea;
             font-size: 15px;
             font-weight: 700;
+          }
+          
+          .phone-number {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9px;
+            color: #667eea;
+            font-weight: 500;
+            margin-top: 3px;
+            
+            i {
+              font-size: 9px;
+            }
           }
         }
       }
@@ -1671,6 +1926,102 @@ export default {
   .app-header {
     .stats-container {
       grid-template-columns: repeat(3, 1fr);
+    }
+  }
+}
+
+// Client Info Modal Styles
+.client-info-modal {
+  padding: 20px;
+  min-height: 200px;
+  
+  .client-orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .empty-orders {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+    
+    i {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+    
+    p {
+      font-size: 16px;
+      margin: 0;
+    }
+  }
+  
+  .client-order-item {
+    background: #f8fafb;
+    border-radius: 12px;
+    padding: 15px;
+    border-left: 4px solid #667eea;
+    transition: all 0.3s;
+    
+    &:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transform: translateX(2px);
+    }
+    
+    .client-order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e0e0e0;
+      
+      .client-order-id {
+        font-size: 16px;
+        font-weight: 700;
+        color: #667eea;
+      }
+      
+      .client-order-date {
+        font-size: 13px;
+        color: #666;
+        font-weight: 600;
+      }
+    }
+    
+    .client-order-details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+      }
+      
+      .client-order-detail-row {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        
+        .detail-label {
+          font-size: 11px;
+          color: #999;
+          font-weight: 600;
+          text-transform: uppercase;
+        }
+        
+        .detail-value {
+          font-size: 14px;
+          font-weight: 600;
+          color: #333;
+          
+          &.status-complete {
+            color: #4caf50;
+          }
+        }
+      }
     }
   }
 }

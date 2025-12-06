@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -1571,6 +1572,10 @@ namespace ApiAll.Controllers.water
                         continue;
                     }
 
+                    // Ertangi kunni hisoblash
+                    var tomorrow = DateTime.Today.AddDays(1);
+                    var tomorrowDateStr = tomorrow.ToString("yyyy-MM-dd") + "T12:00:00.000Z";
+
                     // Har bir manzil uchun otmen zakaz yaratish
                     var orderIds = new List<long>();
                     foreach (var address in client.addresses)
@@ -1578,7 +1583,7 @@ namespace ApiAll.Controllers.water
                         // Otmen zakaz yaratish
                         var cancelOrder = new WaterOrder
                         {
-                            order_date = DateTime.Parse(dto.OrderDate + "T12:00:00.000Z"),
+                            order_date = DateTime.Parse(tomorrowDateStr),
                             WaterClientid = clientId,
                             water_count = 0,
                             WaterClientAddressid = address.id,
@@ -1589,7 +1594,7 @@ namespace ApiAll.Controllers.water
                             items = new List<WaterOrderItem>()
                         };
 
-                        _context.WaterOrder.Update(cancelOrder);
+                        _context.WaterOrder.Add(cancelOrder);
                         await _context.SaveChangesAsync();
                         orderIds.Add(cancelOrder.id);
                     }
@@ -1626,6 +1631,408 @@ namespace ApiAll.Controllers.water
             await _context.SaveChangesAsync();
 
             return waterOrder;
+        }
+
+        // GET: api/WaterOrders/getPostavchikDailyStatistics
+        [HttpGet("getPostavchikDailyStatistics")]
+        public async Task<ActionResult> getPostavchikDailyStatistics(
+            [FromQuery] DateTime begin_date,
+            [FromQuery] DateTime end_date,
+            [FromQuery] long auth_id)
+        {
+            try
+            {
+                // Bajarilgan zakazlarni olish
+                var orders = await _context.WaterOrder
+                    .Where(o => o.deleivered_user_auth_id == auth_id
+                        && o.accepted_status == true
+                        && o.order_accepted_date >= begin_date 
+                        && o.order_accepted_date <= end_date)
+                    .ToListAsync();
+
+                // To'lov ma'lumotlarini olish (WaterCheck dan) - optimallashtirilgan
+                var checkIds = orders
+                    .Where(o => o.reserverd_number_id_2 != null && o.reserverd_number_id_2 > 0)
+                    .Select(o => o.reserverd_number_id_2.Value)
+                    .Distinct()
+                    .ToList();
+
+                var checks = await _context.WaterCheck
+                    .Where(c => checkIds.Contains(c.id))
+                    .ToListAsync();
+
+                var checkDict = checks.ToDictionary(c => c.id);
+
+                double totalCash = 0.0;
+                double totalCard = 0.0;
+                
+                foreach (var order in orders)
+                {
+                    if (order.reserverd_number_id_2 != null && checkDict.ContainsKey(order.reserverd_number_id_2.Value))
+                    {
+                        var check = checkDict[order.reserverd_number_id_2.Value];
+                        totalCash += check.cash;
+                        totalCard += check.card;
+                    }
+                }
+
+                // Kunlik statistika - order_accepted_date dan foydalanish
+                var dailyStats = orders
+                    .GroupBy(o => o.order_accepted_date.Date)
+                    .Select(g => new
+                    {
+                        date = g.Key.ToString("yyyy-MM-dd"),
+                        tarqatilgan_suv = g.Sum(o => o.reserverd_numeric_id_2 ?? 0.0),
+                        olingan_idish = g.Sum(o => Math.Abs(o.reserverd_numeric_id_1 ?? 0.0))
+                    })
+                    .OrderBy(s => s.date)
+                    .ToList();
+
+                // Jami statistika
+                var totalStats = new
+                {
+                    jami_tarqatilgan_suv = dailyStats.Sum(s => s.tarqatilgan_suv),
+                    jami_olingan_idish = dailyStats.Sum(s => s.olingan_idish),
+                    ishlagan_kunlar = dailyStats.Count,
+                    jami_naqd = totalCash,
+                    jami_plastik = totalCard,
+                    jami_summa = totalCash + totalCard
+                };
+
+                return Ok(new
+                {
+                    daily_stats = dailyStats,
+                    total_stats = totalStats
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET: api/WaterOrders/getRealTimePostavchikStatistics
+        [HttpGet("getRealTimePostavchikStatistics")]
+        public async Task<ActionResult> getRealTimePostavchikStatistics()
+        {
+            try
+            {
+                var today = DateTime.Today;
+                var tomorrow = today.AddDays(1);
+
+                // Bugungi kundagi barcha zakazlarni olish
+                var todayOrders = await _context.WaterOrder
+                    .Include(o => o.deleivered_user_auth)
+                        .ThenInclude(a => a.user)
+                    .Where(o => o.active_status == true
+                        && ((o.accepted_status == true && o.order_accepted_date >= today && o.order_accepted_date < tomorrow)
+                            || (o.accepted_status == false && o.order_date >= today && o.order_date < tomorrow)))
+                    .ToListAsync();
+
+                // Dostavchiklar bo'yicha guruhlash
+                var postavchikStats = todayOrders
+                    .Where(o => o.deleivered_user_auth_id != null)
+                    .GroupBy(o => new
+                    {
+                        auth_id = o.deleivered_user_auth_id.Value,
+                        user_fio = o.deleivered_user_auth != null && o.deleivered_user_auth.user != null 
+                            ? o.deleivered_user_auth.user.fio 
+                            : "Noma'lum"
+                    })
+                    .Select(g => new
+                    {
+                        auth_id = g.Key.auth_id,
+                        user_fio = g.Key.user_fio,
+                        tarqatilgan_suv = g.Where(o => o.accepted_status == true 
+                            && o.order_accepted_date >= today 
+                            && o.order_accepted_date < tomorrow)
+                            .Sum(o => o.reserverd_numeric_id_2 ?? 0.0),
+                        tarqatilishi_kerak = g.Where(o => o.accepted_status == false 
+                            && o.order_date >= today 
+                            && o.order_date < tomorrow)
+                            .Sum(o => (double)o.water_count),
+                        olingan_baklashka = g.Where(o => o.accepted_status == true 
+                            && o.order_accepted_date >= today 
+                            && o.order_accepted_date < tomorrow)
+                            .Sum(o => Math.Abs(o.reserverd_numeric_id_1 ?? 0.0))
+                    })
+                    .OrderByDescending(s => s.tarqatilgan_suv)
+                    .ToList();
+
+                return Ok(postavchikStats);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET: api/WaterOrders/getDashboardStatistics
+        [HttpGet("getDashboardStatistics")]
+        public async Task<ActionResult> getDashboardStatistics(
+            [FromQuery] DateTime? begin_date,
+            [FromQuery] DateTime? end_date,
+            [FromQuery] DateTime? compare_begin_date,
+            [FromQuery] DateTime? compare_end_date)
+        {
+            try
+            {
+                var today = DateTime.Today;
+                var tomorrow = today.AddDays(1);
+
+                // 1. Bugungi kun statistikasi
+                var todayOrders = await _context.WaterOrder
+                    .Where(o => o.active_status == true
+                        && ((o.accepted_status == true && o.order_accepted_date >= today && o.order_accepted_date < tomorrow)
+                            || (o.accepted_status == false && o.order_date >= today && o.order_date < tomorrow)))
+                    .ToListAsync();
+
+                var todayCheckIds = todayOrders
+                    .Where(o => o.reserverd_number_id_2 != null && o.reserverd_number_id_2 > 0)
+                    .Select(o => o.reserverd_number_id_2.Value)
+                    .Distinct()
+                    .ToList();
+
+                var todayChecks = await _context.WaterCheck
+                    .Where(c => todayCheckIds.Contains(c.id))
+                    .ToListAsync();
+
+                var todayCheckDict = todayChecks.ToDictionary(c => c.id);
+
+                double todayCash = 0.0;
+                double todayCard = 0.0;
+
+                foreach (var order in todayOrders)
+                {
+                    if (order.reserverd_number_id_2 != null && todayCheckDict.ContainsKey(order.reserverd_number_id_2.Value))
+                    {
+                        var check = todayCheckDict[order.reserverd_number_id_2.Value];
+                        todayCash += check.cash;
+                        todayCard += check.card;
+                    }
+                }
+
+                var todayStats = new
+                {
+                    tarqatilgan_suv = todayOrders.Where(o => o.accepted_status == true 
+                        && o.order_accepted_date >= today && o.order_accepted_date < tomorrow)
+                        .Sum(o => o.reserverd_numeric_id_2 ?? 0.0),
+                    tarqatilishi_kerak = todayOrders.Where(o => o.accepted_status == false 
+                        && o.order_date >= today && o.order_date < tomorrow)
+                        .Sum(o => (double)o.water_count),
+                    yigilgan_baklashka = todayOrders.Where(o => o.accepted_status == true 
+                        && o.order_accepted_date >= today && o.order_accepted_date < tomorrow)
+                        .Sum(o => Math.Abs(o.reserverd_numeric_id_1 ?? 0.0)),
+                    topilgan_pul = todayCash + todayCard
+                };
+
+                // 2. Sana oralig'i statistikasi
+                object periodStats;
+
+                if (begin_date.HasValue && end_date.HasValue)
+                {
+                    var periodOrders = await _context.WaterOrder
+                        .Where(o => o.active_status == true
+                            && o.accepted_status == true
+                            && o.order_accepted_date >= begin_date.Value
+                            && o.order_accepted_date <= end_date.Value.AddDays(1).AddTicks(-1))
+                        .ToListAsync();
+
+                    // To'lov ma'lumotlarini olish
+                    var periodCheckIds = periodOrders
+                        .Where(o => o.reserverd_number_id_2 != null && o.reserverd_number_id_2 > 0)
+                        .Select(o => o.reserverd_number_id_2.Value)
+                        .Distinct()
+                        .ToList();
+
+                    var periodChecks = await _context.WaterCheck
+                        .Where(c => periodCheckIds.Contains(c.id))
+                        .ToListAsync();
+
+                    var periodCheckDict = periodChecks.ToDictionary(c => c.id);
+
+                    double periodTotalCash = 0.0;
+                    double periodTotalCard = 0.0;
+
+                    foreach (var order in periodOrders)
+                    {
+                        if (order.reserverd_number_id_2 != null && periodCheckDict.ContainsKey(order.reserverd_number_id_2.Value))
+                        {
+                            var check = periodCheckDict[order.reserverd_number_id_2.Value];
+                            periodTotalCash += check.cash;
+                            periodTotalCard += check.card;
+                        }
+                    }
+
+                    // Kunlik to'lov ma'lumotlari
+                    var dailyPayments = periodOrders
+                        .Where(o => o.reserverd_number_id_2 != null && periodCheckDict.ContainsKey(o.reserverd_number_id_2.Value))
+                        .GroupBy(o => o.order_accepted_date.Date)
+                        .Select(g => new
+                        {
+                            date = g.Key.ToString("yyyy-MM-dd"),
+                            daily_sum = g.Sum(o =>
+                            {
+                                if (o.reserverd_number_id_2 != null && periodCheckDict.ContainsKey(o.reserverd_number_id_2.Value))
+                                {
+                                    var check = periodCheckDict[o.reserverd_number_id_2.Value];
+                                    return check.cash + check.card;
+                                }
+                                return 0.0;
+                            })
+                        })
+                        .OrderBy(d => d.date)
+                        .ToList();
+
+                    periodStats = new
+                    {
+                        tarqatilgan_suv_soni = periodOrders.Sum(o => o.reserverd_numeric_id_2 ?? 0.0),
+                        tarqatilgan_suv_summasi = periodTotalCash + periodTotalCard,
+                        yangi_klientlar_soni = await _context.WaterClient
+                            .Where(c => c.active_status == true
+                                && c.created_date_time.HasValue
+                                && c.created_date_time.Value >= begin_date.Value
+                                && c.created_date_time.Value <= end_date.Value.AddDays(1).AddTicks(-1))
+                            .CountAsync(),
+                        otmen_klientlar_soni = await _context.WaterOrder
+                            .Where(o => o.active_status == true
+                                && o.order_date >= begin_date.Value
+                                && o.order_date <= end_date.Value.AddDays(1).AddTicks(-1)
+                                && (o.reserverd_note_2 == "5" || (o.note != null && o.note.Contains("Otmen"))))
+                            .Select(o => o.WaterClientid)
+                            .Distinct()
+                            .CountAsync(),
+                        daily_payments = dailyPayments
+                    };
+                }
+                else
+                {
+                    periodStats = new
+                    {
+                        tarqatilgan_suv_soni = 0.0,
+                        tarqatilgan_suv_summasi = 0.0,
+                        yangi_klientlar_soni = 0,
+                        otmen_klientlar_soni = 0,
+                        daily_payments = new List<object>()
+                    };
+                }
+
+                // 3. O'tgan yil bilan solishtirish
+                var compareStats = new
+                {
+                    tarqatilgan_suv_soni = 0.0,
+                    tarqatilgan_suv_summasi = 0.0,
+                    yangi_klientlar_soni = 0,
+                    otmen_klientlar_soni = 0
+                };
+
+                if (compare_begin_date.HasValue && compare_end_date.HasValue)
+                {
+                    var compareOrders = await _context.WaterOrder
+                        .Where(o => o.active_status == true
+                            && o.accepted_status == true
+                            && o.order_accepted_date >= compare_begin_date.Value
+                            && o.order_accepted_date <= compare_end_date.Value.AddDays(1).AddTicks(-1))
+                        .ToListAsync();
+
+                    // To'lov ma'lumotlarini olish
+                    var compareCheckIds = compareOrders
+                        .Where(o => o.reserverd_number_id_2 != null && o.reserverd_number_id_2 > 0)
+                        .Select(o => o.reserverd_number_id_2.Value)
+                        .Distinct()
+                        .ToList();
+
+                    var compareChecks = await _context.WaterCheck
+                        .Where(c => compareCheckIds.Contains(c.id))
+                        .ToListAsync();
+
+                    var compareCheckDict = compareChecks.ToDictionary(c => c.id);
+
+                    double compareTotalCash = 0.0;
+                    double compareTotalCard = 0.0;
+
+                    foreach (var order in compareOrders)
+                    {
+                        if (order.reserverd_number_id_2 != null && compareCheckDict.ContainsKey(order.reserverd_number_id_2.Value))
+                        {
+                            var check = compareCheckDict[order.reserverd_number_id_2.Value];
+                            compareTotalCash += check.cash;
+                            compareTotalCard += check.card;
+                        }
+                    }
+
+                    compareStats = new
+                    {
+                        tarqatilgan_suv_soni = compareOrders.Sum(o => o.reserverd_numeric_id_2 ?? 0.0),
+                        tarqatilgan_suv_summasi = compareTotalCash + compareTotalCard,
+                        yangi_klientlar_soni = await _context.WaterClient
+                            .Where(c => c.active_status == true
+                                && c.created_date_time.HasValue
+                                && c.created_date_time.Value >= compare_begin_date.Value
+                                && c.created_date_time.Value <= compare_end_date.Value.AddDays(1).AddTicks(-1))
+                            .CountAsync(),
+                        otmen_klientlar_soni = await _context.WaterOrder
+                            .Where(o => o.active_status == true
+                                && o.order_date >= compare_begin_date.Value
+                                && o.order_date <= compare_end_date.Value.AddDays(1).AddTicks(-1)
+                                && (o.reserverd_note_2 == "5" || (o.note != null && o.note.Contains("Otmen"))))
+                            .Select(o => o.WaterClientid)
+                            .Distinct()
+                            .CountAsync()
+                    };
+                }
+
+                // 4. Foiz farqlarni hisoblash
+                // Dynamic property access uchun reflection ishlatish
+                double periodTarqatilganSuv = 0.0;
+                int periodYangiKlientlar = 0;
+                int periodOtmenKlientlar = 0;
+
+                if (periodStats != null)
+                {
+                    var periodStatsType = periodStats.GetType();
+                    var tarqatilganSuvProp = periodStatsType.GetProperty("tarqatilgan_suv_soni");
+                    var yangiKlientlarProp = periodStatsType.GetProperty("yangi_klientlar_soni");
+                    var otmenKlientlarProp = periodStatsType.GetProperty("otmen_klientlar_soni");
+
+                    if (tarqatilganSuvProp != null)
+                        periodTarqatilganSuv = (double)(tarqatilganSuvProp.GetValue(periodStats) ?? 0.0);
+                    if (yangiKlientlarProp != null)
+                        periodYangiKlientlar = (int)(yangiKlientlarProp.GetValue(periodStats) ?? 0);
+                    if (otmenKlientlarProp != null)
+                        periodOtmenKlientlar = (int)(otmenKlientlarProp.GetValue(periodStats) ?? 0);
+                }
+
+                var differences = new
+                {
+                    tarqatilgan_suv_foiz = periodTarqatilganSuv > 0 && compareStats.tarqatilgan_suv_soni > 0
+                        ? ((periodTarqatilganSuv - compareStats.tarqatilgan_suv_soni) / compareStats.tarqatilgan_suv_soni) * 100
+                        : 0.0,
+                    tarqatilgan_suv_oq = periodTarqatilganSuv - compareStats.tarqatilgan_suv_soni,
+                    yangi_klientlar_foiz = periodYangiKlientlar > 0 && compareStats.yangi_klientlar_soni > 0
+                        ? ((double)(periodYangiKlientlar - compareStats.yangi_klientlar_soni) / compareStats.yangi_klientlar_soni) * 100
+                        : 0.0,
+                    yangi_klientlar_oq = periodYangiKlientlar - compareStats.yangi_klientlar_soni,
+                    otmen_klientlar_foiz = periodOtmenKlientlar > 0 && compareStats.otmen_klientlar_soni > 0
+                        ? ((double)(periodOtmenKlientlar - compareStats.otmen_klientlar_soni) / compareStats.otmen_klientlar_soni) * 100
+                        : 0.0,
+                    otmen_klientlar_oq = periodOtmenKlientlar - compareStats.otmen_klientlar_soni
+                };
+
+                var response = new
+                {
+                    today_stats = todayStats,
+                    period_stats = periodStats,
+                    compare_stats = compareStats,
+                    differences = differences
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         private bool WaterOrderExists(long id)

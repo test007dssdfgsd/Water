@@ -20,7 +20,7 @@
       <div class="d-flex justify-content-between mb-1">
         <p class="font-weight-bold m-0 mb-0 mr-3">{{$t('phone_number')}}:</p>
         <a :href="`tel:${item.phone_number}`" >
-          <i class="fas fa-phone"></i> {{item.phone_number}} 
+          <i class="fas fa-phone"></i> {{formatPhone(item.phone_number)}} 
         </a>
       </div>
       
@@ -68,6 +68,32 @@ export default {
       }
     },
   },
+  methods: {
+    formatPhone(phone) {
+      if (!phone) return ''
+      // Telefon raqamini formatlash: 99 777 22 47
+      const cleaned = phone.replace(/\D/g, '')
+      
+      // Agar +998 yoki 998 bilan boshlansa, uni olib tashlash
+      let digits = cleaned
+      if (digits.startsWith('998')) {
+        digits = digits.substring(3)
+      } else if (digits.startsWith('+998')) {
+        digits = digits.substring(4)
+      }
+      
+      // 9 raqamli bo'lsa: 99 777 22 47 formatida
+      if (digits.length === 9) {
+        const match = digits.match(/^(\d{2})(\d{3})(\d{2})(\d{2})$/)
+        if (match) {
+          return `${match[1]} ${match[2]} ${match[3]} ${match[4]}`
+        }
+      }
+      
+      // Agar formatlash mumkin bo'lmasa, asl raqamni qaytarish
+      return phone
+    }
+  }
 }
 </script>
 

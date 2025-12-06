@@ -1,78 +1,94 @@
 <template>
-  <div class="all_info_order d-flex">
-    <div class="pos_order_list">
-      <div class="border-bottom navbar_sticky ">
-        <div class="d-flex justify-content-between">
-          <router-link to="#">
-            <h5 class="m-0 ml-3 d-flex" style="padding: 14px 0px">
-                {{$t('postavchik_report')}}</h5>
-          </router-link>
-          <div class="summa d-flex align-items-center">
-            <div class="mr-5 text-center">
-              <p style="font-size:12.5px;" class="p-0 m-0 text-success">{{$t('cash')}}</p>
-              <p style="font-size:12px;" class="p-0 m-0 text-success font-weight-bold">{{all_summ.cash.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</p>
+  <div class="report-app">
+    <div class="report-main">
+      <div class="report-header">
+        <div class="header-content">
+          <h4 class="page-title">
+            <mdb-icon icon="chart-line" class="mr-2" />
+            {{$t('postavchik_report')}}
+          </h4>
+          
+          <div class="stats-summary" v-if="pos_money_report_list.length > 0">
+            <div class="stat-item">
+              <span class="stat-label">{{$t('cash')}}</span>
+              <span class="stat-value cash">{{formatMoney(all_summ.cash)}}</span>
             </div>
-            <div class="mr-5 text-center">
-              <p style="font-size:12.5px;" class="p-0 m-0 text-primary">{{$t('card')}}</p>
-              <p style="font-size:12px;" class="p-0 m-0 text-primary font-weight-bold">{{all_summ.card.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</p>
+            <div class="stat-item">
+              <span class="stat-label">{{$t('card')}}</span>
+              <span class="stat-value card">{{formatMoney(all_summ.card)}}</span>
             </div>
-            
-            <!-- <div class="mr-5 text-center">
-              <p style="font-size:14px;" class="p-0 m-0">{{$t('rasxod')}}</p>
-              <p style="font-size:14px;" class="p-0 m-0">{{all_summ.rasxod.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</p>
-            </div> -->
-            <div class="mr-5 text-center">
-              <p style="font-size:12.5px;" class="p-0 m-0 text-indigo">{{$t('summ')}}</p>
-              <p style="font-size:12px;" class="p-0 m-0 text-indigo font-weight-bold">{{all_summ.summ.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</p>
+            <div class="stat-item">
+              <span class="stat-label">{{$t('summ')}}</span>
+              <span class="stat-value total">{{formatMoney(all_summ.summ)}}</span>
             </div>
-            <div class="mr-5 text-center">
-              <p style="font-size:12.5px;" class="p-0 m-0 text-primary">Tarqatildi / Vozvrat</p>
-              <p style="font-size:12.5px;" class="p-0 m-0">{{all_summ.tarqatildi.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}} / 
-                {{all_summ.vozvrat.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}
-              </p>
+            <div class="stat-item">
+              <span class="stat-label">Tarqatildi / Vozvrat</span>
+              <span class="stat-value water">{{all_summ.tarqatildi}} / {{all_summ.vozvrat}}</span>
             </div>
           </div>
         </div>
       </div>
-      <div class="header_menu px-3 mt-3">
-        <div class="row">
-          <div class="col-4 mt-1">
-            <div class="d-flex">
-              <erpSelect
-                size="sm"
-                :options="allUser.rows" 
-                @select="selectOption"
-                :selected="user_name"
-                :label="$t('province')"
-              />
-              <small v-if="$v.user_name.$dirty && user_id == null" class="invalid-text ml-2" style="margin-top: 35px;">
-                {{$t('select_item')}}
-              </small>
-            </div>
+      
+      <div class="controls-section">
+        <div class="controls-content">
+          <div class="user-select-section">
+            <erpSelect
+              size="sm"
+              :options="allUser.rows" 
+              @select="selectOption"
+              :selected="user_name"
+              :label="$t('province')"
+            />
+            <small v-if="$v.user_name.$dirty && user_id == null" class="invalid-text">
+              {{$t('select_item')}}
+            </small>
           </div>
-          <div class="col-3 px-1">
-            <mdb-input class="m-0 p-0 " size="sm" v-model="b_date" type="date"></mdb-input>
+          
+          <div class="date-section">
+            <mdb-input 
+              class="date-input m-0" 
+              size="sm" 
+              v-model="b_date" 
+              type="date"
+            ></mdb-input>
+            <mdb-input 
+              class="date-input m-0" 
+              size="sm" 
+              v-model="e_date" 
+              type="date"
+            ></mdb-input>
           </div>
-          <div class="col-3 px-1">
-            <mdb-input class="m-0 p-0 " size="sm" v-model="e_date" type="date"></mdb-input>
-          </div>
-          <div class="col-2 d-flex">
-           
-            <mdb-btn class="mr-1 ml-0 mt-0  py-1 px-3 mt-1"  style="font-size: 9px; height:28px; width:80px" color="info"  @click="acceptBtn()" 
-              size="sm">{{$t('apply')}}
+          
+          <div class="action-buttons">
+            <mdb-btn 
+              class="action-btn apply-btn" 
+              color="info"  
+              @click="acceptBtn()" 
+              size="sm"
+            >
+              <mdb-icon icon="check" class="mr-1" />
+              {{$t('apply')}}
             </mdb-btn>
 
-            <mdb-btn :disabled="get_postavchik_order_list.length<=0" class="mr-1 ml-0 mt-0  py-1 px-3 mt-1"  style="font-size: 9px; height:28px; width:80px" color="orange"  @click="$router.push('/map_order_postavchik')" 
-              size="sm">{{$t('map')}}
+            <mdb-btn 
+              :disabled="get_postavchik_order_list.length<=0" 
+              class="action-btn map-btn" 
+              color="orange"  
+              @click="$router.push('/map_order_postavchik')" 
+              size="sm"
+            >
+              <mdb-icon icon="map" class="mr-1" />
+              {{$t('map')}}
             </mdb-btn>
           </div>
         </div>
       </div>
-      <div class="table w-100 ">
+      <div class="table-container">
         <loader-table v-if="loading" />
-        <table v-else class="w-100 tabled ">
-          <thead class="header_table ">
-            <tr class="header stiky_position">
+        <div v-else class="table-wrapper">
+          <table class="report-table">
+            <thead class="header_table">
+              <tr class="stiky_position">
               <th  width="40" class="text-left">№</th>
               <th>{{$t('client_name')}}
                 <span style="position:relative;">
@@ -141,21 +157,20 @@
               <td> <span >{{row.rasxod}}</span>  </td> -->
               <td> <span class="text-indigo font-weight-bold">{{row.summ.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</span> </td>
               <td width="170"> <span >{{row.created_date_time.slice(0,10)}}</span> <span class="ml-2">{{row.created_date_time.slice(11,16)}}</span></td>
-              <td class="m-0 p-0">
-                <div class="d-flex align-items-center justify-content-center">
-                  <div @click="promise(row.reserverd_number_id_3, row.user_name)" style="cursor:pointer">
-                    <mdb-icon icon="trash" style="font-size:13.5px;" class=" text-danger" ></mdb-icon>
+              <td class="action-cell">
+                <div class="action-buttons-cell">
+                  <div @click="promise(row.reserverd_number_id_3, row.user_name)" class="delete-icon-wrapper">
+                    <mdb-icon icon="trash" class="delete-icon" />
                   </div>
                 </div>
-                <!-- <mdb-btn class="mr-1 ml-0 mt-0 mt-1 btn-acp"  style="font-size: 8px; width:80px; padding: 5px;"   
-                  size="sm">{{$t('accept')}}
-                </mdb-btn> -->
               </td>
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </div>
+    
     <mdb-modal :show="delete_show" @close="delete_show = false" size="md" class="text-center" danger>
       <mdb-modal-header center :close="false">
         <p class="heading">{{$t('Are_you_sure')}}</p>
@@ -343,6 +358,10 @@ export default {
       }
 
     },
+    formatMoney(value) {
+      if (!value) return '0';
+      return value.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ');
+    },
 
 
     // ===> sort table <===
@@ -373,83 +392,300 @@ export default {
 }
 </script>
 
-<style lang="scss">
-
-@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700);
-
-$blue:rgb(79, 173, 210);
-$green:rgb(102, 229, 174);
-$yellow:rgba(231,196,104,0.7);
-$orange:rgba(235,118,85,1);
-$dark-bg:rgba(0,0,0,0.9);
-$light-bg:rgba(255,255,255,0.1);
-$text:rgba(255,255,255,0.9);
-body {
-  background:$light-bg;
-  font-family: 'Open Sans', sans-serif;
+<style lang="scss" scoped>
+.report-app {
+  min-height: 100vh;
+  background: #f8fafb;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  padding: 16px;
 }
-.pos_order_list{
-  width:100%;
-  border-right: 1px solid $dark-bg;
-}
-.header_table{
-  background: $green;
-  th{
-    padding:6px 7px;
+
+// Header section
+.report-header {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 12px;
+  padding: 10px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+  
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  
+  .page-title {
+    color: white;
     font-weight: 600;
-    font-size: 11.5px;
-    @media only screen and (max-width:767px) and (min-width:480px) {
-      font-size:11px;
+    font-size: 20px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    
+    mdb-icon {
+      font-size: 22px;
+    }
+  }
+  
+  .stats-summary {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      
+      .stat-label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 4px;
+        font-weight: 500;
+      }
+      
+      .stat-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
+        
+        &.cash {
+          color: #d1fae5;
+        }
+        
+        &.card {
+          color: #bfdbfe;
+        }
+        
+        &.total {
+          color: #fef3c7;
+        }
+        
+        &.water {
+          color: #e0e7ff;
+        }
+      }
     }
   }
 }
-.body_table{
-  td{
-    padding:6px 7px;
-    font-size: 12px;
-     @media only screen and (max-width:767px) and (min-width:480px) {
-      font-size:12px;
-    }
-  }
-  tr:nth-child(even){background-color: #ebf5fc;}
 
-}
-.table{
-  border-bottom-left-radius: 50% !important;
-  border-bottom-right-radius: 50% !important;
-  padding: 10px 0px;
-  @media only screen and (max-width:767px) and (min-width:480px) {
-    font-size:12px;
-    padding: 10px 5px;
+// Controls section
+.controls-section {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
+  padding: 16px;
+  margin-bottom: 16px;
+  
+  .controls-content {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    flex-wrap: wrap;
   }
-  @media only screen and (max-width:470px) {
-    font-size:12px;
-    padding: 5px 0;
+  
+  .user-select-section {
+    max-width: 300px;
+    width: 100%;
+    
+    .invalid-text {
+      color: #ef4444;
+      font-size: 11px;
+      margin-top: 4px;
+      display: block;
+    }
+  }
+  
+  .date-section {
+    display: flex;
+    gap: 12px;
+    
+    .date-input {
+      min-width: 160px;
+      border-radius: 8px;
+    }
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+    
+    .action-btn {
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 16px;
+      height: 36px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      
+      &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+      
+      &.apply-btn {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border: none;
+      }
+      
+      &.map-btn {
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        border: none;
+      }
+      
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      
+      mdb-icon {
+        font-size: 13px;
+      }
+    }
   }
 }
-.tabled{
+
+// Table section
+.table-container {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
+  overflow: hidden;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.report-table {
+  width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  tr:first-child td:first-child { border-top-left-radius: 10px; }
-  tr:first-child td:last-child { border-top-right-radius: 10px; }
+  font-size: 12px;
+  
+  tbody tr:nth-child(even) {
+    background-color: #fafbfc;
+  }
 }
-.btn-acp{
-  background-image: radial-gradient( circle 835px at 12.1% 24%,  rgba(93,133,178,1) 25.7%, rgba(50,73,101,1) 100.2% );
+
+.header_table {
+  background: #10b981;
+  
+  th {
+    padding: 10px 12px;
+    font-weight: 600;
+    font-size: 11px;
+    color: white;
+    letter-spacing: -0.01em;
+    text-align: left;
+    
+    .up_down_icon {
+      color: white;
+      transition: all 0.2s ease;
+      padding: 2px;
+      border-radius: 4px;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+    }
+  }
 }
-.hoverTr:hover{
-  background-image: radial-gradient( circle farthest-corner at 1.3% 2.8%,   rgb(211, 224, 245) 100.2%, rgba(239,249,249,1) 100% );
+
+.body_table {
+  td {
+    padding: 10px 12px;
+    font-size: 11px;
+    color: #374151;
+    letter-spacing: -0.01em;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  
+  tr {
+    transition: all 0.15s ease;
+    
+    &:hover {
+      background: #f0fdf4 !important;
+      transform: translateX(2px);
+    }
+  }
 }
-.all_qty_border{
-  background-image: radial-gradient( circle farthest-corner at 1.3% 2.8%,   rgb(211, 224, 245) 100.2%, rgba(239,249,249,1) 100% );
-}
-.up_down_icon:hover{
-  background: #acbbff;
-}
-.stiky_position{
-  position: -webkit-sticky; /* Safari */
+
+.stiky_position {
+  position: -webkit-sticky;
   position: sticky;
-  top: 52px;
-  background: #3f6a8b;
-  color:white;
+  top: 0;
+  z-index: 111111;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-cell {
+  padding: 8px !important;
+  text-align: center;
+  
+  .action-buttons-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    .delete-icon-wrapper {
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: rgba(239, 68, 68, 0.1);
+        transform: scale(1.1);
+      }
+    }
+    
+    .delete-icon {
+      color: #ef4444;
+      font-size: 14px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .report-header {
+    .header-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .stats-summary {
+      width: 100%;
+      justify-content: space-around;
+    }
+  }
+  
+  .controls-section {
+    .controls-content {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .date-section {
+      flex-direction: column;
+      
+      .date-input {
+        width: 100%;
+      }
+    }
+    
+    .action-buttons {
+      width: 100%;
+      
+      .action-btn {
+        flex: 1;
+      }
+    }
+  }
 }
 </style>

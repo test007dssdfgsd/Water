@@ -355,6 +355,27 @@ const routes = [{
         component: () =>
             import ('../views/report/client_cancel_report.vue')
     },
+    {
+        path: '/postavchik_statistics',
+        name: 'postavchik_statistics',
+        meta: { layout: 'main' },
+        component: () =>
+            import ('../views/report/postavchik_statistics.vue')
+    },
+    {
+        path: '/real_time_postavchik_stats',
+        name: 'real_time_postavchik_stats',
+        meta: { layout: 'main' },
+        component: () =>
+            import ('../views/report/real_time_postavchik_stats.vue')
+    },
+    {
+        path: '/dashboard',
+        name: 'dashboard',
+        meta: { layout: 'main' },
+        component: () =>
+            import ('../views/report/dashboard.vue')
+    },
     
 
 

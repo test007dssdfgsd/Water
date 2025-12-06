@@ -1,73 +1,74 @@
 <template>
-  <div>
-    <div class="payList">
-      <div class="border-bottom navbar_sticky ">
-        <div class="d-flex justify-content-between">
-          <router-link to="#">
-            <h5 class="m-0 ml-3 d-flex" style="padding: 14px 0px">
-                {{$t('report_date')}}</h5>
-          </router-link>
-          <div class="summa d-flex align-items-center">
-            <div class="mr-5 text-center">
-              <p style="font-size:12.5px;" class="p-0 m-0 text-success">{{$t('cash')}}</p>
-              <p style="font-size:12px;" class="p-0 m-0 text-success font-weight-bold">{{all_summ.cash.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</p>
+  <div class="report-app">
+    <div class="report-main">
+      <div class="report-header">
+        <div class="header-content">
+          <h4 class="page-title">
+            <mdb-icon icon="calendar-alt" class="mr-2" />
+            {{$t('report_date')}}
+          </h4>
+          
+          <div class="stats-summary" v-if="checkList.length > 0">
+            <div class="stat-item">
+              <span class="stat-label">{{$t('cash')}}</span>
+              <span class="stat-value cash">{{formatMoney(all_summ.cash)}}</span>
             </div>
-            <div class="mr-5 text-center">
-              <p style="font-size:12.5px;" class="p-0 m-0 text-primary">{{$t('card')}}</p>
-              <p style="font-size:12px;" class="p-0 m-0 text-primary font-weight-bold">{{all_summ.card.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</p>
+            <div class="stat-item">
+              <span class="stat-label">{{$t('card')}}</span>
+              <span class="stat-value card">{{formatMoney(all_summ.card)}}</span>
             </div>
-            <!-- <div class="mr-5 text-center">
-              <p style="font-size:12.5px;" class="p-0 m-0">{{$t('skidka')}}</p>
-              <p style="font-size:12px;" class="p-0 m-0">{{all_summ.online.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</p>
-            </div> -->
-            <div class="mr-5 text-center">
-              <p style="font-size:12.5px;" class="p-0 m-0 text-danger">{{$t('rasxod')}}</p>
-              <p style="font-size:12px;" class="p-0 m-0 text-danger font-weight-bold">{{all_summ.rasxod.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</p>
+            <div class="stat-item">
+              <span class="stat-label">{{$t('rasxod')}}</span>
+              <span class="stat-value expense">{{formatMoney(all_summ.rasxod)}}</span>
             </div>
-            <div class="mr-5 text-center">
-              <p style="font-size:12.5px;" class="p-0 m-0 text-indigo">{{$t('summ')}}</p>
-              <p style="font-size:12px;" class="p-0 m-0 text-indigo font-weight-bold">{{all_summ.summ.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</p>
+            <div class="stat-item">
+              <span class="stat-label">{{$t('summ')}}</span>
+              <span class="stat-value total">{{formatMoney(all_summ.summ)}}</span>
             </div>
           </div>
         </div>
       </div>
-
-      <div class="px-3 py-2 pt-3 bg_date">
-        <div class="d-flex justify-content-start align-items-center">
-          <div class="row w-100">
-            <!-- <div class="col-sm-4 col-md-3 col-lg-2">
-              <div class="d-flex justify-content-start align-items-center">
-                <month  height="30" class="mt-2" @select="selectMonth"/>
-              </div>
-            </div> -->
-            <div class="col-sm-4 col-md-3 col-lg-3  " >
-              <div class="w-100">
-                <mdb-input class="m-0 p-0" size="sm" v-model="b_date" type="date"></mdb-input>
-              </div>
-            </div>
-            <div class="col-sm-4 col-md-3 col-lg-3" >
-              <div >
-                <mdb-input class="m-0 p-0 mb-2" size="sm"  v-model="e_date" type="date"></mdb-input>
-              </div>
-            </div>
-            <div class="col-sm-4 col-md-1 col-lg-1" >
-              <div class="mt-1 text-right">
-                <mdb-btn class="mr-1 ml-0  py-1 px-3"  style="font-size: 9px; height:27.5px; width:80px" color="info"  @click="clickDate()" 
-                  size="sm">{{$t('ok')}}
-                </mdb-btn>
-              </div>
-            </div>
-            
+      
+      <div class="controls-section">
+        <div class="controls-content">
+          <div class="date-section">
+            <mdb-input 
+              class="date-input m-0" 
+              size="sm" 
+              v-model="b_date" 
+              type="date"
+            ></mdb-input>
+            <mdb-input 
+              class="date-input m-0" 
+              size="sm" 
+              v-model="e_date" 
+              type="date"
+            ></mdb-input>
+          </div>
+          
+          <div class="action-buttons">
+            <mdb-btn 
+              class="action-btn apply-btn" 
+              color="info"  
+              @click="clickDate()" 
+              size="sm"
+            >
+              <mdb-icon icon="check" class="mr-1" />
+              {{$t('ok')}}
+            </mdb-btn>
           </div>
         </div>
       </div>
 
-      <div class="">
-        <div v-if="searchQuery" class="p-0 m-0 d-flex search-loading" style="font-size: 13px;">
-        <span class="icon">🔍</span>
-        <p class="p-0 m-0 px-2 pb-1">Qidirilmoqda:</p> <b>{{ searchQuery }}</b></div>
+      <div class="table-container">
+        <div v-if="searchQuery" class="search-indicator">
+          <span class="icon">🔍</span>
+          <span>Qidirilmoqda:</span>
+          <b>{{ searchQuery }}</b>
+        </div>
         <loader v-if="loading"/>
-        <table class="myTableCkeckList ">
+        <div v-else class="table-wrapper">
+          <table class="report-table">
           <thead>
             <tr class="header stiky_position">
               <th  width="40" class="text-left">№</th>
@@ -151,25 +152,25 @@
               <td> <span class="text-indigo">{{row.summ.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</span> </td>
               <td> <span >{{row.created_date_time.slice(0,10)}}</span> <span class="ml-2">{{row.created_date_time.slice(11,16)}}</span></td>
               <!-- <td> <span >{{row.lessons_cout}}</span> </td> -->
-              <td class="m-0 p-0">
-                <div class="d-flex align-items-center justify-content-center">
-                  <div @click="promise(row.reserverd_number_id_3, row.user_name)" style="cursor:pointer">
-                    <mdb-icon icon="trash" style="font-size:13.5px;" class=" text-danger" ></mdb-icon>
+              <td class="action-cell">
+                <div class="action-buttons-cell">
+                  <div @click="promise(row.reserverd_number_id_3, row.user_name)" class="delete-icon-wrapper">
+                    <mdb-icon icon="trash" class="delete-icon" />
                   </div>
                 </div>
-                <!-- <mdb-btn class="mr-1 ml-0 mt-0 mt-1 btn-acp"  style="font-size: 8px; width:80px; padding: 5px;"   
-                  size="sm">{{$t('accept')}}
-                </mdb-btn> -->
               </td>
             </tr>
           </tbody>
         </table>
+        </div>
         <!-- Pagination tugmalari -->
-      <Pagination 
-        :totalPages="totalPages" 
-        :currentPage="currentPage" 
-        @page-changed="changePage" 
-      />
+        <div class="pagination-section" v-if="totalPages > 0">
+          <Pagination 
+            :totalPages="totalPages" 
+            :currentPage="currentPage" 
+            @page-changed="changePage" 
+          />
+        </div>
       </div>
     </div>
     <mdb-modal :show="delete_show" @close="delete_show = false" size="md" class="text-center" danger>
@@ -232,7 +233,7 @@ export default {
 
       currentPage: 0,
       totalPages: 0,
-      pageSize: 2,
+      pageSize: 100,
       searchQuery: '',
     }
   },
@@ -402,74 +403,182 @@ export default {
         }
 
         this.checkList.sort(compare);
-    }
+    },
     // ===> sort table <===
+    
+    formatMoney(value) {
+      if (!value) return '0';
+      return value.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ');
+    }
 
    
   },
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.report-app {
+  min-height: 100vh;
+  background: #f8fafb;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  padding: 16px;
+}
 
+// Header section
+.report-header {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 12px;
+  padding: 10px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+  
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  
+  .page-title {
+    color: white;
+    font-weight: 600;
+    font-size: 20px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    
+    mdb-icon {
+      font-size: 22px;
+    }
+  }
+  
+  .stats-summary {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      
+      .stat-label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 4px;
+        font-weight: 500;
+      }
+      
+      .stat-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
+        
+        &.cash {
+          color: #d1fae5;
+        }
+        
+        &.card {
+          color: #bfdbfe;
+        }
+        
+        &.expense {
+          color: #fecaca;
+        }
+        
+        &.total {
+          color: #fef3c7;
+        }
+      }
+    }
+  }
+}
 
-.myTableCkeckList {
-  /* border-collapse: collapse; */
-  table-layout:fixed;
-  width: 100%;
+// Controls section
+.controls-section {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
+  padding: 16px;
+  margin-bottom: 16px;
+  
+  .controls-content {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  
+  .date-section {
+    display: flex;
+    gap: 12px;
+    
+    .date-input {
+      min-width: 160px;
+      border-radius: 8px;
+    }
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+    
+    .action-btn {
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 16px;
+      height: 36px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      
+      &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+      
+      &.apply-btn {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border: none;
+      }
+      
+      mdb-icon {
+        font-size: 13px;
+      }
+    }
+  }
+}
+
+// Table section
+.table-container {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
   overflow: hidden;
-  // border: 1px solid #ddd;
-  font-size: 18px;
-  max-height:80px; overflow-x:auto
-  
-}
-.myTableCkeckList th{
-  font-weight: 600;
-  font-size:11px;
-}
-.myTableCkeckList td{
-  font-size:11.5px;
-  
-}
-.myTableCkeckList td {
-  text-align: left;
-  padding: 8px 10px;
-}
-.myTableCkeckList th{
-  text-align: left;
-  padding: 8px 10px;
 }
 
-.myTableCkeckList tr {
-  border-bottom: 1px dashed rgb(240, 240, 240);
-}
-.hoverTr:hover{
-  background-image: radial-gradient( circle farthest-corner at 1.3% 2.8%,   rgb(211, 224, 245) 100.2%, rgba(239,249,249,1) 100% );
-}
-tr:nth-child(even){background-color: #ebf5fc;}
-.myTableCkeckList tr.header, .myTableCkeckList tr:hover {
-  // background-color: #f1f1f1;
-}
-.delIcon{
-  color: rgb(251, 70, 70);
+.search-indicator {
+  padding: 12px 16px;
+  background: #fef3c7;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
-}
-.up_down_icon:hover{
-  background: #acbbff;
-}
-
-.stiky_position{
-  position: -webkit-sticky; /* Safari */
-  position: sticky;
-  top: 52px;
-  background: #63a89e;
-  color:white;
-}
-.search-loading .icon {
-  margin-right: 0px;
-  margin-left: 10px;
-  display: inline-block;
-  animation: shake 1s infinite;
+  color: #374151;
+  
+  .icon {
+    display: inline-block;
+    animation: shake 1s infinite;
+  }
+  
+  b {
+    color: #059669;
+    font-weight: 600;
+  }
 }
 
 @keyframes shake {
@@ -478,5 +587,133 @@ tr:nth-child(even){background-color: #ebf5fc;}
   50% { transform: rotate(0deg); }
   75% { transform: rotate(-15deg); }
   100% { transform: rotate(0deg); }
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+  table-layout: fixed;
+  
+  tbody tr:nth-child(even) {
+    background-color: #fafbfc;
+  }
+}
+
+.report-table th {
+  padding: 10px 12px;
+  font-weight: 600;
+  font-size: 11px;
+  color: white;
+  letter-spacing: -0.01em;
+  text-align: left;
+  
+  .up_down_icon {
+    color: white;
+    transition: all 0.2s ease;
+    padding: 2px;
+    border-radius: 4px;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+}
+
+.report-table td {
+  padding: 10px 12px;
+  font-size: 11px;
+  color: #374151;
+  letter-spacing: -0.01em;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: left;
+}
+
+.report-table tbody tr {
+  transition: all 0.15s ease;
+  
+  &:hover {
+    background: #f0fdf4 !important;
+    transform: translateX(2px);
+  }
+}
+
+.stiky_position {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  background: #10b981;
+  color: white;
+  z-index: 111111;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-cell {
+  padding: 8px !important;
+  text-align: center;
+  
+  .action-buttons-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    .delete-icon-wrapper {
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: rgba(239, 68, 68, 0.1);
+        transform: scale(1.1);
+      }
+    }
+    
+    .delete-icon {
+      color: #ef4444;
+      font-size: 14px;
+    }
+  }
+}
+
+.pagination-section {
+  padding: 16px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .report-header {
+    .header-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .stats-summary {
+      width: 100%;
+      justify-content: space-around;
+    }
+  }
+  
+  .controls-section {
+    .controls-content {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .date-section {
+      flex-direction: column;
+      
+      .date-input {
+        width: 100%;
+      }
+    }
+  }
 }
 </style>

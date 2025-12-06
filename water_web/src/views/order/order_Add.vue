@@ -32,10 +32,24 @@
             <!-- <span style="font-size: 14px;" class="mt-2 mb-0 ml-2">{{last_order_date}}</span> -->
           </div>
           
-          <div class="d-flex align-items-center ml-5 mt-1">
-            <router-link to="/client_cancel_report">
-              <mdb-icon icon="file-alt" class="text-warning mr-3" style="font-size: 14px; cursor:pointer;"/>
-              <span style="font-size: 12px;" class="mb-0 ml-1">Otchot</span>
+          <div class="d-flex align-items-center ml-4 mt-1">
+            <router-link to="/client_cancel_report" class="nav-menu-item cancel-item">
+              <mdb-icon icon="times-circle" class="mr-2" />
+              <span>Отмена</span>
+            </router-link>
+          </div>
+          
+          <div class="d-flex align-items-center ml-4 mt-1">
+            <router-link to="/real_time_postavchik_stats" class="nav-menu-item stats-item">
+              <mdb-icon icon="chart-line" class="mr-2" />
+              <span>Поставщики</span>
+            </router-link>
+          </div>
+          
+          <div class="d-flex align-items-center ml-4 mt-1">
+            <router-link to="/dashboard" class="nav-menu-item dashboard-item">
+              <mdb-icon icon="chart-area" class="mr-2" />
+              <span>Dashboard</span>
             </router-link>
           </div>
           <!-- know_mark_in_map -->
@@ -110,7 +124,7 @@
               <div class="col-5 p-0">
                 <div class="client_info">
                   <p class="text_content_border mb-2">{{$t('fio')}} <span>{{client_name}}</span></p>
-                  <p v-for="(item,index) in client_phoneList" :key="index" class="text_content_border mb-2">{{$t('phoneNumber')}} <span>{{item.phone_number}}</span></p>
+                  <p v-for="(item,index) in client_phoneList" :key="index" class="text_content_border mb-2">{{$t('phoneNumber')}} <span>{{formatPhone(item.phone_number)}}</span></p>
                   <div class="text-right">
                     <span @click="orders_info" style="font-size:13.5px; cursor:pointer;" class="text-primary mr-3">{{$t('client_info')}}      </span>
 
@@ -515,6 +529,30 @@ export default {
 
   methods:{
     ...mapActions(['fetch_district_t', 'fetchClient', 'fetch_contragent_t','fetchDepartment', 'fetchLevel', 'fetchClient', 'fetch_product_t', 'fetchOrder_list']),
+    formatPhone(phone) {
+      if (!phone) return ''
+      // Telefon raqamini formatlash: 99 777 22 47
+      const cleaned = phone.replace(/\D/g, '')
+      
+      // Agar +998 yoki 998 bilan boshlansa, uni olib tashlash
+      let digits = cleaned
+      if (digits.startsWith('998')) {
+        digits = digits.substring(3)
+      } else if (digits.startsWith('+998')) {
+        digits = digits.substring(4)
+      }
+      
+      // 9 raqamli bo'lsa: 99 777 22 47 formatida
+      if (digits.length === 9) {
+        const match = digits.match(/^(\d{2})(\d{3})(\d{2})(\d{2})$/)
+        if (match) {
+          return `${match[1]} ${match[2]} ${match[3]} ${match[4]}`
+        }
+      }
+      
+      // Agar formatlash mumkin bo'lmasa, asl raqamni qaytarish
+      return phone
+    },
     writeNol(){
       if(this.order_qty == 0 || this.order_qty == '0'){
         this.order_qty = null
@@ -634,6 +672,18 @@ export default {
       }
     },
     
+    formatDateRu(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      const months = [
+        'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+        'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+      ];
+      const day = date.getDate();
+      const month = months[date.getMonth()];
+      const year = date.getFullYear();
+      return `${day} ${month} ${year}`;
+    },
     async fetchClientLastOrder(client_id){
       try{
         // this.loadingSimple = true;
@@ -643,16 +693,17 @@ export default {
         // this.loadingSimple = false;
         if(data.length>0){
           console.log(data)
-          let old_date_temp = new Date(data[0].order_date);
-          this.last_order_date =  old_date_temp.toDateString();
+          this.last_order_date = this.formatDateRu(data[0].order_date);
           this.client_last_order = data;  
         }
         else{
           this.client_last_order = [];
+          this.last_order_date = '';
         }
       }
       catch{
           this.client_last_order = [];
+          this.last_order_date = '';
       }
     },
     add_product(){
@@ -935,6 +986,101 @@ export default {
   
   .mt-2 {
     margin-top: 0 !important;
+  }
+  
+  // Nav menu items styling
+  .nav-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    border: 1.5px solid transparent;
+    
+    mdb-icon {
+      font-size: 13px !important;
+      transition: all 0.2s ease;
+    }
+    
+    span {
+      font-size: 12px;
+      font-weight: 500;
+      margin: 0;
+      transition: all 0.2s ease;
+    }
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    &.cancel-item {
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      border-color: #fecaca;
+      color: #dc2626;
+      
+      mdb-icon {
+        color: #dc2626 !important;
+      }
+      
+      span {
+        color: #dc2626;
+      }
+      
+      &:hover {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-color: #f87171;
+        box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+      }
+    }
+    
+    &.stats-item {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border-color: #bfdbfe;
+      color: #2563eb;
+      
+      mdb-icon {
+        color: #2563eb !important;
+      }
+      
+      span {
+        color: #2563eb;
+      }
+      
+      &:hover {
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        border-color: #93c5fd;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+      }
+    }
+    
+    &.dashboard-item {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border-color: #bbf7d0;
+      color: #16a34a;
+      
+      mdb-icon {
+        color: #16a34a !important;
+      }
+      
+      span {
+        color: #16a34a;
+      }
+      
+      &:hover {
+        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        border-color: #86efac;
+        box-shadow: 0 2px 8px rgba(22, 163, 74, 0.2);
+      }
+    }
+  }
+  
+  .ml-4 {
+    margin-left: 12px !important;
   }
 }
 

@@ -284,11 +284,25 @@ export default {
     },
 
     async onEnd(evt){
-      console.log(evt.oldIndex, evt.newIndex)
-      console.log(this.postavchik_array);
-      let postavchikArr = await this.array_move(this.postavchik_array, evt.oldIndex, evt.newIndex)
-      let stringArray = postavchikArr.toString();
-      await this.fetchAddMarkIDList(stringArray);
+      // Eski holatni saqlab qo'yish (xatolik bo'lsa qaytarish uchun)
+      const oldArray = [...this.postavchik_array];
+      
+      try {
+        // Array tartibini yangilash
+        let postavchikArr = await this.array_move(this.postavchik_array, evt.oldIndex, evt.newIndex);
+        // Array ni to'g'ri formatda string ga o'tkazish (vergul bilan ajratilgan)
+        let stringArray = postavchikArr.join(',');
+        
+        // Auth ni yangilash - loading ko'rsatmaslik (drag & drop jarayonida UX uchun)
+        await this.fetchUpdateAuthOrderList(stringArray);
+      } catch (error) {
+        console.error('onEnd Error:', error);
+        // Xatolik bo'lsa, eski holatga qaytarish
+        this.postavchik_array = oldArray;
+        // postavchik_list ni ham qaytarish kerak
+        this.postavchik_list = this.postavchik_list.slice(); // Shallow copy
+        this.$refs.message.error('network_ne_connect');
+      }
     },
 
     async acceptBtn(){
@@ -371,8 +385,9 @@ export default {
       if(this.auth_id){
         this.postavchik_list.push(mark);
         this.postavchik_array.push(mark.id);
-        let stringArray = this.postavchik_array.toString();
-        await this.fetchUpdateAndAddPS(mark.id, stringArray);
+        // Array ni to'g'ri formatda string ga o'tkazish (vergul bilan ajratilgan)
+        let stringArray = this.postavchik_array.join(',');
+        await this.fetchAddOrderToUserWithAuthUpdate(mark.id, stringArray);
       }
       else{
         this.$refs.message.error('postavchik_no_selected')
@@ -380,13 +395,74 @@ export default {
       this.loading = false;
     },
 
-    async fetchUpdateAndAddPS(id,string){
-      console.log(' bunga kirdi', id,string)
-      if(await this.fetchAddMarkIDList(string) && await this.fetchAddMarkToPostavchik(id)){
-          this.$refs.message.success('Added_successfully')
+    // Yangi optimal API - bitta so'rovda barcha operatsiyalarni bajaradi
+    async fetchAddOrderToUserWithAuthUpdate(order_id, id_str_list){
+      try{
+        // Ma'lumotlarni tekshirish
+        if(!order_id || !this.auth_id){
+          this.$refs.message.error('postavchik_no_selected');
+          return false;
+        }
+
+        this.loading = true;
+        
+        // URL ni to'g'ri formatda yaratish
+        const url = this.$store.state.hostname + 
+          '/WaterOrders/addOrderToUserWithAuthUpdate?order_id=' + order_id + 
+          '&user_auth_id=' + this.auth_id + 
+          '&id_str_list=' + encodeURIComponent(id_str_list || '');
+        
+        console.log('API Request URL:', url);
+        
+        const res = await fetch(url);
+        
+        // Response ni tekshirish
+        if(!res.ok && res.status !== 200 && res.status !== 201){
+          const errorText = await res.text();
+          console.error('API Error Response:', res.status, errorText);
+          this.loading = false;
+          
+          if(res.status == 400){
+            this.$refs.message.error('postavchik_no_selected');
+          }
+          else if(res.status == 404){
+            this.$refs.message.error('order_not_found');
+          }
+          else{
+            this.$refs.message.error('network_ne_connect');
+          }
+          return false;
+        }
+        
+        const data = await res.json();
+        this.loading = false;
+        
+        if(res.status == 200 || res.status == 201){
+          if(data.success){
+            this.$refs.message.success('Added_successfully');
+            // Ma'lumotlarni yangilash
+            await this.acceptBtn();
+            await this.fetchPostavchikList(this.auth_id);
+            return true;
+          } else {
+            this.$refs.message.error('network_ne_connect');
+            return false;
+          }
+        }
+        else{
+          this.$refs.message.error('network_ne_connect');
+          return false;
+        }
+      }
+      catch(error){
+        console.error('API Error:', error);
+        this.$refs.message.error('network_ne_connect');
+        this.loading = false;
+        return false;
       }
     },
 
+    // Eski API-lar - orqaga moslik uchun saqlanadi (agar kerak bo'lsa)
     async fetchAddMarkToPostavchik(id){
       try{
         this.loading = true;
@@ -413,10 +489,33 @@ export default {
         return false;
       }
     },
+    // Yangi optimal funksiya - Auth ni yangilash (loading ko'rsatmaslik)
+    async fetchUpdateAuthOrderList(string){
+      try{
+        const res = await fetch(
+          this.$store.state.hostname + 
+          '/WaterAuths/addOrderIdListForAuth?auth_id=' + this.auth_id + 
+          '&id_str_list=' + encodeURIComponent(string)
+        );
+        
+        if(res.status == 200 || res.status == 201){
+          return true;
+        }
+        else{
+          throw new Error('API Error: ' + res.status);
+        }
+      }
+      catch(error){
+        console.error('fetchUpdateAuthOrderList Error:', error);
+        throw error;
+      }
+    },
+
+    // Eski funksiya - orqaga moslik uchun saqlanadi
     async fetchAddMarkIDList(string){
       try{
         this.loading = true;
-        const res = await fetch(this.$store.state.hostname + '/WaterAuths/addOrderIdListForAuth?auth_id=' + this.auth_id + '&id_str_list=' + string);
+        const res = await fetch(this.$store.state.hostname + '/WaterAuths/addOrderIdListForAuth?auth_id=' + this.auth_id + '&id_str_list=' + encodeURIComponent(string));
         this.loading = false;
         if(res.status == 200 || res.status == 201){
           return true;
@@ -434,15 +533,104 @@ export default {
     },
 
     async removeFromPost(item, index){
+      // Eski holatni saqlab qo'yish (xatolik bo'lsa qaytarish uchun)
+      const oldArray = [...this.postavchik_array];
+      const oldList = [...this.postavchik_list];
+      const oldWaterCount = this.postavchik_water_count;
+      
+      // Frontend da o'chirish (UX uchun)
       this.postavchik_array.splice(index,1);
       this.postavchik_list.splice(index,1);
-      let stringArray = this.postavchik_array.toString();
-      if(await this.fetchAddMarkIDList(stringArray)){
-        await this.deleteRow(item.id)
-        this.postavchik_water_count -= parseFloat(item.water_count);
+      this.postavchik_water_count -= parseFloat(item.water_count);
+      
+      // Array ni to'g'ri formatda string ga o'tkazish (vergul bilan ajratilgan)
+      let stringArray = this.postavchik_array.length > 0 ? this.postavchik_array.join(',') : '';
+      
+      try {
+        const success = await this.fetchRemoveOrderFromUserWithAuthUpdate(item.id, stringArray);
+        
+        if(!success){
+          // Xatolik bo'lsa, eski holatga qaytarish
+          this.postavchik_array = oldArray;
+          this.postavchik_list = oldList;
+          this.postavchik_water_count = oldWaterCount;
+        }
+      } catch (error) {
+        console.error('removeFromPost Error:', error);
+        // Xatolik bo'lsa, eski holatga qaytarish
+        this.postavchik_array = oldArray;
+        this.postavchik_list = oldList;
+        this.postavchik_water_count = oldWaterCount;
       }
     },
 
+    // Yangi optimal API - bitta so'rovda order ni olib tashlash va auth ni yangilash
+    async fetchRemoveOrderFromUserWithAuthUpdate(order_id, id_str_list){
+      try{
+        // Ma'lumotlarni tekshirish
+        if(!order_id || !this.auth_id){
+          this.$refs.message.error('postavchik_no_selected');
+          return false;
+        }
+
+        this.loading = true;
+        
+        // URL ni to'g'ri formatda yaratish
+        const url = this.$store.state.hostname + 
+          '/WaterOrders/removeOrderFromUserWithAuthUpdate?order_id=' + order_id + 
+          '&user_auth_id=' + this.auth_id + 
+          '&id_str_list=' + encodeURIComponent(id_str_list || '');
+        
+        console.log('API Request URL:', url);
+        
+        const res = await fetch(url);
+        
+        // Response ni tekshirish
+        if(!res.ok && res.status !== 200 && res.status !== 201){
+          const errorText = await res.text();
+          console.error('API Error Response:', res.status, errorText);
+          this.loading = false;
+          
+          if(res.status == 400){
+            this.$refs.message.error('postavchik_no_selected');
+          }
+          else if(res.status == 404){
+            this.$refs.message.error('order_not_found');
+          }
+          else{
+            this.$refs.message.error('network_ne_connect');
+          }
+          return false;
+        }
+        
+        const data = await res.json();
+        this.loading = false;
+        
+        if(res.status == 200 || res.status == 201){
+          if(data.success){
+            // Ma'lumotlarni yangilash - xaritani va dostavchik ro'yxatini
+            await this.acceptBtn(); // Xaritani yangilash
+            await this.fetchPostavchikList(this.auth_id); // Dostavchik ro'yxatini yangilash
+            return true;
+          } else {
+            this.$refs.message.error('network_ne_connect');
+            return false;
+          }
+        }
+        else{
+          this.$refs.message.error('network_ne_connect');
+          return false;
+        }
+      }
+      catch(error){
+        console.error('API Error:', error);
+        this.$refs.message.error('network_ne_connect');
+        this.loading = false;
+        return false;
+      }
+    },
+
+    // Eski API - orqaga moslik uchun saqlanadi (agar kerak bo'lsa)
     async deleteRow(id){
       try{
         this.loading = true;

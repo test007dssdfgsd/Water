@@ -332,20 +332,6 @@ namespace ApiAll.Controllers.water
         }
 
 
-        // GET: api/WaterOrders/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<WaterOrder>> GetWaterOrder(long id)
-        {
-            var waterOrder = await _context.WaterOrder.FindAsync(id);
-
-            if (waterOrder == null)
-            {
-                return NotFound();
-            }
-
-            return waterOrder;
-        }
-
         [HttpGet("getOrderFullInfoByIdForUpdate")]
         public async Task<ActionResult<WaterOrder>> getOrderFullInfoByIdForUpdate([FromQuery]long id)
         {
@@ -491,6 +477,122 @@ namespace ApiAll.Controllers.water
             await _context.SaveChangesAsync();
 
             return waterOrder;
+        }
+
+        [HttpGet("addOrderToUserWithAuthUpdate")]
+        public async Task<ActionResult<object>> addOrderToUserWithAuthUpdate([FromQuery] long order_id, [FromQuery] long user_auth_id, [FromQuery] String id_str_list)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // Parameterlarni tekshirish
+                if (order_id <= 0)
+                {
+                    await transaction.RollbackAsync();
+                    return BadRequest(new { success = false, error = "Invalid order_id" });
+                }
+                if (user_auth_id <= 0)
+                {
+                    await transaction.RollbackAsync();
+                    return BadRequest(new { success = false, error = "Invalid user_auth_id" });
+                }
+
+                // 1. Order ni topish va user ga biriktirish
+                var waterOrder = await _context.WaterOrder.FindAsync(order_id);
+                if (waterOrder == null)
+                {
+                    await transaction.RollbackAsync();
+                    return NotFound(new { success = false, error = "Order not found" });
+                }
+
+                waterOrder.deleivered_user_auth_id = user_auth_id;
+                _context.WaterOrder.Update(waterOrder);
+
+                // 2. Auth ni topish va yangilash
+                var waterAuth = await _context.WaterAuth.FindAsync(user_auth_id);
+                if (waterAuth == null)
+                {
+                    await transaction.RollbackAsync();
+                    return NotFound(new { success = false, error = "Auth not found" });
+                }
+
+                // id_str_list null yoki bo'sh bo'lsa, bo'sh string qilamiz
+                waterAuth.reserverd_note = string.IsNullOrEmpty(id_str_list) ? "" : id_str_list;
+                _context.WaterAuth.Update(waterAuth);
+
+                // 3. Barcha o'zgarishlarni bitta transaction ichida saqlash
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return new { 
+                    success = true, 
+                    order = waterOrder, 
+                    auth = waterAuth 
+                };
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return BadRequest(new { success = false, error = ex.Message, stackTrace = ex.StackTrace });
+            }
+        }
+
+        [HttpGet("removeOrderFromUserWithAuthUpdate")]
+        public async Task<ActionResult<object>> removeOrderFromUserWithAuthUpdate([FromQuery] long order_id, [FromQuery] long user_auth_id, [FromQuery] String id_str_list)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // Parameterlarni tekshirish
+                if (order_id <= 0)
+                {
+                    await transaction.RollbackAsync();
+                    return BadRequest(new { success = false, error = "Invalid order_id" });
+                }
+                if (user_auth_id <= 0)
+                {
+                    await transaction.RollbackAsync();
+                    return BadRequest(new { success = false, error = "Invalid user_auth_id" });
+                }
+
+                // 1. Order ni topish va user dan olib tashlash
+                var waterOrder = await _context.WaterOrder.FindAsync(order_id);
+                if (waterOrder == null)
+                {
+                    await transaction.RollbackAsync();
+                    return NotFound(new { success = false, error = "Order not found" });
+                }
+
+                waterOrder.deleivered_user_auth_id = null;
+                _context.WaterOrder.Update(waterOrder);
+
+                // 2. Auth ni topish va yangilash
+                var waterAuth = await _context.WaterAuth.FindAsync(user_auth_id);
+                if (waterAuth == null)
+                {
+                    await transaction.RollbackAsync();
+                    return NotFound(new { success = false, error = "Auth not found" });
+                }
+
+                // id_str_list null yoki bo'sh bo'lsa, bo'sh string qilamiz
+                waterAuth.reserverd_note = string.IsNullOrEmpty(id_str_list) ? "" : id_str_list;
+                _context.WaterAuth.Update(waterAuth);
+
+                // 3. Barcha o'zgarishlarni bitta transaction ichida saqlash
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return new { 
+                    success = true, 
+                    order = waterOrder, 
+                    auth = waterAuth 
+                };
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return BadRequest(new { success = false, error = ex.Message, stackTrace = ex.StackTrace });
+            }
         }
 
 
@@ -2033,6 +2135,20 @@ namespace ApiAll.Controllers.water
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        // GET: api/WaterOrders/5 - Oxiriga ko'chirildi (aniq route-lardan keyin)
+        [HttpGet("{id:long}")]
+        public async Task<ActionResult<WaterOrder>> GetWaterOrder(long id)
+        {
+            var waterOrder = await _context.WaterOrder.FindAsync(id);
+
+            if (waterOrder == null)
+            {
+                return NotFound();
+            }
+
+            return waterOrder;
         }
 
         private bool WaterOrderExists(long id)

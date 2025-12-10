@@ -145,9 +145,9 @@
               </div>
               <div class="col-2 border rounded d-flex align-items-center justify-content-center">
                 <div class="text-center">
-                  <h6 class="font-weight-bold">{{$t('ostatka_bootle')}} ({{all_water_count}})</h6>
+                  <h6 class="font-weight-bold" style="font-size: 13px;">{{$t('ostatka_bootle')}} ({{all_water_count}})</h6>
                   <div class="d-flex justify-content-center w-100 align-items-center">
-                    <h4 class="m-0 p-0 pt-1 text-danger font-weight-bold">{{ostatik_bootle}} - </h4>
+                    <h4 class="m-0 p-0 pt-1 text-danger font-weight-bold" style="font-size: 18px;">{{ostatik_bootle}} - </h4>
                     <img  src="../../assets/bootle.jpg" alt="b" width="50" height="45" class="bottle">
                   </div>
                    <!-- <div class="text-center mt-2 ml-3">
@@ -1175,7 +1175,7 @@ export default {
         justify-content: space-between;
         border-bottom: 1px solid #f3f4f6;
         color: #6b7280;
-        font-size: 11px;
+        font-size: 12px;
         padding: 6px 0;
         letter-spacing: -0.01em;
         

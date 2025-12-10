@@ -23,12 +23,12 @@
         <input-icon 
           class="search-input" 
           v-model="search" 
-          @input="searchClick" 
+          @input="searchClick"
           :placeholder="$t('search_client')"
         />
       </div>
       
-      <div class="table-section">
+      <div class="table-section mt-0">
         <loaderTable v-if="loading"/>
         <anyTable 
           v-else
@@ -57,7 +57,7 @@ import {
   mdbBtn,
 } from "mdbvue";
 import {mapActions, mapGetters, mapMutations} from 'vuex'
-import anyTable from "../../components/erpTable"
+import anyTable from "../../components/erpTable.vue"
 export default {
   data(){
     return {
@@ -224,7 +224,7 @@ export default {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   border: 1px solid #f0f0f0;
   padding: 12px 16px;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   
   .search-input {
     width: 100%;

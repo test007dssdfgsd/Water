@@ -12,14 +12,14 @@
           class="date-input" 
           size="sm" 
           v-model="selectedDate" 
-          @change="fetchClients"
+          @change="fetchAddresses"
           type="date"
         ></mdb-input>
       </div>
       <div class="action-buttons-top">
         <mdb-btn 
           color="info" 
-          @click="fetchClients"
+          @click="fetchAddresses"
           class="filter-btn"
           size="sm"
         >
@@ -56,101 +56,91 @@
               <th width="40">
                 <input 
                   type="checkbox" 
-                  :checked="selectedClients.length === clients.length && clients.length > 0"
+                  :checked="selectedAddresses.length === addresses.length && addresses.length > 0"
                   @change="toggleSelectAll"
                   class="select-all-checkbox"
                 />
               </th>
-              <th>№</th>
+              <th width="50">№</th>
               <th>{{$t('fio')}}</th>
               <th>Telefon</th>
               <th>{{$t('address')}}</th>
-              <th>Baklashka</th>
+              <th width="100">Baklashka</th>
               <th>Tuman</th>
-              <th>Turi</th>
-              <th>Manzillar soni</th>
+              <th>Oxirgi zakaz sana</th>
+              <th>Oxirgi zakaz note</th>
+              <th width="60" class="text-center">Info</th>
             </tr>
           </thead>
           <tbody>
             <tr 
-              v-for="(client, index) in clients"
-              :key="client.id"
+              v-for="(item, index) in addresses"
+              :key="item.address_id"
               class="client-row"
-              :class="{ 'selected': selectedClients.includes(client.id) }"
-              @click="toggleClient(client.id)"
+              :class="{ 'selected': selectedAddresses.includes(item.address_id) }"
+              @click="toggleAddress(item.address_id)"
             >
                 <td>
                   <input 
                     type="checkbox" 
-                    :checked="selectedClients.includes(client.id)"
-                    @change="toggleClient(client.id)"
+                    :checked="selectedAddresses.includes(item.address_id)"
+                    @change="toggleAddress(item.address_id)"
                     @click.stop
                     class="client-checkbox"
                   />
                 </td>
                 <td>{{index + 1}}</td>
-                <td class="font-weight-bold">{{client.fio}}</td>
+                <td class="font-weight-bold">{{item.client.fio}}</td>
                 <td>
-                  <span v-if="client.phone_numbers_list && client.phone_numbers_list.length > 0">
-                    {{formatPhone(client.phone_numbers_list[0].phone_number)}}
-                    <span v-if="client.phone_numbers_list.length > 1" class="phone-count">
-                      (+{{client.phone_numbers_list.length - 1}})
+                  <span v-if="item.client.phone_numbers_list && item.client.phone_numbers_list.length > 0">
+                    {{formatPhone(item.client.phone_numbers_list[0].phone_number)}}
+                    <span v-if="item.client.phone_numbers_list.length > 1" class="phone-count">
+                      (+{{item.client.phone_numbers_list.length - 1}})
                     </span>
                   </span>
                   <span v-else class="text-muted">-</span>
                 </td>
                 <td>
-                  <div class="addresses-list">
-                    <div 
-                      v-for="(addr) in client.addresses" 
-                      :key="addr.id"
-                      class="address-item"
-                    >
-                      <i class="fas fa-map-marker-alt mr-1"></i>
-                      {{addr.address}}
-                      <span class="bottle-info" v-if="addr.bottle_count !== undefined">
-                        ({{addr.bottle_count}} ta)
-                      </span>
-                    </div>
-                    <span v-if="!client.addresses || client.addresses.length === 0" class="text-muted">-</span>
+                  <div class="address-item">
+                    <i class="fas fa-map-marker-alt mr-1"></i>
+                    {{item.address.address}}
                   </div>
                 </td>
-                <td>
-                  <div class="bottles-list">
-                    <div 
-                      v-for="(addr) in client.addresses" 
-                      :key="addr.id"
-                      class="bottle-item"
-                    >
-                      <span v-if="addr.bottle_count !== undefined && addr.bottle_count > 0" class="bottle-badge">
-                        {{addr.bottle_count}} ta
-                      </span>
-                      <span v-else class="text-muted">0</span>
-                    </div>
-                    <span v-if="!client.addresses || client.addresses.length === 0" class="text-muted">-</span>
-                  </div>
+                <td class="text-center">
+                  <span v-if="item.bottle_count > 0" class="bottle-badge">
+                    {{item.bottle_count}} ta
+                  </span>
+                  <span v-else class="text-muted">0</span>
                 </td>
                 <td>
-                  <span v-if="client.tuman">
-                    {{client.tuman.name}}
+                  <span v-if="item.address.tuman">
+                    {{item.address.tuman.name}}
                   </span>
                   <span v-else class="text-muted">-</span>
                 </td>
                 <td>
-                  <span class="text-muted">-</span>
-                </td>
-                <td class="text-center">
-                  <span v-if="client.addresses" class="address-count-badge">
-                    {{client.addresses.length}}
+                  <span v-if="item.last_order && item.last_order.order_date" class="last-order-date">
+                    {{formatDate(item.last_order.order_date)}}
                   </span>
-                  <span v-else>0</span>
+                  <span v-else class="text-muted">Zakaz yo'q</span>
                 </td>
+              <td>
+                <span v-if="item.last_order && item.last_order.note" class="last-order-note">
+                  {{item.last_order.note}}
+                </span>
+                <span v-else class="text-muted">-</span>
+              </td>
+              <td class="text-center">
+                <button class="info-btn" @click.stop="openHistory(item)">
+                  <i class="fas fa-info-circle"></i>
+                </button>
+              </td>
               </tr>
             
-            <tr v-if="clients.length === 0">
-              <td colspan="9" class="empty-state">
+            <tr v-if="addresses.length === 0">
+              <td colspan="10" class="empty-state">
                 <i class="fas fa-inbox"></i>
-                <p>Klientlar topilmadi</p>
+                <p>Zakaz bermagan manzillar topilmadi</p>
               </td>
             </tr>
           </tbody>
@@ -158,22 +148,36 @@
       </div>
     </div>
 
-    <div class="cancel-actions" v-if="selectedClients.length > 0">
+    <div class="cancel-actions" v-if="selectedAddresses.length > 0">
       <div class="selected-count">
         <i class="fas fa-check-circle mr-2"></i>
-        Tanlangan: <strong>{{selectedClients.length}}</strong> ta klient
+        Tanlangan: <strong>{{selectedAddresses.length}}</strong> ta manzil
       </div>
       <mdb-btn 
         color="danger" 
-        @click="cancelSelectedClients"
+        @click="cancelSelectedAddresses"
         :disabled="cancelling"
         class="cancel-btn"
       >
         <i class="fas fa-times-circle mr-2"></i>
-        <span v-if="!cancelling">Tanlangan klientlarni otmen qilish</span>
+        <span v-if="!cancelling">Tanlangan manzillarni otmen qilish</span>
         <span v-else>Jarayonda...</span>
       </mdb-btn>
     </div>
+
+    <modal-train :show="historyModal.show" headerbackColor="white" titlecolor="black" title="Address zakaz tarixi" @close="historyModal.show = false" width="80%">
+      <template v-slot:body>
+        <AddressOrderHistory 
+          :loading="historyModal.loading"
+          :data="historyModal.data"
+        />
+      </template>
+      <template v-slot:footer>
+        <div class="d-flex justify-content-end w-100 px-3 pb-2">
+          <mdb-btn color="secondary" size="sm" @click="historyModal.show = false">Yopish</mdb-btn>
+        </div>
+      </template>
+    </modal-train>
 
     <Toast ref="message"></Toast>
   </div>
@@ -182,31 +186,38 @@
 <script>
 import { mdbBtn, mdbInput } from 'mdbvue'
 import loaderTable from '../../components/loaderTable.vue'
+import AddressOrderHistory from '../../components/AddressOrderHistory.vue'
 import { mapActions } from 'vuex'
 
 export default {
   components: {
     mdbBtn,
     mdbInput,
-    loaderTable
+    loaderTable,
+    AddressOrderHistory
   },
   data() {
     return {
       loading: false,
       cancelling: false,
       selectedDate: '',
-      clients: [],
-      selectedClients: []
+      addresses: [],
+      selectedAddresses: [],
+      historyModal: {
+        show: false,
+        loading: false,
+        data: null
+      }
     }
   },
   async mounted() {
     // Bugungi sanani default qilib qo'yish
     const today = new Date()
     this.selectedDate = today.toISOString().slice(0, 10)
-    await this.fetchClients()
+    await this.fetchAddresses()
   },
   methods: {
-    async fetchClients() {
+    async fetchAddresses() {
       if (!this.selectedDate) {
         this.$refs.message.warning('Iltimos, sanani tanlang')
         return
@@ -216,13 +227,13 @@ export default {
         this.loading = true
         const response = await fetch(
           this.$store.state.hostname + 
-          `/WaterOrders/getClientsWithoutOrdersAfterDate?date=${this.selectedDate}`
+          `/WaterOrders/getAddressesWithoutOrdersAfterDate?date=${this.selectedDate}`
         )
         
         if (response.status === 200 || response.status === 201) {
           const data = await response.json()
-          this.clients = data
-          this.selectedClients = [] // Tanlovni tozalash
+          this.addresses = data
+          this.selectedAddresses = [] // Tanlovni tozalash
         } else {
           this.$refs.message.error('network_ne_connect')
         }
@@ -233,25 +244,61 @@ export default {
         this.loading = false
       }
     },
-    toggleClient(clientId) {
-      const index = this.selectedClients.indexOf(clientId)
+    toggleAddress(addressId) {
+      const index = this.selectedAddresses.indexOf(addressId)
       if (index > -1) {
-        this.selectedClients.splice(index, 1)
+        this.selectedAddresses.splice(index, 1)
       } else {
-        this.selectedClients.push(clientId)
+        this.selectedAddresses.push(addressId)
       }
     },
     selectAll() {
-      this.selectedClients = this.clients.map(c => c.id)
+      this.selectedAddresses = this.addresses.map(a => a.address_id)
     },
     deselectAll() {
-      this.selectedClients = []
+      this.selectedAddresses = []
     },
     toggleSelectAll(event) {
       if (event.target.checked) {
         this.selectAll()
       } else {
         this.deselectAll()
+      }
+    },
+    formatDate(dateString) {
+      if (!dateString) return ''
+      try {
+        const date = new Date(dateString)
+        return date.toLocaleDateString('uz-UZ', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        })
+      } catch {
+        return dateString
+      }
+    },
+    async openHistory(item) {
+      this.historyModal.show = true
+      this.historyModal.loading = true
+      this.historyModal.data = null
+      try {
+        const response = await fetch(
+          this.$store.state.hostname + `/WaterOrders/getAddressOrderHistory?addressId=${item.address_id}`
+        )
+        if (response.status === 200 || response.status === 201) {
+          const data = await response.json()
+          console.log('Address order history data:', data)
+          this.historyModal.data = data
+        } else {
+          const err = await response.text()
+          this.$refs.message.error(err || 'network_ne_connect')
+        }
+      } catch (e) {
+        console.error(e)
+        this.$refs.message.error('network_ne_connect')
+      } finally {
+        this.historyModal.loading = false
       }
     },
     formatPhone(phone) {
@@ -279,9 +326,9 @@ export default {
       // Agar formatlash mumkin bo'lmasa, asl raqamni qaytarish
       return phone
     },
-    async cancelSelectedClients() {
-      if (this.selectedClients.length === 0) {
-        this.$refs.message.warning('Iltimos, kamida bitta klientni tanlang')
+    async cancelSelectedAddresses() {
+      if (this.selectedAddresses.length === 0) {
+        this.$refs.message.warning('Iltimos, kamida bitta manzilni tanlang')
         return
       }
 
@@ -290,7 +337,7 @@ export default {
         return
       }
 
-      if (!confirm(`${this.selectedClients.length} ta klientni otmen qilmoqchimisiz?`)) {
+      if (!confirm(`${this.selectedAddresses.length} ta manzilni otmen qilmoqchimisiz?`)) {
         return
       }
 
@@ -300,14 +347,14 @@ export default {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            ClientIds: this.selectedClients,
+            AddressIds: this.selectedAddresses,
             OrderDate: this.selectedDate,
             Note: 'Toplu otmen'
           })
         }
 
         const response = await fetch(
-          this.$store.state.hostname + '/WaterOrders/cancelMultipleClients',
+          this.$store.state.hostname + '/WaterOrders/cancelMultipleAddresses',
           requestOptions
         )
 
@@ -315,13 +362,10 @@ export default {
           const data = await response.json()
           const successCount = data.results.filter(r => r.success).length
           const failCount = data.results.filter(r => !r.success).length
-          const totalOrders = data.results
-            .filter(r => r.success && r.addressesCount)
-            .reduce((sum, r) => sum + r.addressesCount, 0)
 
           if (failCount === 0) {
             this.$refs.message.success(
-              `${successCount} ta klient, ${totalOrders} ta manzil muvaffaqiyatli otmen qilindi`
+              `${successCount} ta manzil muvaffaqiyatli otmen qilindi`
             )
           } else {
             this.$refs.message.warning(
@@ -330,7 +374,7 @@ export default {
           }
 
           // Ro'yxatni yangilash
-          await this.fetchClients()
+          await this.fetchAddresses()
         } else {
           const errorText = await response.text()
           this.$refs.message.error(errorText || 'network_ne_connect')
@@ -524,45 +568,42 @@ export default {
           font-size: 10px;
         }
         
-        .addresses-list {
+        .address-item {
+          font-size: 11px;
           display: flex;
-          flex-direction: column;
-          gap: 4px;
+          align-items: center;
           
-          .address-item {
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            
-            i {
-              color: #10b981;
-              font-size: 10px;
-            }
-            
-            .bottle-info {
-              color: #9ca3af;
-              font-size: 10px;
-              margin-left: 4px;
-            }
+          i {
+            color: #10b981;
+            font-size: 10px;
           }
         }
         
-        .bottles-list {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          
-          .bottle-item {
-            .bottle-badge {
-              display: inline-block;
-              background: #fef3c7;
-              color: #d97706;
-              padding: 2px 6px;
-              border-radius: 8px;
-              font-weight: 600;
-              font-size: 10px;
-            }
-          }
+        .bottle-badge {
+          display: inline-block;
+          background: #fef3c7;
+          color: #d97706;
+          padding: 2px 8px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 10px;
+        }
+        
+        .last-order-date {
+          font-size: 11px;
+          color: #475569;
+          font-weight: 500;
+        }
+        
+        .last-order-note {
+          font-size: 10px;
+          color: #64748b;
+          font-style: italic;
+          max-width: 200px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          display: inline-block;
         }
         
         .text-muted {
@@ -590,6 +631,23 @@ export default {
     }
   }
 }
+
+.info-btn {
+  background: none;
+  border: none;
+  color: #0ea5e9;
+  cursor: pointer;
+  font-size: 16px;
+  transition: transform 0.2s ease, color 0.2s ease;
+  padding: 4px;
+
+  &:hover {
+    transform: scale(1.1);
+    color: #0284c7;
+  }
+}
+
+
 
 .cancel-actions {
   padding: 12px 20px;

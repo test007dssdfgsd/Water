@@ -153,7 +153,7 @@
                   </h4>
                   <button 
                     class="desktop-info-btn" 
-                    @click="showClientInfo(item.client.id)"
+                    @click="showClientInfo(item.client && item.client.id ? item.client.id : null)"
                     title="Client ma'lumotlari"
                   >
                     <i class="fas fa-info-circle"></i>
@@ -179,7 +179,7 @@
                   <span class="desktop-detail-value">
                     {{formatDate(item.order_date)}}
                     <a 
-                      v-for="(list_item,indx) in item.client.phone_numbers_list" 
+                      v-for="(list_item,indx) in (item.client && item.client.phone_numbers_list ? item.client.phone_numbers_list : [])" 
                       :key="indx" 
                       :href="`tel:${list_item.phone_number}`"
                       class="desktop-phone-number"
@@ -305,7 +305,7 @@
                   </h4>
                   <button 
                     class="info-btn" 
-                    @click="showClientInfo(item.client.id)"
+                    @click="showClientInfo(item.client && item.client.id ? item.client.id : null)"
                     title="Client ma'lumotlari"
                   >
                     <i class="fas fa-info-circle"></i>
@@ -331,7 +331,7 @@
                   <span class="desktop-detail-value ">
                     {{formatDate(item.order_date)}}
                     <a 
-                      v-for="(list_item,indx) in item.client.phone_numbers_list" 
+                      v-for="(list_item,indx) in (item.client && item.client.phone_numbers_list ? item.client.phone_numbers_list : [])" 
                       :key="indx" 
                       :href="`tel:${list_item.phone_number}`"
                       class="desktop-phone-number ml-3"
@@ -602,6 +602,7 @@ export default {
         const res = await fetch(this.$store.state.hostname + '/WaterChecks/getPaginationByAuthIdByDateTime?page=0&size=1000&auth_id='
          + auth_id.auth_id + '&begin_date=' + this.b_date + '&end_date=' + this.e_date);
         const data = await res.json();
+        console.log('data auth_id',data);
         this.loading = false;
         if(res.status == 200 || res.status == 201){
           console.log('data.items_list')

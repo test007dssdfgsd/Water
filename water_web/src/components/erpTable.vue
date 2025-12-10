@@ -3,8 +3,9 @@
   <div class="d_table">
     <loader v-if="loading"/>
 
-      <div class="controls-section">
-        <mdb-row>
+      
+      <div class="table-wrapper">
+        <mdb-row class="mx-0 mt-3">
           <mdb-col  class="col-12 col-sm-12 col-md-4 col-lg-2" :class="{'applied': !dontShowPagination}">
             <multiselect  v-model="value"  :options="options"
           :searchable="false"
@@ -15,32 +16,8 @@
               <mdb-input label="Search" hidden  size="sm" type="text" class="active-cyan-2 active-purple-2 mb-1" style="margin-top:0px;"/>
             </mdb-col>
         
-          <mdb-col class="col-12 col-sm-12 col-md-8 col-lg-7 mt-1">
-              <div class="d-inline float-right mr-3">
-              <div class="d-inline ">
-                <mdb-btn-group  style="margin-top:-18px">
-                    <mdb-dropdown>
-                      <mdb-btn class="mr-1 text-primary" outline="none" darkWaves tag="a" floating
-                      icon="file-export"  size="sm" slot="toggle">{{$t('Export')}}</mdb-btn>
-                      <mdb-dropdown-menu>
-                        <mdb-dropdown-item>{{$t('Export_to_Excel')}}</mdb-dropdown-item>
-                        <mdb-dropdown-item>{{$t('Export_to_PDF')}}</mdb-dropdown-item>
-                      </mdb-dropdown-menu>
-                    </mdb-dropdown>
-                  </mdb-btn-group>
-        
-                  <mdb-btn class="mr-0 text-primary" outline="none" darkWaves tag="a" floating @click="showcheck_form=true"
-                  icon="table"  size="sm">{{$t('editCol_columns')}}</mdb-btn>
-
-                  <mdb-btn slot="reference" class="mr-1 text-primary" hidden outline="none" @click="clicked_filter"
-                  darkWaves tag="a" floating  icon="filter"  size="sm" >{{$t('Filter')}}</mdb-btn>
-                  
-              </div>
-              </div>
-          </mdb-col>
+          
         </mdb-row>
-      </div>
-      <div class="table-wrapper">
         <table  class="myTable">
                 <thead>
                 <tr class="header stiky_position">
@@ -90,30 +67,68 @@
                 </tbody>
 
       </table>
+      <div class="pagination-section" v-if="dontShowPagination">
+        <div class="pagination-info" role="status" aria-live="polite">
+          <span class="info-text">
+            {{get_current_list.current_item_count}} {{$t('to_')}} {{value}} {{$t('of_')}} {{get_current_list.items_count}}
+          </span>
+        </div>
+        <div class="pagination-wrapper">
+          <div class="pagination-controls">
+            <button 
+              class="pagination-btn pagination-btn-nav" 
+              @click="firstPage"
+              :disabled="elementPageList==0"
+              :class="{'disabled': elementPageList==0}"
+            >
+              <mdb-icon icon="angle-double-left" class="btn-icon" />
+              <span>{{$t('First')}}</span>
+            </button>
+            
+            <button 
+              class="pagination-btn pagination-btn-nav" 
+              @click="prevPage"
+              :disabled="elementPageList==0"
+              :class="{'disabled': elementPageList==0}"
+            >
+              <mdb-icon icon="angle-left" class="btn-icon" />
+            </button>
+            
+            <div class="pagination-numbers">
+              <button
+                v-for="(num,i) in pageList[elementPageList]" 
+                :key="i"
+                @click="paginationClick(num)"
+                class="pagination-btn pagination-btn-number"
+                :class="{ 'active' : numPag-1 == num }"
+              >
+                {{num+1}}
+              </button>
+            </div>
+            
+            <button 
+              class="pagination-btn pagination-btn-nav" 
+              @click="nextPage"
+              :disabled="elementPageList==pageList.length-1"
+              :class="{'disabled': elementPageList==pageList.length-1}"
+            >
+              <mdb-icon icon="angle-right" class="btn-icon" />
+            </button>
+            
+            <button 
+              class="pagination-btn pagination-btn-nav" 
+              @click="lastPage"
+              :disabled="elementPageList==pageList.length-1"
+              :class="{'disabled': elementPageList==pageList.length-1}"
+            >
+              <span>{{$t('Last')}}</span>
+              <mdb-icon icon="angle-double-right" class="btn-icon" />
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="pagination-section"  v-if="dontShowPagination">
-        <div class="d-inline dataTables_info"  role="status" aria-live="polite"> {{get_current_list.current_item_count}} {{$t('to_')}} {{value}} {{$t('of_')}} {{get_current_list.items_count}} </div>
-        <mdb-pagination class="float-right" style="font-size:12px">
-          <div @click="firstPage">
-            <mdb-page-item :disabled="elementPageList==0">{{$t('First')}}</mdb-page-item>
-          </div>
-          
-          <div @click="prevPage" :class="{'applied': elementPageList==0}">
-            <mdb-page-nav  prev :disabled="elementPageList==0"></mdb-page-nav>
-          </div>
-          
-          <div v-for="(num,i) in pageList[elementPageList]" :key="i"  @click="paginationClick(num)" >
-            <mdb-page-item class="text-white"  :class="{ 'active' : numPag-1 == num }"  >{{num+1}}</mdb-page-item>
-          </div>
-          <div @click="nextPage" :class="{'applied': elementPageList==pageList.length-1}">
-            <mdb-page-nav  next :disabled="elementPageList==pageList.length-1"></mdb-page-nav>
-          </div>
-          <div @click="lastPage">
-            <mdb-page-item :disabled="elementPageList==pageList.length-1">{{$t('Last')}}</mdb-page-item>
-          </div>
-
-        </mdb-pagination>
       </div>
+      
 
       <!-- <i class="material-icons" v-on:click="addRow">add_circle</i> -->
 
@@ -505,9 +520,6 @@ export default {
 }
 
 .stiky_position {
-  position: -webkit-sticky; /* Safari */
-  position: sticky;
-  top: 0;
   background: #10b981;
   color: white;
   z-index: 111111;
@@ -563,9 +575,9 @@ export default {
 
 .pagination-section {
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f0f0f0;
+  // border-radius: 12px;
+  // box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  // border: 1px solid #f0f0f0;
   padding: 16px;
   margin-top: 16px;
   display: flex;
@@ -582,6 +594,8 @@ export default {
   
   mdb-pagination {
     mdb-page-item {
+    font-size: 12px;
+
       &.active {
         background: #10b981 !important;
         border-color: #10b981 !important;
@@ -724,5 +738,216 @@ mdb-badge {
   }
 }
 
+// Pagination Section Styles
+.pagination-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: #ffffff;
+  border-top: 1px solid #f0f0f0;
+  flex-wrap: wrap;
+  gap: 16px;
+  
+  .pagination-info {
+    display: flex;
+    align-items: center;
+    
+    .info-text {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+  }
+  
+  .pagination-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  
+  .pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 32px;
+    height: 32px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #475569;
+    background: #ffffff;
+    border: 1.5px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+    
+    // Gradient border effect
+    background-image: linear-gradient(#ffffff, #ffffff), 
+                      linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    
+    .btn-icon {
+      font-size: 12px;
+      transition: transform 0.2s ease;
+    }
+    
+    &:not(.disabled):hover {
+      background-image: linear-gradient(#f0fdf4, #f0fdf4), 
+                        linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
+      color: #065f46;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+      
+      .btn-icon {
+        transform: scale(1.1);
+      }
+    }
+    
+    &:not(.disabled):active {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15);
+    }
+    
+    &.disabled {
+      background: #f8fafc;
+      background-image: linear-gradient(#f8fafc, #f8fafc), 
+                        linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #86efac 100%);
+      color: #94a3b8;
+      cursor: not-allowed;
+      opacity: 0.5;
+      
+      &:hover {
+        transform: none;
+        box-shadow: none;
+      }
+    }
+    
+    &.pagination-btn-number {
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      padding: 0;
+      font-weight: 600;
+      border-radius: 50%;
+      font-size: 12px;
+      
+      &.active {
+        background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+        color: #ffffff;
+        border: 1.5px solid transparent;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3),
+                    0 0 0 3px rgba(16, 185, 129, 0.1);
+        transform: scale(1.1);
+        
+        &:hover {
+          background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
+          transform: scale(1.15);
+        }
+      }
+    }
+    
+    &.pagination-btn-nav {
+      font-size: 10px;
+      padding: 6px 10px;
+      height: 28px;
+      min-width: 28px;
+      
+      span {
+        white-space: nowrap;
+        font-size: 10px;
+      }
+      
+      // First/Last buttons with text
+      &:first-child,
+      &:last-child {
+        padding: 6px 10px;
+      }
+    }
+  }
+  
+  .pagination-numbers {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 4px;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .pagination-section {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    
+    .pagination-info {
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    
+    .pagination-wrapper {
+      justify-content: center;
+    }
+    
+    .pagination-controls {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .pagination-btn {
+      min-width: 32px;
+      height: 32px;
+      font-size: 12px;
+      padding: 6px 10px;
+      
+      &.pagination-btn-nav {
+        padding: 4px 6px;
+        min-width: 28px;
+        height: 28px;
+        
+        span {
+          display: none;
+        }
+        
+        .btn-icon {
+          margin: 0;
+          font-size: 11px;
+        }
+        
+        // First/Last buttons - icon only on mobile
+        &:first-child,
+        &:last-child {
+          padding: 4px 6px;
+        }
+      }
+      
+      &.pagination-btn-number {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        font-size: 11px;
+      }
+    }
+    
+    .pagination-numbers {
+      gap: 2px;
+    }
+  }
+}
 
 </style>

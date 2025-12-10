@@ -1,0 +1,77 @@
+# .NET Build Files (Bin va Obj papkalari)
+**/bin/
+**/obj/
+**/Debug/
+**/Release/
+**/x64/
+**/x86/
+**/bld/
+*.pdb
+*.cache
+*.dll
+*.exe
+*.so
+
+# .NET Core build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options directory
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NuGet Packages
+*.nupkg
+**/packages/
+*.nuget.props
+*.nuget.targets
+
+# Entity Framework Migrations (commit qilmaslik uchun)
+**/Migrations/
+ApiAll/Migrations/
+
+# Database backups
+*.backup
+*.backup.gz
+*.bak
+*.db
+*.sqlite
+*.sqlite3
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*~
+
+# Node modules (water_web uchun)
+water_web/node_modules/
+water_web/dist/
+water_web/build/
+
+# IDE files
+*.swp
+*.swo
+*~
+

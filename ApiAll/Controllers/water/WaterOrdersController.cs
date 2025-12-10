@@ -1633,6 +1633,201 @@ namespace ApiAll.Controllers.water
             return clientsWithoutOrders;
         }
 
+        // GET: api/WaterOrders/getAddressesWithoutOrdersAfterDate
+        // Yangi API - har bir address uchun alohida tekshirish
+        [HttpGet("getAddressesWithoutOrdersAfterDate")]
+        public async Task<ActionResult<IEnumerable<object>>> getAddressesWithoutOrdersAfterDate([FromQuery] string date)
+        {
+            if (string.IsNullOrEmpty(date))
+            {
+                return BadRequest("Date parameter is required");
+            }
+
+            DateTime targetDate;
+            if (!DateTime.TryParse(date, out targetDate))
+            {
+                return BadRequest("Invalid date format");
+            }
+            
+            // Sana faqat sanani (kunni) olish, vaqt qismini olib tashlash
+            targetDate = targetDate.Date; // 00:00:00 ga o'rnatish
+
+            // Barcha active addresslarni olish
+            var allAddresses = await _context.WaterClientAddress
+                .Include(a => a.client)
+                    .ThenInclude(c => c.phone_numbers_list)
+                .Include(a => a.client)
+                    .ThenInclude(c => c.tuman)
+                .Include(a => a.tuman)
+                .Where(a => a.active_status == true && a.client != null && a.client.active_status == true)
+                .ToListAsync();
+
+            var addressIds = allAddresses.Select(a => a.id).ToList();
+
+            // Barcha addresslar uchun BARCHA zakazlarni olish (oxirgi zakazni topish uchun)
+            // accepted_status dan qat'iy nazar, barcha zakazlarni olish kerak
+            var allOrdersForAddresses = await _context.WaterOrder
+                .Where(o => addressIds.Contains(o.WaterClientAddressid))
+                .OrderByDescending(o => o.order_date)
+                .ToListAsync();
+
+            // Har bir address uchun oxirgi zakazni topish (memory'da)
+            // Barcha zakazlar ichidan eng oxirgisi
+            var lastOrdersDict = allOrdersForAddresses
+                .GroupBy(o => o.WaterClientAddressid)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            // Asosiy product'ni topish
+            var mainProduct = await _context.WaterProduct
+                .Where(p => p.main_product == true)
+                .FirstOrDefaultAsync();
+
+            // Barcha active bottle info ma'lumotlarini olish
+            var allBottleInfos = await _context.WaterClientBottleInfo
+                .Include(bi => bi.product)
+                .Where(bi => bi.active_status == true)
+                .ToListAsync();
+
+            var result = new List<object>();
+
+            foreach (var address in allAddresses)
+            {
+                // Oxirgi zakazni topish
+                var lastOrder = lastOrdersDict.ContainsKey(address.id) ? lastOrdersDict[address.id] : null;
+
+                // 1. Agar oxirgi zakaz mavjud bo'lsa va u tanlangan sanadan keyin yoki teng bo'lsa, bu addressni chiqarmaslik
+                if (lastOrder != null)
+                {
+                    var lastOrderDate = lastOrder.order_date.Date;
+                    if (lastOrderDate >= targetDate)
+                    {
+                        continue; // Bu addressni o'tkazib yuborish - tanlangan sanadan keyin zakaz bor
+                    }
+                }
+
+                // 2. Agar oxirgi zakaz note'ida "otmen" so'zi bo'lsa, bu addressni chiqarmaslik
+                if (lastOrder != null && lastOrder.note != null)
+                {
+                    string noteLower = lastOrder.note.ToLower();
+                    if (noteLower.Contains("otmen"))
+                    {
+                        continue; // Bu addressni o'tkazib yuborish - oxirgi zakaz otmen qilingan
+                    }
+                }
+
+                // 3. Agar oxirgi zakaz tanlangan sanadan oldin bo'lsa yoki zakaz umuman yo'q bo'lsa, chiqarsin
+
+                // Bottle info ni topish
+                var bottleInfo = mainProduct != null 
+                    ? allBottleInfos
+                        .FirstOrDefault(bi => bi.WaterClientid == address.WaterClientid && 
+                                             bi.WaterClientAddressid == address.id &&
+                                             bi.WaterProductid == mainProduct.id)
+                    : null;
+                
+                if (bottleInfo == null)
+                {
+                    bottleInfo = allBottleInfos
+                        .FirstOrDefault(bi => bi.WaterClientid == address.WaterClientid && 
+                                             bi.WaterClientAddressid == address.id);
+                }
+
+                // Natijani yaratish
+                result.Add(new
+                {
+                    address_id = address.id,
+                    address = address,
+                    client = address.client,
+                    last_order = lastOrder != null ? new
+                    {
+                        id = lastOrder.id,
+                        order_date = lastOrder.order_date,
+                        note = lastOrder.note,
+                        water_count = lastOrder.water_count,
+                        accepted_status = lastOrder.accepted_status
+                    } : null,
+                    bottle_count = bottleInfo != null ? bottleInfo.bottle_count : 0,
+                    bottle_count_real = bottleInfo != null ? bottleInfo.bottle_count_real : 0
+                });
+            }
+
+            return Ok(result);
+        }
+
+        // GET: api/WaterOrders/getAddressOrderHistory
+        // Berilgan address bo'yicha barcha zakazlar va statistikalar
+        [HttpGet("getAddressOrderHistory")]
+        public async Task<ActionResult<object>> getAddressOrderHistory([FromQuery] long addressId)
+        {
+            if (addressId <= 0)
+            {
+                return BadRequest("addressId is required");
+            }
+
+            // Address mavjudligini tekshirish
+            var address = await _context.WaterClientAddress
+                .Include(a => a.client)
+                .Include(a => a.tuman)
+                .FirstOrDefaultAsync(a => a.id == addressId && a.active_status == true);
+
+            if (address == null)
+            {
+                return NotFound("Address not found");
+            }
+
+            // Shu addressdagi barcha zakazlar (accepted_status dan qat'iy nazar)
+            var orders = await _context.WaterOrder
+                .Include(o => o.items)
+                    .ThenInclude(i => i.product)
+                .Include(o => o.deleivered_user_auth)
+                    .ThenInclude(da => da.user)
+                .Where(o => o.WaterClientAddressid == addressId && o.active_status == true)
+                .OrderByDescending(o => o.order_date)
+                .ToListAsync();
+
+            // Statistikalar
+            // Olingan baklashka - to'g'ridan-to'g'ri reserverd_numeric_id_1 dan olinadi
+            var stats = new
+            {
+                total_orders = orders.Count,
+                total_water_count = orders.Sum(o => (double?)o.water_count) ?? 0,
+                total_oligan_baklashka = orders.Sum(o => (double?)(o.reserverd_numeric_id_1 ?? 0)) ?? 0,
+                total_qty = orders.Sum(o => o.items != null ? o.items.Sum(i => (double?)i.qty) ?? 0 : 0),
+                last_note = orders.FirstOrDefault()?.note,
+                last_order_date = orders.FirstOrDefault()?.order_date
+            };
+
+            // Frontga qaytariladigan model
+            var result = new
+            {
+                address = address,
+                orders = orders.Select(o => new
+                {
+                    o.id,
+                    o.order_date,
+                    o.note,
+                    o.water_count,
+                    o.accepted_status,
+                    o.reserverd_numeric_id_1, // Olingan baklashka
+                    delivery_user = o.deleivered_user_auth != null ? o.deleivered_user_auth.user : null,
+                    items = o.items?.Select(i => new
+                    {
+                        i.id,
+                        i.product,
+                        i.qty,
+                        i.real_qty,
+                        i.give_botlle,
+                        i.get_botle,
+                        i.note,
+                        olingan_baklashka = 0 // Items uchun ham olingan baklashka
+                    })
+                }),
+                stats
+            };
+
+            return Ok(result);
+        }
+
         // POST: api/WaterOrders/cancelMultipleClients
         [HttpPost("cancelMultipleClients")]
         public async Task<ActionResult> cancelMultipleClients([FromBody] CancelMultipleClientsDto dto)
@@ -1712,9 +1907,87 @@ namespace ApiAll.Controllers.water
             return Ok(new { results });
         }
 
+        // POST: api/WaterOrders/cancelMultipleAddresses
+        // Yangi API - faqat tanlangan addresslar uchun otmen zakaz yaratish
+        [HttpPost("cancelMultipleAddresses")]
+        public async Task<ActionResult> cancelMultipleAddresses([FromBody] CancelMultipleAddressesDto dto)
+        {
+            if (dto == null || dto.AddressIds == null || dto.AddressIds.Count == 0)
+            {
+                return BadRequest("AddressIds are required");
+            }
+
+            var results = new List<object>();
+
+            // Sana formatlash
+            DateTime selectedDate;
+            if (!DateTime.TryParse(dto.OrderDate, out selectedDate))
+            {
+                return BadRequest("Invalid date format");
+            }
+            string dateStr = selectedDate.ToString("dd.MM.yyyy");
+
+            // Ertangi kunni hisoblash
+            var tomorrow = DateTime.Today.AddDays(1);
+            var tomorrowDateStr = tomorrow.ToString("yyyy-MM-dd") + "T12:00:00.000Z";
+
+            foreach (var addressId in dto.AddressIds)
+            {
+                try
+                {
+                    var address = await _context.WaterClientAddress
+                        .Include(a => a.client)
+                        .FirstOrDefaultAsync(a => a.id == addressId);
+
+                    if (address == null || address.client == null)
+                    {
+                        results.Add(new { addressId, success = false, message = "Address or client not found" });
+                        continue;
+                    }
+
+                    // Otmen zakaz yaratish
+                    var cancelOrder = new WaterOrder
+                    {
+                        order_date = DateTime.Parse(tomorrowDateStr),
+                        WaterClientid = address.WaterClientid,
+                        water_count = 0,
+                        WaterClientAddressid = addressId,
+                        note = "Otmen -- " + dateStr + " sanadan beri suv olmagan",
+                        reserverd_note_3 = "orange",
+                        reserverd_note_2 = "5", // otmen bugnini bilish uchun
+                        accepted_status = false,
+                        items = new List<WaterOrderItem>()
+                    };
+
+                    _context.WaterOrder.Add(cancelOrder);
+                    await _context.SaveChangesAsync();
+
+                    results.Add(new { 
+                        addressId, 
+                        clientId = address.WaterClientid,
+                        success = true, 
+                        orderId = cancelOrder.id 
+                    });
+                }
+                catch (Exception ex)
+                {
+                    results.Add(new { addressId, success = false, message = ex.Message });
+                }
+            }
+
+            return Ok(new { results });
+        }
+
         public class CancelMultipleClientsDto
         {
             public List<long> ClientIds { get; set; }
+            public string OrderDate { get; set; }
+            public string Note { get; set; }
+        }
+
+        public class CancelMultipleAddressesDto
+        {
+            public List<long> AddressIds { get; set; }
             public string OrderDate { get; set; }
             public string Note { get; set; }
         }

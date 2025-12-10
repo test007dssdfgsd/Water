@@ -11,29 +11,29 @@
               <table class="w-100 tabled">
                 <thead class="header_table" style="background: #66E4AD;">
                   <tr>
-                    <th>№</th>
-                    <th>{{$t('fio')}}</th>
-                    <th class="text-center">{{$t('water_count')}}</th>
-                    <th>{{$t('address')}}</th>
-                    <th>{{$t('created_date_time')}}</th>
-                    <th>{{$t('accepted_date')}}</th>
-                    <th>{{$t('car_order')}}</th>
+                    <th style="font-size: 13px;">№</th>
+                    <th style="font-size: 13px;">{{$t('fio')}}</th>
+                    <th style="font-size: 13px;" class="text-center">{{$t('water_count')}}</th>
+                    <th style="font-size: 13px;">{{$t('address')}}</th>
+                    <th style="font-size: 13px;">{{$t('created_date_time')}}</th>
+                    <th style="font-size: 13px;">{{$t('accepted_date')}}</th>
+                    <th style="font-size: 13px;">{{$t('car_order')}}</th>
                     <!-- <th width="60">{{$t('Action')}}</th> -->
                   </tr>
                 </thead>
                 <tbody class="body_table">
-                  <tr v-for="(item, index) in client_last_order" :key="index">
+                  <tr v-for="(item, index) in client_last_order" :key="index" >
                     <td>{{index+1}}</td>
                     <td class="font-weight-bold" style="font-size: 12px;">{{item.client_name_str}}</td>
                     <td class="text-center text-primary font-weight-bold" style="font-size: 12px;">{{item.water_count}} / {{item.reserverd_numeric_id_1}}</td>
-                    <td>{{item.address.address}}</td>
-                    <td>{{item.created_date_time.substr(0,10)}} ( {{item.created_date_time_str.substr(0,5)}} )</td>
+                    <td style="font-size: 12px;">{{item.address.address}}</td>
+                    <td style="font-size: 12px;">{{item.created_date_time.substr(0,10)}} ( {{item.created_date_time_str.substr(0,5)}} )</td>
                     <!-- <td>{{item.accepted_status}}</td> -->
-                    <td>
+                    <td style="font-size: 12px;">
                       <mdb-badge v-if="item.accepted_status" style="padding: 2px 8px;" pill color="success">Доставлено</mdb-badge>
                       <mdb-badge v-else style="padding: 2px 8px;" pill color="danger">Не доставлено</mdb-badge>
                     </td>
-                    <td > 
+                    <td style="font-size: 12px;"> 
                       <span v-if="item.deleivered_user_auth_id">{{item.deleivered_user_auth.user.fio}}</span>
                       <span v-else>{{item.deleivered_user_auth_id}}</span>
                     </td>

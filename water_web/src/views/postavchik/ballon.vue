@@ -1,7 +1,16 @@
 <template>
   <div class="mark_ballon ">
-    <div class=" d-flex justify-content-center">
+    <div class="d-flex justify-content-center align-items-center">
       <h6 class="font-weight-bold p-0 m-0 mb-0">{{mark.client.fio}}</h6>
+      <button 
+        v-if="mark.client && mark.client.id" 
+        class="info-icon-btn" 
+        :data-client-id="mark.client.id"
+        @click.stop="handleInfoClick"
+        title="Client zakazlari tarixi"
+      >
+        <i class="fas fa-info-circle"></i>
+      </button>
     </div>
     <div class=" d-flex justify-content-center">
       <p style="font-size: 12px;" class="m-0 ">{{mark.order_date.slice(0,10)}}</p>
@@ -92,11 +101,60 @@ export default {
       
       // Agar formatlash mumkin bo'lmasa, asl raqamni qaytarish
       return phone
+    },
+    handleInfoClick(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      const clientId = this.mark.client && this.mark.client.id ? this.mark.client.id : null;
+      console.log('Info button clicked, clientId:', clientId);
+      
+      if (!clientId) {
+        console.error('Client ID topilmadi');
+        return;
+      }
+      
+      // Global funksiyani chaqirish
+      if (window.showClientInfoGlobal && typeof window.showClientInfoGlobal === 'function') {
+        window.showClientInfoGlobal(clientId);
+        return;
+      }
+      
+      // Parent komponentga event yuborish
+      this.$emit('show-client-info', clientId);
+      
+      // To'g'ridan-to'g'ri parent funksiyani chaqirish
+      let parent = this.$parent;
+      while (parent) {
+        if (parent.showClientInfo && typeof parent.showClientInfo === 'function') {
+          parent.showClientInfo(clientId);
+          break;
+        }
+        parent = parent.$parent;
+      }
     }
   }
 }
 </script>
 
-<style>
+<style scoped>
+.info-icon-btn {
+  background: transparent;
+  border: none;
+  color: #4285F4;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin-left: 8px;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
 
+.info-icon-btn:hover {
+  background: rgba(66, 133, 244, 0.1);
+  transform: scale(1.1);
+}
+
+.info-icon-btn:active {
+  transform: scale(0.95);
+}
 </style>

@@ -438,7 +438,7 @@
               <div class="client-order-details">
                 <div class="client-order-detail-row">
                   <span class="detail-label">Miqdor:</span>
-                  <span class="detail-value">{{order.water_count}}</span>
+                  <span class="detail-value">{{order.water_count}} / {{ order.reserverd_numeric_id_1 }}</span>
                 </div>
                 <div class="client-order-detail-row" v-if="order.name_pp">
                   <span class="detail-label">Mahsulot:</span>
@@ -447,6 +447,10 @@
                 <div class="client-order-detail-row" v-if="order.address">
                   <span class="detail-label">Manzil:</span>
                   <span class="detail-value">{{order.address.address}}</span>
+                </div>
+                <div class="client-order-detail-row" v-if="order.deleivered_user_auth">
+                  <span class="detail-label">Yetkazib beruvchi:</span>
+                  <span class="detail-value">{{order.deleivered_user_auth.user.fio}}</span>
                 </div>
                 <div class="client-order-detail-row" v-if="order.note">
                   <span class="detail-label">Izoh:</span>
@@ -656,6 +660,7 @@ export default {
       }
        console.log(auth_id)
       await this.fetchPostavchikOrder(auth_id);
+      console.log('this.get_postavchik_order_list', this.get_postavchik_order_list);
       this.order_list = this.get_postavchik_order_list;
       this.cach_order_list = this.get_postavchik_order_list;
       this.all_water_count = 0;
@@ -784,10 +789,11 @@ export default {
       try {
         const res = await fetch(
           this.$store.state.hostname + 
-          '/WaterOrders/getPaginationOrderByClientId?page=0&size=200&client_id=' + 
+          '/WaterOrders/getPaginationOrderByClientId?page=0&size=300&client_id=' + 
           clientId
         );
         const data = await res.json();
+        console.log('Client orders data:', data);
         this.client_info_loading = false;
         
         if (res.status == 200 || res.status == 201) {
@@ -1191,7 +1197,7 @@ export default {
           
           &.desktop-highlight-qty {
             color: #667eea;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
           }
           
@@ -1199,7 +1205,7 @@ export default {
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 9px;
+            font-size: 10px;
             color: #667eea;
             font-weight: 500;
             margin-top: 4px;
@@ -1708,7 +1714,7 @@ export default {
             display: flex;
             align-items: center;
             gap: 4px;
-            font-size: 9px;
+            font-size: 10px;
             color: #667eea;
             font-weight: 500;
             margin-top: 3px;

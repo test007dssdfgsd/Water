@@ -34,7 +34,7 @@
           :cluster-name="mark.id"
           @click="sendFunc(mark.id, mark)"
       >
-        <my-component slot="balloon" :mark="mark"></my-component>
+        <my-component slot="balloon" :mark="mark" @show-client-info="showClientInfo"></my-component>
       </ymap-marker>
       </div>
     <ymap-marker 
@@ -59,6 +59,64 @@
           <payNewOrder ref="payNew" @close="closeAcceptOrder"  @closeUpdate="closeUpdate" :orderId="selectMark_id" :shown="pay_show"></payNewOrder>
         </template>
     </modal-train>
+
+    <!-- Client Info Modal -->
+    <modal-train  
+      :show="client_info_show" 
+      headerbackColor="white"  
+      titlecolor="black" 
+      title="Client zakazlari tarixi" 
+      @close="client_info_show = false" 
+      width="80%"
+    >
+      <template v-slot:body>
+        <div class="client-info-modal">
+          <loader-table v-if="client_info_loading" />
+          <div v-else class="client-orders-list">
+            <div v-if="client_orders_list.length === 0" class="empty-orders">
+              <i class="fas fa-inbox"></i>
+              <p>Zakazlar topilmadi</p>
+            </div>
+            <div 
+              v-for="(order, index) in client_orders_list" 
+              :key="index" 
+              class="client-order-item"
+            >
+              <div class="client-order-header">
+                <div class="client-order-id">Zakaz #{{order.id}}</div>
+                <div class="client-order-date">{{formatDate(order.order_date)}}</div>
+              </div>
+              <div class="client-order-details">
+                <div class="client-order-detail-row">
+                  <span class="detail-label">Miqdor:</span>
+                  <span class="detail-value">{{order.water_count}} / {{ order.reserverd_numeric_id_1 }}</span>
+                </div>
+                <div class="client-order-detail-row" v-if="order.name_pp">
+                  <span class="detail-label">Mahsulot:</span>
+                  <span class="detail-value">{{order.name_pp}}</span>
+                </div>
+                <div class="client-order-detail-row" v-if="order.address">
+                  <span class="detail-label">Manzil:</span>
+                  <span class="detail-value">{{order.address.address}}</span>
+                </div>
+                <div class="client-order-detail-row" v-if="order.deleivered_user_auth">
+                  <span class="detail-label">Yetkazib beruvchi:</span>
+                  <span class="detail-value">{{order.deleivered_user_auth.user.fio}}</span>
+                </div>
+                <div class="client-order-detail-row" v-if="order.note">
+                  <span class="detail-label">Izoh:</span>
+                  <span class="detail-value">{{order.note}}</span>
+                </div>
+                <div class="client-order-detail-row" v-if="order.accepted_status">
+                  <span class="detail-label">Holat:</span>
+                  <span class="detail-value status-complete">Bajarilgan</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </modal-train>
   </div>
 </template>
 
@@ -70,12 +128,15 @@ import { yandexMap, ymapMarker } from 'vue-yandex-maps'
 import { mapActions, mapGetters } from 'vuex';
 import myComponent from './ballon.vue'
 import payNewOrder from '../order/update_accept/payNew_Accept.vue'
+import loaderTable from '../../components/loaderTable.vue';
+
 export default {
   components:{
     mdbIcon,
     yandexMap, ymapMarker,
     myComponent,
-    payNewOrder
+    payNewOrder,
+    loaderTable
   },
 data() {
   return {
@@ -100,6 +161,11 @@ data() {
     }],
     selectMark_id: null,
     select_mark: {},
+    
+    // Client info modal
+    client_info_show: false,
+    client_info_loading: false,
+    client_orders_list: [],
   }
 },
 computed: {
@@ -117,13 +183,36 @@ async mounted() {
   }
   await this.fetchPostavchikOrder(date_and_item);
   this.map_show = true;
+  
+  // Global funksiyani window ga qo'shish
+  window.showClientInfoGlobal = (clientId) => {
+    this.showClientInfo(clientId);
+  };
 },
 methods: {
   ...mapActions(['fetchOrder_list', 'fetchPostavchikOrder']),
 
     bindListener() {
-      document.getElementById('btnclose').addEventListener('click', this.closeOrder);
-      document.getElementById('btn').addEventListener('click', this.handleropen);
+      const btnclose = document.getElementById('btnclose');
+      const btn = document.getElementById('btn');
+      const infoBtn = document.querySelector('.info-icon-btn');
+      
+      if (btnclose) {
+        btnclose.addEventListener('click', this.closeOrder);
+      }
+      if (btn) {
+        btn.addEventListener('click', this.handleropen);
+      }
+      if (infoBtn) {
+        infoBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const clientId = infoBtn.getAttribute('data-client-id');
+          if (clientId) {
+            this.showClientInfo(parseInt(clientId));
+          }
+        });
+      }
     },
     unbindListener() {
       document.getElementById('btnclose').removeEventListener('click', this.closeOrder);
@@ -156,6 +245,26 @@ methods: {
     sendFunc(id,data){
       this.selectMark_id = id;
       this.select_mark = data;
+      // Ballon ochilganda info button uchun event listener qo'shish
+      this.$nextTick(() => {
+        setTimeout(() => {
+          const infoBtn = document.querySelector('.info-icon-btn');
+          if (infoBtn && data.client && data.client.id) {
+            const clientId = data.client.id;
+            infoBtn.setAttribute('data-client-id', clientId);
+            // Eski event listenerlarni olib tashlash
+            const newInfoBtn = infoBtn.cloneNode(true);
+            infoBtn.parentNode.replaceChild(newInfoBtn, infoBtn);
+            // Yangi event listener qo'shish
+            newInfoBtn.onclick = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Info button clicked from sendFunc, clientId:', clientId);
+              this.showClientInfo(clientId);
+            };
+          }
+        }, 200);
+      });
     },
     direct(){
       console.log('directed')
@@ -207,6 +316,49 @@ methods: {
     }
     await this.fetchPostavchikOrder(date_and_item);
     this.map_show = true;
+  },
+
+  async showClientInfo(clientId) {
+    if (!clientId) {
+      this.$refs.message.warning('Client ID topilmadi');
+      return;
+    }
+    console.log('clientId', clientId);
+    this.client_info_show = true;
+    this.client_info_loading = true;
+    this.client_orders_list = [];
+    
+    try {
+      const res = await fetch(
+        this.$store.state.hostname + 
+        '/WaterOrders/getPaginationOrderByClientId?page=0&size=300&client_id=' + 
+        clientId
+      );
+      const data = await res.json();
+      console.log('Client orders data:', data);
+      this.client_info_loading = false;
+      
+      if (res.status == 200 || res.status == 201) {
+        this.client_orders_list = Array.isArray(data.items_list) ? data.items_list : [];
+      } else {
+        this.$refs.message.error('Ma\'lumotlarni yuklashda xatolik');
+        this.client_orders_list = [];
+      }
+    } catch (error) {
+      console.error('Error fetching client orders:', error);
+      this.$refs.message.error('network_ne_connect');
+      this.client_info_loading = false;
+      this.client_orders_list = [];
+    }
+  },
+
+  formatDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}.${month}.${year}`;
   }
 },
 }
@@ -234,5 +386,96 @@ methods: {
 }
 .bg_gradiunt{
   background-image: radial-gradient( circle farthest-corner at 12.3% 19.3%,  rgba(85,88,218,1) 0%, rgba(95,209,249,1) 100.2% );
+}
+
+// Client Info Modal Styles
+.client-info-modal {
+  padding: 20px;
+  min-height: 200px;
+  
+  .client-orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .empty-orders {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+    
+    i {
+      font-size: 48px;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+    
+    p {
+      font-size: 16px;
+      margin: 0;
+    }
+  }
+  
+  .client-order-item {
+    background: #f8fafb;
+    border-radius: 12px;
+    padding: 15px;
+    border-left: 4px solid #667eea;
+    transition: all 0.3s;
+    
+    &:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transform: translateX(2px);
+    }
+    
+    .client-order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e0e0e0;
+      
+      .client-order-id {
+        font-size: 16px;
+        font-weight: 700;
+        color: #667eea;
+      }
+      
+      .client-order-date {
+        font-size: 14px;
+        color: #666;
+      }
+    }
+    
+    .client-order-details {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      
+      .client-order-detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        
+        .detail-label {
+          font-weight: 600;
+          color: #555;
+          font-size: 14px;
+        }
+        
+        .detail-value {
+          color: #333;
+          font-size: 14px;
+          text-align: right;
+          
+          &.status-complete {
+            color: #4caf50;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+  }
 }
 </style>

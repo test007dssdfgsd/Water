@@ -58,6 +58,7 @@ namespace ApiAll.Controllers.water
                     return BadRequest("Order already accepted");
 
                 waterOrder.accepted_status = true;
+                waterOrder.order_accepted_date = DateTime.Now;
                 _context.WaterOrder.Update(waterOrder);
                 await _context.SaveChangesAsync();
 
@@ -419,6 +420,7 @@ namespace ApiAll.Controllers.water
 
 
             waterOrder.accepted_status = true;
+            waterOrder.order_accepted_date = DateTime.Now;
             _context.WaterOrder.Update(waterOrder);
             await _context.SaveChangesAsync();
 
@@ -440,6 +442,7 @@ namespace ApiAll.Controllers.water
             }
 
             waterOrder.accepted_status = true;
+            waterOrder.order_accepted_date = DateTime.Now;
             waterOrder.deleivered_user_auth_id = user_auth_id;
             _context.WaterOrder.Update(waterOrder);
             await _context.SaveChangesAsync();
@@ -610,6 +613,7 @@ namespace ApiAll.Controllers.water
             }
 
             waterOrder.accepted_status = true;
+            waterOrder.order_accepted_date = DateTime.Now;
 
             List<WaterOrderItem> items = await _context.WaterOrderItem
                 .Include(p => p.product)
@@ -2093,52 +2097,114 @@ namespace ApiAll.Controllers.water
             try
             {
                 var today = DateTime.Today;
-                var tomorrow = today.AddDays(1);
 
-                // Bugungi kundagi barcha zakazlarni olish
-                var todayOrders = await _context.WaterOrder
-                    .Include(o => o.deleivered_user_auth)
-                        .ThenInclude(a => a.user)
-                    .Where(o => o.active_status == true
-                        && ((o.accepted_status == true && o.order_accepted_date >= today && o.order_accepted_date < tomorrow)
-                            || (o.accepted_status == false && o.order_date >= today && o.order_date < tomorrow)))
+                // Barcha dostavchiklarni olish (deleivered_user_auth_id != null bo'lganlar)
+                var allPostavchiks = await _context.WaterAuth
+                    .Include(a => a.user)
+                    .Where(a => a.reserverd_note != null && a.reserverd_note.Trim().Length > 0)
                     .ToListAsync();
 
-                // Dostavchiklar bo'yicha guruhlash
-                var postavchikStats = todayOrders
-                    .Where(o => o.deleivered_user_auth_id != null)
-                    .GroupBy(o => new
+                var postavchikStatsList = new List<(long auth_id, string user_fio, double tarqatilgan_suv, double tarqatilishi_kerak, double olingan_baklashka, int jami_zakazlar, int bugungi_zakazlar, int keyingi_kunlar_zakazlari)>();
+
+                foreach (var waterAuth in allPostavchiks)
+                {
+                    if (string.IsNullOrEmpty(waterAuth.reserverd_note))
+                        continue;
+
+                    // reserverd_note dan zakaz ID larni olish
+                    String[] id_list = waterAuth.reserverd_note.Split(',');
+                    var orderIds = new List<long>();
+
+                    foreach (String idStr in id_list)
                     {
-                        auth_id = o.deleivered_user_auth_id.Value,
-                        user_fio = o.deleivered_user_auth != null && o.deleivered_user_auth.user != null 
-                            ? o.deleivered_user_auth.user.fio 
-                            : "Noma'lum"
-                    })
-                    .Select(g => new
+                        try
+                        {
+                            long id = long.Parse(idStr.Trim());
+                            orderIds.Add(id);
+                        }
+                        catch (FormatException) { }
+                    }
+
+                    if (orderIds.Count == 0)
+                        continue;
+
+                    // Zakazlarni olish
+                    var orders = await _context.WaterOrder
+                        .Include(o => o.client)
+                        .Include(o => o.address)
+                        .Where(o => orderIds.Contains(o.id) && o.active_status == true)
+                        .ToListAsync();
+
+                    if (orders.Count == 0)
+                        continue;
+
+                    // Statistikani hisoblash
+                    var acceptedOrders = orders.Where(o => o.accepted_status == true).ToList();
+                    var pendingOrders = orders.Where(o => o.accepted_status == false).ToList();
+
+                    // Bugungi kundagi zakazlar
+                    var todayAccepted = acceptedOrders.Where(o => o.order_accepted_date.Date == today).ToList();
+                    var todayPending = pendingOrders.Where(o => o.order_date.Date == today).ToList();
+
+                    // Keyingi kunlarni zakazlari
+                    var futureAccepted = acceptedOrders.Where(o => o.order_accepted_date.Date > today).ToList();
+                    var futurePending = pendingOrders.Where(o => o.order_date.Date > today).ToList();
+
+                    // Tarqatilgan suv - barcha zakazlar ichidan: order_accepted_date bugungi kunga teng, accepted_status == true, deleivered_user_auth_id == waterAuth.id
+                    var tarqatilganSuv = await _context.WaterOrder
+                        .Where(o => o.order_accepted_date.Date == today 
+                            && o.accepted_status == true 
+                            && o.deleivered_user_auth_id == waterAuth.id
+                            && o.active_status == true)
+                        .SumAsync(o => o.reserverd_numeric_id_2 ?? 0.0);
+                    
+                    // Tarqatilishi kerak - reserverd_note dagi barcha zakazlarning water_count laridan
+                    var tarqatilishiKerak = orders
+                        .Where(o => o.accepted_status == false)
+                        .Sum(o => (double)o.water_count);
+                    
+                    // Olingan baklashka - barcha zakazlar ichidan: order_accepted_date bugungi kunga teng, accepted_status == true, deleivered_user_auth_id == waterAuth.id
+                    var olinganBaklashka = await _context.WaterOrder
+                        .Where(o => o.order_accepted_date.Date == today 
+                            && o.accepted_status == true 
+                            && o.deleivered_user_auth_id == waterAuth.id
+                            && o.active_status == true)
+                        .SumAsync(o => Math.Abs(o.reserverd_numeric_id_1 ?? 0.0));
+
+                    postavchikStatsList.Add((
+                        auth_id: waterAuth.id,
+                        user_fio: waterAuth.user != null ? waterAuth.user.fio : "Noma'lum",
+                        tarqatilgan_suv: tarqatilganSuv,
+                        tarqatilishi_kerak: tarqatilishiKerak,
+                        olingan_baklashka: olinganBaklashka,
+                        jami_zakazlar: orders.Count,
+                        bugungi_zakazlar: todayAccepted.Count + todayPending.Count,
+                        keyingi_kunlar_zakazlari: futureAccepted.Count + futurePending.Count
+                    ));
+                }
+
+                // Tartiblash va anonymous type ga o'tkazish
+                var sortedStats = postavchikStatsList
+                    .OrderByDescending(s => s.tarqatilishi_kerak)
+                    .ThenByDescending(s => s.tarqatilgan_suv)
+                    .Select(s => new
                     {
-                        auth_id = g.Key.auth_id,
-                        user_fio = g.Key.user_fio,
-                        tarqatilgan_suv = g.Where(o => o.accepted_status == true 
-                            && o.order_accepted_date >= today 
-                            && o.order_accepted_date < tomorrow)
-                            .Sum(o => o.reserverd_numeric_id_2 ?? 0.0),
-                        tarqatilishi_kerak = g.Where(o => o.accepted_status == false 
-                            && o.order_date >= today 
-                            && o.order_date < tomorrow)
-                            .Sum(o => (double)o.water_count),
-                        olingan_baklashka = g.Where(o => o.accepted_status == true 
-                            && o.order_accepted_date >= today 
-                            && o.order_accepted_date < tomorrow)
-                            .Sum(o => Math.Abs(o.reserverd_numeric_id_1 ?? 0.0))
+                        auth_id = s.auth_id,
+                        user_fio = s.user_fio,
+                        tarqatilgan_suv = s.tarqatilgan_suv,
+                        tarqatilishi_kerak = s.tarqatilishi_kerak,
+                        olingan_baklashka = s.olingan_baklashka,
+                        jami_zakazlar = s.jami_zakazlar,
+                        bugungi_zakazlar = s.bugungi_zakazlar,
+                        keyingi_kunlar_zakazlari = s.keyingi_kunlar_zakazlari
                     })
-                    .OrderByDescending(s => s.tarqatilgan_suv)
                     .ToList();
 
-                return Ok(postavchikStats);
+                return Ok(sortedStats);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new { message = ex.Message, stackTrace = ex.StackTrace });
             }
         }
 

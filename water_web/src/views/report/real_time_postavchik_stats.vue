@@ -30,8 +30,11 @@
               <tr class="stiky_position">
                 <th>№</th>
                 <th>Dostavchik</th>
-                <th class="text-center">Tarqatilgan suv</th>
+                <!-- <th class="text-center">Jami zakazlar</th>
+                <th class="text-center">Bugungi</th>
+                <th class="text-center">Keyingi kunlar</th> -->
                 <th class="text-center">Tarqatilishi kerak</th>
+                <th class="text-center">Tarqatilgan suv</th>
                 <th class="text-center">Olingan baklashka</th>
               </tr>
             </thead>
@@ -43,20 +46,30 @@
               >
                 <td>{{index+1}}</td>
                 <td class="font-weight-bold" style="font-size: 12px;">{{item.user_fio}}</td>
-                <td class="text-center text-success font-weight-bold" style="font-size: 12px;">
-                  {{item.tarqatilgan_suv}}
+                <!-- <td class="text-center font-weight-bold" style="font-size: 12px; color: #6366f1;">
+                  {{item.jami_zakazlar || 0}}
                 </td>
+                <td class="text-center font-weight-bold" style="font-size: 12px; color: #10b981;">
+                  {{item.bugungi_zakazlar || 0}}
+                </td>
+                <td class="text-center font-weight-bold" style="font-size: 12px; color: #f59e0b;">
+                  {{item.keyingi_kunlar_zakazlari || 0}}
+                </td> -->
                 <td class="text-center text-warning font-weight-bold" style="font-size: 12px;">
-                  {{item.tarqatilishi_kerak}}
+                  {{formatNumber(item.tarqatilishi_kerak)}}
                 </td>
+                <td class="text-center text-success font-weight-bold" style="font-size: 12px;">
+                  {{formatNumber(item.tarqatilgan_suv)}}
+                </td>
+                
                 <td class="text-center text-primary font-weight-bold" style="font-size: 12px;">
-                  {{item.olingan_baklashka}}
+                  {{formatNumber(item.olingan_baklashka)}}
                 </td>
               </tr>
             </tbody>
             <tbody v-if="postavchik_stats.length === 0">
               <tr>
-                <td colspan="5" class="empty-state">
+                <td colspan="8" class="empty-state">
                   <i class="fas fa-inbox"></i>
                   <p>Ma'lumotlar topilmadi</p>
                 </td>
@@ -114,11 +127,15 @@ export default {
           this.postavchik_stats = [];
         }
       } catch (error) {
-        console.error(error);
+        console.error('API Error:', error);
         this.loading = false;
         this.$refs.message.error('network_ne_connect');
         this.postavchik_stats = [];
       }
+    },
+    formatNumber(value) {
+      if (!value && value !== 0) return '0';
+      return parseFloat(value).toFixed(1).replace(/\.0$/, '');
     }
   },
 }

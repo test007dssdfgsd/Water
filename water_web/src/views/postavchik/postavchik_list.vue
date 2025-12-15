@@ -168,7 +168,12 @@
               <div class="desktop-order-details">
                 <div class="desktop-detail-item">
                   <span class="desktop-detail-label">{{$t('qty')}}:</span>
-                  <span class="desktop-detail-value desktop-highlight-qty">{{item.water_count}}</span>
+                  <span class="desktop-detail-value desktop-highlight-qty" v-if="item.accepted_status && item.reserverd_numeric_id_1 != null">
+                    {{item.water_count}} / {{Math.abs(item.reserverd_numeric_id_1 || 0)}}
+                  </span>
+                  <span class="desktop-detail-value desktop-highlight-qty" v-else>
+                    {{item.water_count}}
+                  </span>
                 </div>
                 <div class="desktop-detail-item" v-if="item.name_pp">
                   <span class="desktop-detail-label">{{$t('product')}}:</span>
@@ -192,6 +197,11 @@
                   <span class="desktop-detail-label">{{$t('note')}}:</span>
                   <span class="desktop-detail-value">{{item.note}}</span>
                 </div>
+                <!-- Olingan baklashka (Complete zakazlar uchun) -->
+                <!-- <div v-if="item.accepted_status && item.reserverd_numeric_id_1 != null" class="desktop-detail-item">
+                  <span class="desktop-detail-label">Олинган баклашка:</span>
+                  <span class="desktop-detail-value">{{Math.abs(item.reserverd_numeric_id_1 || 0)}}</span>
+                </div> -->
                 <!-- Check ma'lumotlari (Complete zakazlar uchun) -->
                 <div v-if="item.accepted_status && item.check_info" class="desktop-check-info">
                   <div class="desktop-check-header">
@@ -349,7 +359,12 @@
               <div class="order-details">
                 <div class="detail-item">
                   <span class="detail-label">{{$t('qty')}}:</span>
-                  <span class="detail-value highlight-qty">{{item.water_count}}</span>
+                    <span class="detail-value highlight-qty" v-if="item.accepted_status && item.reserverd_numeric_id_1 != null">
+                      {{item.water_count}} / {{Math.abs(item.reserverd_numeric_id_1 || 0)}}
+                    </span>
+                    <span class="detail-value highlight-qty" v-else>
+                      {{item.water_count}}
+                    </span>
                 </div>
                 <div class="detail-item" v-if="item.name_pp">
                   <span class="detail-label">{{$t('product')}}:</span>
@@ -373,6 +388,11 @@
                   <span class="detail-label">{{$t('note')}}:</span>
                   <span class="detail-value">{{item.note}}</span>
                 </div>
+                <!-- Olingan baklashka (Complete zakazlar uchun) -->
+                <!-- <div v-if="item.accepted_status && item.reserverd_numeric_id_1 != null" class="detail-item">
+                  <span class="detail-label">Олинган баклашка:</span>
+                  <span class="detail-value">{{Math.abs(item.reserverd_numeric_id_1 || 0)}}</span>
+                </div> -->
                 <!-- Check ma'lumotlari (Complete zakazlar uchun) -->
                 <div v-if="item.accepted_status && item.check_info" class="mobile-check-info">
                   <div class="mobile-check-header">

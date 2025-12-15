@@ -44,6 +44,8 @@ namespace ApiAll.Model.water
         public String name_pp1 { get; set; }
         [NotMapped]
         public String name_pp2 { get; set; }
+        [NotMapped]
+        public WaterCheck check_info { get; set; }
 
 
 

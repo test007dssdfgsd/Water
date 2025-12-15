@@ -263,6 +263,23 @@ namespace ApiAll.Controllers.water
                 .OrderByDescending(p => p.order_accepted_date)
                 .ToListAsync();
 
+            // Check ID'larni yig'ish (optimizatsiya uchun)
+            var checkIds = order_list
+                .Where(o => o.reserverd_number_id_2 != null && o.reserverd_number_id_2 > 0)
+                .Select(o => o.reserverd_number_id_2.Value)
+                .Distinct()
+                .ToList();
+
+            // Barcha check'larni bir marta olish
+            var checkDict = new Dictionary<long, WaterCheck>();
+            if (checkIds.Any())
+            {
+                var checks = await _context.WaterCheck
+                    .Where(c => checkIds.Contains(c.id))
+                    .ToListAsync();
+                checkDict = checks.ToDictionary(c => c.id);
+            }
+
             foreach (WaterOrder order in order_list)
             {
                 order.items = await _context.WaterOrderItem
@@ -273,6 +290,12 @@ namespace ApiAll.Controllers.water
                 order.phone_list_obj = await _context.WaterClientPhoneNumber
                     .Where(p => p.WaterClientid == order.WaterClientid)
                     .ToListAsync();
+
+                // Check ma'lumotlarini qo'shish
+                if (order.reserverd_number_id_2 != null && checkDict.ContainsKey(order.reserverd_number_id_2.Value))
+                {
+                    order.check_info = checkDict[order.reserverd_number_id_2.Value];
+                }
             }
 
             return order_list;

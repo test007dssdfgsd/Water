@@ -63,8 +63,8 @@
     <!-- Client Info Modal -->
     <modal-train  
       :show="client_info_show" 
-      headerbackColor="white"  
-      titlecolor="black" 
+      headerbackColor="primary"  
+      titlecolor="white" 
       title="Client zakazlari tarixi" 
       @close="client_info_show = false" 
       width="80%"

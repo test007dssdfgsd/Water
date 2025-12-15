@@ -649,7 +649,7 @@ export default {
   top: 0;
   background: #10b981;
   color: white;
-  z-index: 111111;
+  z-index: 1;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 

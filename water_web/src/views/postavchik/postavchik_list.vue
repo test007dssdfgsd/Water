@@ -20,11 +20,11 @@
             <div class="desktop-stat-value">{{all_water_count}}</div>
           </div>
           <div class="desktop-stat-card">
-            <div class="desktop-stat-label">Tarqatildi</div>
+            <div class="desktop-stat-label">Тарқатилди</div>
             <div class="desktop-stat-value">{{all_summ.tarqatildi.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</div>
           </div>
           <div class="desktop-stat-card">
-            <div class="desktop-stat-label">Vozvrat</div>
+            <div class="desktop-stat-label">Олинган баклашка</div>
             <div class="desktop-stat-value">{{all_summ.vozvrat.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</div>
           </div>
           <div class="desktop-stat-card">
@@ -62,11 +62,11 @@
             <div class="stat-value">{{all_water_count}}</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Tarqatildi</div>
+            <div class="stat-label">Тарқатилди</div>
             <div class="stat-value">{{all_summ.tarqatildi.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Vozvrat</div>
+            <div class="stat-label">Олинган баклашка</div>
             <div class="stat-value">{{all_summ.vozvrat.toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')}}</div>
           </div>
           <div class="stat-card">
@@ -112,14 +112,14 @@
           :class="{ active: filterStatus === 'pending' }"
           @click="setFilterStatus('pending')"
         >
-          Pending
+          В ожидании
         </button>
         <button 
           class="desktop-filter-tab" 
           :class="{ active: filterStatus === 'complete' }"
           @click="setFilterStatus('complete')"
         >
-          Complete
+          Завершено
         </button>
       </div>
 
@@ -192,6 +192,27 @@
                   <span class="desktop-detail-label">{{$t('note')}}:</span>
                   <span class="desktop-detail-value">{{item.note}}</span>
                 </div>
+                <!-- Check ma'lumotlari (Complete zakazlar uchun) -->
+                <div v-if="item.accepted_status && item.check_info" class="desktop-check-info">
+                  <div class="desktop-check-header">
+                    <i class="fas fa-receipt"></i>
+                    <span>To'lov ma'lumotlari</span>
+                  </div>
+                  <div class="desktop-check-details">
+                    <div class="desktop-check-item">
+                      <span class="check-label">Naqd:</span>
+                      <span class="check-value check-cash">{{formatMoney(item.check_info.cash)}}</span>
+                    </div>
+                    <div class="desktop-check-item">
+                      <span class="check-label">Plastik:</span>
+                      <span class="check-value check-card">{{formatMoney(item.check_info.card)}}</span>
+                    </div>
+                    <div class="desktop-check-item desktop-check-total">
+                      <span class="check-label">Jami:</span>
+                      <span class="check-value check-total">{{formatMoney(item.check_info.cash + item.check_info.card)}}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <!-- Desktop Order Items List -->
@@ -221,6 +242,14 @@
               >
                 <i class="fas fa-check-circle"></i>
                 {{$t('accept')}}
+              </button>
+              <button 
+                v-if="item.accepted_status" 
+                class="desktop-action-btn desktop-return-btn" 
+                @click="returnOrder(item)"
+              >
+                <i class="fas fa-undo"></i>
+                Orqaga qaytarish
               </button>
               <button class="desktop-action-btn desktop-secondary-btn" @click="openYandex(item)">
                 <i class="fas fa-map-marked-alt"></i>
@@ -264,14 +293,14 @@
           :class="{ active: filterStatus === 'pending' }"
           @click="setFilterStatus('pending')"
         >
-          Pending
+          В ожидании
         </button>
         <button 
           class="filter-tab" 
           :class="{ active: filterStatus === 'complete' }"
           @click="setFilterStatus('complete')"
         >
-          Complete
+          Завершено
         </button>
       </div>
 
@@ -344,6 +373,27 @@
                   <span class="detail-label">{{$t('note')}}:</span>
                   <span class="detail-value">{{item.note}}</span>
                 </div>
+                <!-- Check ma'lumotlari (Complete zakazlar uchun) -->
+                <div v-if="item.accepted_status && item.check_info" class="mobile-check-info">
+                  <div class="mobile-check-header">
+                    <i class="fas fa-receipt"></i>
+                    <span>To'lov ma'lumotlari</span>
+                  </div>
+                  <div class="mobile-check-details">
+                    <div class="mobile-check-item">
+                      <span class="check-label">Naqd:</span>
+                      <span class="check-value check-cash">{{formatMoney(item.check_info.cash)}}</span>
+                    </div>
+                    <div class="mobile-check-item">
+                      <span class="check-label">Plastik:</span>
+                      <span class="check-value check-card">{{formatMoney(item.check_info.card)}}</span>
+                    </div>
+                    <div class="mobile-check-item mobile-check-total">
+                      <span class="check-label">Jami:</span>
+                      <span class="check-value check-total">{{formatMoney(item.check_info.cash + item.check_info.card)}}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <!-- Order Items List -->
@@ -373,6 +423,14 @@
               >
                 <i class="fas fa-check-circle"></i>
                 {{$t('accept')}}
+              </button>
+              <button 
+                v-if="item.accepted_status" 
+                class="action-btn return-btn" 
+                @click="returnOrder(item)"
+              >
+                <i class="fas fa-undo"></i>
+                Orqaga qaytarish
               </button>
               <button class="action-btn secondary-btn" @click="openYandex(item)">
                 <i class="fas fa-map-marked-alt"></i>
@@ -412,8 +470,8 @@
     <!-- Client Info Modal -->
     <modal-train  
       :show="client_info_show" 
-      headerbackColor="white"  
-      titlecolor="black" 
+      headerbackColor="primary"  
+      titlecolor="white" 
       title="Client zakazlari tarixi" 
       @close="client_info_show = false" 
       width="80%"
@@ -754,6 +812,11 @@ export default {
       return phone
     },
     
+    formatMoney(amount) {
+      if (!amount && amount !== 0) return '0'
+      return parseFloat(amount).toString().replace(/(\d)(?=(\d{3})+(\.(\d){0,2})*$)/g, '$1 ')
+    },
+    
     getStatusClass(item) {
       if (item.accepted_status) {
         return 'status-complete';
@@ -767,13 +830,13 @@ export default {
     
     getStatusText(item) {
       if (item.accepted_status) {
-        return 'Complete';
+        return 'Завершено';
       } else if (item.color_value === 'green') {
-        return 'Pending';
+        return 'В ожидании';
       } else if (item.color_value === 'black') {
-        return 'Overdue';
+        return 'Просрочено';
       }
-      return 'Pending';
+      return 'В ожидании';
     },
 
     async showClientInfo(clientId) {
@@ -807,6 +870,47 @@ export default {
         this.$refs.message.error('network_ne_connect');
         this.client_info_loading = false;
         this.client_orders_list = [];
+      }
+    },
+
+    async returnOrder(order) {
+      if (!order || !order.id) {
+        this.$refs.message.error('Zakaz ma\'lumotlari topilmadi');
+        return;
+      }
+
+      // Tasdiqlash so'rovi
+      if (!confirm('Ushbu zakazni orqaga qaytarishni xohlaysizmi? Bu amalni bekor qilib bo\'lmaydi.')) {
+        return;
+      }
+
+      try {
+        this.loading = true;
+        const res = await fetch(
+          this.$store.state.hostname + 
+          '/WaterOrders/deAgainAcceptAlredyPlannedOrderFullReturningInfo?order_id=' + 
+          order.id
+        );
+        const data = await res.json();
+        this.loading = false;
+
+        if (res.status == 200 || res.status == 201) {
+          this.$refs.message.success('Zakaz muvaffaqiyatli orqaga qaytarildi');
+          // Complete zakazlar ro'yxatini yangilash
+          if (this.filterStatus === 'complete') {
+            await this.fetchCompleteOrders();
+          } else {
+            // Agar pending bo'lsa, pending ro'yxatini yangilash
+            await this.updateList();
+          }
+        } else {
+          const errorMessage = data.message || data.error || 'Zakazni orqaga qaytarishda xatolik';
+          this.$refs.message.error(errorMessage);
+        }
+      } catch (error) {
+        console.error('Error returning order:', error);
+        this.$refs.message.error('network_ne_connect');
+        this.loading = false;
       }
     }
 
@@ -1226,6 +1330,77 @@ export default {
       }
     }
     
+    // Desktop Check Info Styles
+    .desktop-check-info {
+      margin-top: 12px;
+      padding: 12px;
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border: 1.5px solid #10b981;
+      border-radius: 10px;
+      
+      .desktop-check-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #059669;
+        text-transform: uppercase;
+        
+        i {
+          font-size: 12px;
+        }
+      }
+      
+      .desktop-check-details {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        
+        .desktop-check-item {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          
+          .check-label {
+            font-size: 10px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+          }
+          
+          .check-value {
+            font-size: 13px;
+            font-weight: 700;
+            
+            &.check-cash {
+              color: #059669;
+            }
+            
+            &.check-card {
+              color: #2563eb;
+            }
+            
+            &.check-total {
+              color: #10b981;
+              font-size: 14px;
+            }
+          }
+          
+          &.desktop-check-total {
+            grid-column: 1 / -1;
+            padding-top: 8px;
+            border-top: 1px solid #86efac;
+            
+            .check-label {
+              font-size: 10px;
+            }
+          }
+        }
+      }
+    }
+    
     .desktop-order-items-list {
       margin-top: 15px;
       padding-top: 15px;
@@ -1327,6 +1502,16 @@ export default {
         &:hover {
           transform: translateY(-2px);
           box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+      }
+      
+      &.desktop-return-btn {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(217, 119, 6, 0.4);
         }
       }
     }
@@ -1669,7 +1854,7 @@ export default {
         align-items: center;
         gap: 6px;
         color: #666;
-        font-size: 11px;
+        font-size: 12px;
         
         i {
           color: #f5576c;
@@ -1720,6 +1905,90 @@ export default {
             margin-top: 3px;
             
             i {
+              font-size: 9px;
+            }
+          }
+        }
+        
+        // Mobile versiyada desktop-detail-value va desktop-phone-number uchun
+        .desktop-detail-value {
+          font-size: 12px;
+          
+          .desktop-phone-number {
+            font-size: 12px;
+            
+            i {
+              font-size: 12px;
+            }
+          }
+        }
+      }
+    }
+    
+    // Mobile Check Info Styles
+    .mobile-check-info {
+      margin-top: 10px;
+      padding: 10px;
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border: 1.5px solid #10b981;
+      border-radius: 8px;
+      
+      .mobile-check-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+        font-size: 10px;
+        font-weight: 700;
+        color: #059669;
+        text-transform: uppercase;
+        
+        i {
+          font-size: 11px;
+        }
+      }
+      
+      .mobile-check-details {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        
+        .mobile-check-item {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          
+          .check-label {
+            font-size: 8px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+          }
+          
+          .check-value {
+            font-size: 10px;
+            font-weight: 700;
+            
+            &.check-cash {
+              color: #059669;
+            }
+            
+            &.check-card {
+              color: #2563eb;
+            }
+            
+            &.check-total {
+              color: #10b981;
+              font-size: 12px;
+            }
+          }
+          
+          &.mobile-check-total {
+            grid-column: 1 / -1;
+            padding-top: 6px;
+            border-top: 1px solid #86efac;
+            
+            .check-label {
               font-size: 9px;
             }
           }
@@ -1828,6 +2097,16 @@ export default {
         &:hover {
           transform: translateY(-2px);
           box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+      }
+      
+      &.return-btn {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(217, 119, 6, 0.4);
         }
       }
     }
@@ -2020,7 +2299,7 @@ export default {
         }
         
         .detail-value {
-          font-size: 14px;
+          font-size: 10px;
           font-weight: 600;
           color: #333;
           

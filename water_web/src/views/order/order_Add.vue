@@ -148,7 +148,7 @@
                   <h6 class="font-weight-bold">{{$t('ostatka_bootle')}} ({{all_water_count}})</h6>
                   <div class="d-flex justify-content-center w-100 align-items-center">
                     <h4 class="m-0 p-0 pt-1 text-danger font-weight-bold">{{ostatik_bootle}} - </h4>
-                    <img  src="../../assets/bootle.jpg" alt="b" width="50" height="45" class="bottle">
+                    <img  src="../../assets/bootle.jpg" alt="b" width="50" height="45">
                   </div>
                    <!-- <div class="text-center mt-2 ml-3">
                     <span @click="EditFunc" style="font-size:13.5px; cursor:pointer;" class="text-primary">{{$t('edit')}}</span>

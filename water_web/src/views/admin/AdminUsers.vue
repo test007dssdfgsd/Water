@@ -511,7 +511,7 @@ export default {
   font-size: 0.72rem;
   th {
     text-align: left;
-    padding: 0.45rem 0.65rem;
+    padding: 0.28rem 0.4rem;
     font-weight: 600;
     color: #94a3b8;
     font-size: 0.62rem;
@@ -520,10 +520,11 @@ export default {
     background: #fafbfc;
   }
   td {
-    padding: 0.45rem 0.65rem;
+    padding: 0.28rem 0.4rem;
     border-top: 1px solid #f1f3f6;
     color: #475569;
     vertical-align: middle;
+    font-size: 0.75rem;
   }
   tbody tr {
     transition: background 0.12s;
@@ -560,8 +561,8 @@ export default {
   white-space: nowrap;
 }
 .admin-users__icon-btn {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border: none;
   border-radius: 6px;
   cursor: pointer;

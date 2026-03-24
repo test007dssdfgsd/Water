@@ -12,6 +12,34 @@ const routes = [{
             import ('../views/login/login.vue')
     },
     {
+        path: '/admin',
+        name: 'adminLogin',
+        meta: { layout: 'empty' },
+        component: () =>
+            import ('../views/login/adminLogin.vue')
+    },
+    {
+        path: '/admin/panel',
+        name: 'adminPanel',
+        meta: { layout: 'admin' },
+        component: () =>
+            import ('../views/admin/AdminDashboard.vue')
+    },
+    {
+        path: '/admin/users',
+        name: 'adminUsers',
+        meta: { layout: 'admin' },
+        component: () =>
+            import ('../views/admin/AdminUsers.vue')
+    },
+    {
+        path: '/admin/companies',
+        name: 'adminCompanies',
+        meta: { layout: 'admin' },
+        component: () =>
+            import ('../views/admin/AdminCompanies.vue')
+    },
+    {
         path: '/province',
         name: 'province',
         meta: { layout: 'main' },
@@ -394,8 +422,9 @@ const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
     console.log(from)
-if (to.path != '/') {
-        if (localStorage.Login != '') {
+const isPublicRoute = to.path === '/' || to.path === '/admin'
+if (!isPublicRoute) {
+        if (localStorage.Login != '' || localStorage.adminLogin != '') {
             if (localStorage.Type == 1) {
                 if (to.path === '/postavchik_list' || to.path === '/postavchik_map') {
                 next()  // shu ikkitasiga ruxsat beramiz
@@ -417,7 +446,11 @@ if (to.path != '/') {
             next()
 
         } else {
-            next('/')
+            if (to.path.startsWith('/admin/')) {
+                next('/admin')
+            } else {
+                next('/')
+            }
         }
     } else {
         next()

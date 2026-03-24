@@ -58,6 +58,8 @@ namespace ApiAll.Contex
 
         public DbSet<WaterAuth> WaterAuth { get; set; }
         public DbSet<WaterUser> WaterUser { get; set; }
+        public DbSet<WaterAdminAuth> WaterAdminAuth { get; set; }
+        public DbSet<WaterAdminUser> WaterAdminUser { get; set; }
         public DbSet<WaterCheck> WaterCheck { get; set; }
         public DbSet<WaterClient> WaterClient { get; set; }
         public DbSet<WaterClientBottleInfo> WaterClientBottleInfo { get; set; }
@@ -65,6 +67,7 @@ namespace ApiAll.Contex
         public DbSet<WaterClientDolg> WaterClientDolg { get; set; }
         public DbSet<WaterClientType> WaterClientType { get; set; }
         public DbSet<WaterContragent> WaterContragent { get; set; }
+        public DbSet<WaterCompany> WaterCompany { get; set; }
         public DbSet<WaterContragentType> WaterContragentType { get; set; }
         public DbSet<WaterInvoice> WaterInvoice { get; set; }
         public DbSet<WaterInvoiceItem> WaterInvoiceItem { get; set; }

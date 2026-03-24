@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiAll.Contex;
 using ApiAll.Model.water;
-using ApiAll.Model.tekistil;
+using ApiAll.Model;
 using Newtonsoft.Json.Linq;
 
 namespace ApiAll.Controllers.water
@@ -32,9 +32,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPagination")]
-        public async Task<ActionResult<TexPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrderItem> categoryList = await _context.WaterOrderItem
                 .Include(p =>p.product)
                 .Where(p => p.active_status == true)
@@ -51,9 +51,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationOrderItemListByClientId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationOrderItemListByClientId([FromQuery] int page, [FromQuery] int size,[FromQuery] long client_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationOrderItemListByClientId([FromQuery] int page, [FromQuery] int size,[FromQuery] long client_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrderItem> categoryList = await _context.WaterOrderItem
                 .Include(p => p.product)
                 .Include(p => p.order)

@@ -7,8 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiAll.Contex;
 using ApiAll.Model.archive;
-using ApiAll.Model.tekistil;
-using ApiAll.Model.tegirmon;
+using ApiAll.Model;
 using Newtonsoft.Json.Linq;
 
 namespace ApiAll.Controllers.archive
@@ -32,9 +31,9 @@ namespace ApiAll.Controllers.archive
             return await _context.ArchiveJavon.ToListAsync();
         }
         [HttpGet("getPagination")]
-        public async Task<ActionResult<TexPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<ArchiveJavon> categoryList = await _context.ArchiveJavon
                 .Where(p => p.active_status == true)
                 .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();

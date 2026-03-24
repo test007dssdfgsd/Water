@@ -64,15 +64,8 @@ namespace ApiAll
                 //filterdi ochirb turdim
                // c.DocumentFilter<CustomSwaggerFilter>();
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "ALL", Version = "v1" });
-                c.SwaggerDoc("v2", new OpenApiInfo { Title = "ERP TEKISTIL", Version = "v2" });
-                c.SwaggerDoc("v3", new OpenApiInfo { Title = "HOTEL", Version = "v3" });
-                c.SwaggerDoc("v4", new OpenApiInfo { Title = "HOSPITAL", Version = "v4" });
-                c.SwaggerDoc("v5", new OpenApiInfo { Title = "POS_PROGRAMM_FOR_MARKET", Version = "v5" });
                 c.SwaggerDoc("v6", new OpenApiInfo { Title = "ARCHIVE", Version = "v6" });
-                c.SwaggerDoc("v7", new OpenApiInfo { Title = "TEGIRMON", Version = "v7" });
-                c.SwaggerDoc("v8", new OpenApiInfo { Title = "OQUV_MARKAZI", Version = "v8" });
                 c.SwaggerDoc("v9", new OpenApiInfo { Title = "WATER", Version = "v9" });
-                c.SwaggerDoc("v10", new OpenApiInfo { Title = "PARKING", Version = "v10" });
             });
             //BeK_159753
 
@@ -110,16 +103,9 @@ namespace ApiAll
              app.UseSwagger();
              app.UseSwaggerUI(c =>
               {
-                  c.SwaggerEndpoint("/swagger/v2/swagger.json", "ERP TEKISTIL");
-                  c.SwaggerEndpoint("/swagger/v5/swagger.json", "POS_PROGRAMM_FOR_MARKET");
                   c.SwaggerEndpoint("/swagger/v1/swagger.json", "ALL");
-                  c.SwaggerEndpoint("/swagger/v3/swagger.json", "HOTEL");
-                  c.SwaggerEndpoint("/swagger/v4/swagger.json", "HOSPITAL");
                   c.SwaggerEndpoint("/swagger/v6/swagger.json", "ARCHIVE");
-                  c.SwaggerEndpoint("/swagger/v7/swagger.json", "TEGIRMON");
-                  c.SwaggerEndpoint("/swagger/v8/swagger.json", "OQUV_MARKAZI");
                   c.SwaggerEndpoint("/swagger/v9/swagger.json", "WATER");
-                  c.SwaggerEndpoint("/swagger/v10/swagger.json", "PARKING");
 
               });
 

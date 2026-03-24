@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiAll.Contex;
 using ApiAll.Model.water;
-using ApiAll.Model.tekistil;
+using ApiAll.Model;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
 namespace ApiAll.Controllers.water
@@ -283,9 +283,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationOnlyActiveClientListByTumanId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationOnlyActiveClientListByTumanId([FromQuery] int page, [FromQuery] int size, [FromQuery] long tuman_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationOnlyActiveClientListByTumanId([FromQuery] int page, [FromQuery] int size, [FromQuery] long tuman_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientAddress> categoryList = new List<WaterClientAddress>();
             if (tuman_id == 0)
             {
@@ -328,9 +328,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationClientListByTumanId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationClientListByTumanId([FromQuery] int page, [FromQuery] int size, [FromQuery] long tuman_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationClientListByTumanId([FromQuery] int page, [FromQuery] int size, [FromQuery] long tuman_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientAddress> categoryList = new List<WaterClientAddress>();
             if (tuman_id == 0)
             {
@@ -371,9 +371,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationAddessByClientId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationAddessByClientId([FromQuery] int page, [FromQuery] int size,[FromQuery] long client_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationAddessByClientId([FromQuery] int page, [FromQuery] int size,[FromQuery] long client_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientAddress> categoryList = await _context.WaterClientAddress
                 .Include(p => p.client)
                 .Where(p => p.active_status == true && p.WaterClientid == client_id)
@@ -390,9 +390,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationPhoneNumberByClientId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationPhoneNumberByClientId([FromQuery] int page, [FromQuery] int size, [FromQuery] long client_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationPhoneNumberByClientId([FromQuery] int page, [FromQuery] int size, [FromQuery] long client_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientPhoneNumber> categoryList = await _context.WaterClientPhoneNumber
                 .Include(p => p.client)
                 .Where(p => p.active_status == true && p.WaterClientid == client_id)
@@ -409,9 +409,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPagination")]
-        public async Task<ActionResult<TexPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClient> categoryList = await _context.WaterClient
                 .Include(p => p.tuman)
                 .Include(p => p.addresses)
@@ -430,9 +430,9 @@ namespace ApiAll.Controllers.water
         }
 
         // [HttpGet("getPaginationDeletedClients")]
-        // public async Task<ActionResult<TexPaginationModel>> getPaginationDeletedClients([FromQuery] int page, [FromQuery] int size)
+        // public async Task<ActionResult<JsonPaginationModel>> getPaginationDeletedClients([FromQuery] int page, [FromQuery] int size)
         // {
-        //     TexPaginationModel paginationModel = new TexPaginationModel();
+        //     JsonPaginationModel paginationModel = new JsonPaginationModel();
         //     List<WaterClient> categoryList = await _context.WaterClient
         //         .Include(p => p.tuman)
         //         .Include(p => p.addresses)
@@ -453,12 +453,12 @@ namespace ApiAll.Controllers.water
         // }
 
         [HttpGet("getPaginationDeletedClients")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationDeletedClients(
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationDeletedClients(
             [FromQuery] int page, 
             [FromQuery] int size,
             [FromQuery] string search = "")
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
 
             // Asosiy query
             var query = _context.WaterClient
@@ -495,9 +495,9 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationRestoreDeletedClients")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationRestoreDeletedClients([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationRestoreDeletedClients([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClient> categoryList = await _context.WaterClient
                 .Include(p => p.tuman)
                 .Include(p => p.addresses)
@@ -563,7 +563,7 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationStatistikReportQueryOtmenBolganlardiki2")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationStatistikReportQueryOtmenBolganlardiki2(
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationStatistikReportQueryOtmenBolganlardiki2(
 [FromQuery] int page, [FromQuery] int size,
 [FromQuery] long tuman_id, [FromQuery] long client_id)
         {
@@ -580,7 +580,7 @@ namespace ApiAll.Controllers.water
                 client_str = " = " + client_id.ToString();
             }
 
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterStatistikaFakeReport2> categoryList = await _context.WaterStatistikaFakeReport2
                 .FromSqlRaw(" SELECT   " +
  " wc.fio as fio,   " +
@@ -634,7 +634,7 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationStatistikReportQuery2")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationStatistikReportQuery2(
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationStatistikReportQuery2(
     [FromQuery] int page, [FromQuery] int size,
     [FromQuery] long tuman_id, [FromQuery] long client_id)
         {
@@ -651,7 +651,7 @@ namespace ApiAll.Controllers.water
                 client_str = " = " + client_id.ToString();
             }
 
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterStatistikaFakeReport2> categoryList = await _context.WaterStatistikaFakeReport2
                 .FromSqlRaw(" SELECT   "+
  " wc.fio as fio,   " +
@@ -706,7 +706,7 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationStatistikReportQuery")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationStatistikReportQuery(
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationStatistikReportQuery(
             [FromQuery] int page, [FromQuery] int size,
             [FromQuery] long tuman_id,[FromQuery] long client_id)
         {
@@ -721,7 +721,7 @@ namespace ApiAll.Controllers.water
                 client_str = " = " + client_id.ToString();
             }
 
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterStatistikaFakeReport> categoryList = await _context.WaterStatistikaFakeReport
                 .FromSqlRaw("SELECT    "+
                 "   wc.fio as fio,    " +
@@ -767,10 +767,10 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationForReportStatistika")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationForReportStatistika(
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationForReportStatistika(
             [FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClient> categoryList = await _context.WaterClient
                 .Include(p => p.tuman)
                 .Include(p => p.addresses)
@@ -800,9 +800,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationSearchByPhoneNumber")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationSearchByPhoneNumber([FromQuery] int page, [FromQuery] int size,[FromQuery]String phone_number)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationSearchByPhoneNumber([FromQuery] int page, [FromQuery] int size,[FromQuery]String phone_number)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClient> categoryList = await _context.WaterClient
                 .Include(p => p.tuman)
                 .Include(p => p.addresses)
@@ -829,9 +829,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationSearchByPhoneNumberFromArray")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationSearchByPhoneNumberFromArray([FromQuery] int page, [FromQuery] int size, [FromQuery] String phone_number)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationSearchByPhoneNumberFromArray([FromQuery] int page, [FromQuery] int size, [FromQuery] String phone_number)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientPhoneNumber> categoryList = await _context.WaterClientPhoneNumber
                 .Include(p => p.client)
                 .Where(p => p.active_status == true
@@ -859,9 +859,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationSearchByAddressFromArray")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationSearchByAddressFromArray([FromQuery] int page, [FromQuery] int size, [FromQuery] String address)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationSearchByAddressFromArray([FromQuery] int page, [FromQuery] int size, [FromQuery] String address)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientAddress> categoryList = await _context.WaterClientAddress
                 .Include(p => p.client)
                 .Where(p => p.active_status == true
@@ -889,9 +889,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationSearchByTumanIdFromArray")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationSearchByTumanIdFromArray([FromQuery] int page, [FromQuery] int size, [FromQuery] long tuman_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationSearchByTumanIdFromArray([FromQuery] int page, [FromQuery] int size, [FromQuery] long tuman_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientAddress> categoryList = await _context.WaterClientAddress
                 .Include(p => p.client)
                 .Where(p => p.active_status == true
@@ -919,9 +919,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationByTumanId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationByTumanId([FromQuery] int page, [FromQuery] int size,[FromQuery] long tuman_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationByTumanId([FromQuery] int page, [FromQuery] int size,[FromQuery] long tuman_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClient> categoryList = await _context.WaterClient
                 .Include(p => p.tuman)
                 .Include(p => p.addresses)
@@ -941,9 +941,9 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationByName")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationByName([FromQuery] int page, [FromQuery] int size, [FromQuery] String fio)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationByName([FromQuery] int page, [FromQuery] int size, [FromQuery] String fio)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClient> categoryList = await _context.WaterClient
                 .Include(p => p.tuman)
                 .Include(p => p.addresses)

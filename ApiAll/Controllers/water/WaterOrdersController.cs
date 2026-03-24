@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiAll.Contex;
 using ApiAll.Model.water;
-using ApiAll.Model.tekistil;
+using ApiAll.Model;
 using Newtonsoft.Json.Linq;
 
 namespace ApiAll.Controllers.water
@@ -116,9 +116,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationOrderByClientId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationOrderByClientId([FromQuery] int page, [FromQuery] int size, [FromQuery] long client_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationOrderByClientId([FromQuery] int page, [FromQuery] int size, [FromQuery] long client_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                .Include(p => p.client)
                .Include(p => p.address)
@@ -821,9 +821,9 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPagination")]
-        public async Task<ActionResult<TexPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -874,10 +874,10 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationAllByDateTme")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationAllByDateTme([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationAllByDateTme([FromQuery] int page,
             [FromQuery] int size, [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -931,10 +931,10 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationAllAcceptedByDateTme")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationAllAcceptedByDateTme([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationAllAcceptedByDateTme([FromQuery] int page,
     [FromQuery] int size, [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -987,10 +987,10 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationAllNotAcceptedByDateTme")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationAllNotAcceptedByDateTme([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationAllNotAcceptedByDateTme([FromQuery] int page,
 [FromQuery] int size, [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -1044,9 +1044,9 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationOpenOrdersList")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationOpenOrdersList([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationOpenOrdersList([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -1137,11 +1137,11 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationBeatweanDateWithoutTimeOpenOrdersListByAuthIdAsc")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersListByAuthIdAsc([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersListByAuthIdAsc([FromQuery] int page,
 [FromQuery] int size,
 [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date, [FromQuery] long user_auth_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -1199,11 +1199,11 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationBeatweanDateWithoutTimeOpenOrdersListByAuthId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersListByAuthId([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersListByAuthId([FromQuery] int page,
     [FromQuery] int size,
     [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date,[FromQuery] long user_auth_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -1260,11 +1260,11 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationBeatweanDateWithoutTimeOpenOrdersListByNotAddedAnyUser")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersListByNotAddedAnyUser([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersListByNotAddedAnyUser([FromQuery] int page,
     [FromQuery] int size,
     [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -1321,11 +1321,11 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationBeatweanDateWithoutTimeOpenOrdersList")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersList([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersList([FromQuery] int page,
             [FromQuery] int size,
             [FromQuery] DateTime begin_date,[FromQuery] DateTime end_date)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Where(p => p.active_status == true
                 && p.accepted_status == false
@@ -1378,11 +1378,11 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationBeatweanDateWithoutTimeClosedOrdersList")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationBeatweanDateWithoutTimeClosedOrdersList([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationBeatweanDateWithoutTimeClosedOrdersList([FromQuery] int page,
     [FromQuery] int size,
     [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -1435,9 +1435,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationClosedOrdersList")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationClosedOrdersList([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationClosedOrdersList([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiAll.Contex;
 using ApiAll.Model.water;
-using ApiAll.Model.tekistil;
+using ApiAll.Model;
 using Newtonsoft.Json.Linq;
 
 namespace ApiAll.Controllers.water
@@ -32,9 +32,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPagination")]
-        public async Task<ActionResult<TexPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientBottleInfo> categoryList = await _context.WaterClientBottleInfo
                 .Include(p => p.product)
                 .Include(p => p.client)
@@ -53,9 +53,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationClientId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationClientId([FromQuery] int page, [FromQuery] int size,[FromQuery] long client_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationClientId([FromQuery] int page, [FromQuery] int size,[FromQuery] long client_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientBottleInfo> categoryList = await _context.WaterClientBottleInfo
                 .Include(p => p.product)
                 .Include(p => p.client)
@@ -74,9 +74,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationClientIdAndAddressId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationClientIdAndAddressId([FromQuery] int page, [FromQuery] int size, [FromQuery] long client_id,[FromQuery] long address_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationClientIdAndAddressId([FromQuery] int page, [FromQuery] int size, [FromQuery] long client_id,[FromQuery] long address_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientBottleInfo> categoryList = await _context.WaterClientBottleInfo
                 .Include(p => p.product)
                 .Include(p => p.client)
@@ -100,9 +100,9 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationClientIdAndAddressIdAndProductId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationClientIdAndAddressIdAndProductId([FromQuery] int page, [FromQuery] int size, [FromQuery] long client_id, [FromQuery] long address_id,[FromQuery] long product_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationClientIdAndAddressIdAndProductId([FromQuery] int page, [FromQuery] int size, [FromQuery] long client_id, [FromQuery] long address_id,[FromQuery] long product_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientBottleInfo> categoryList = await _context.WaterClientBottleInfo
                 .Include(p => p.product)
                 .Include(p => p.client)
@@ -127,9 +127,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationAddressId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationAddressId([FromQuery] int page, [FromQuery] int size, [FromQuery] long addres_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationAddressId([FromQuery] int page, [FromQuery] int size, [FromQuery] long addres_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientBottleInfo> categoryList = await _context.WaterClientBottleInfo
                 .Include(p => p.product)
                 .Include(p => p.client)
@@ -148,9 +148,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationSerachByClientName")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationSerachByClientName([FromQuery] int page, [FromQuery] int size,[FromQuery] String client_name)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationSerachByClientName([FromQuery] int page, [FromQuery] int size,[FromQuery] String client_name)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientBottleInfo> categoryList = await _context.WaterClientBottleInfo
                 .Include(p => p.product)
                 .Include(p => p.client)

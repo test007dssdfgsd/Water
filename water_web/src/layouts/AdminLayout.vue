@@ -214,7 +214,7 @@ export default {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 1.25rem 0.85rem 1rem;
+  padding: 1.25rem 0.5rem 1rem;
   box-sizing: border-box;
 }
 

@@ -49,7 +49,8 @@ export default new Vuex.Store({
         },
         dontShowPagination: true,
 
-    },
+        
+    }, 
     mutations: {
         update_pagination(state, { size, page }) {
             state.pagination.page = page;

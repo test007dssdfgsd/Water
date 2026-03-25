@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ApiAll.Model.water
@@ -18,5 +18,10 @@ namespace ApiAll.Model.water
         public long WaterContragentTypeid { get; set; }
 
 
+    
+        public long? company_id { get; set; }
+
+        [ForeignKey("company_id")]
+        public WaterCompany Company { get; set; }
     }
 }

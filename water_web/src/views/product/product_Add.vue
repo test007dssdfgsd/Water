@@ -154,7 +154,11 @@ export default {
       
       if(this.id > 0)
       {
-        const res = await fetch(this.$store.state.hostname + '/WaterProducts/' + this.id);
+        const headers = {}
+        if (localStorage.AuthToken) {
+          headers.Authorization = 'Bearer ' + localStorage.AuthToken
+        }
+        const res = await fetch(this.$store.state.hostname + '/WaterProducts/' + this.id, { headers });
         const data = await res.json();
         console.log('this is by id')
         console.log(data)
@@ -190,9 +194,13 @@ export default {
         
         else{ 
           this.alert_danger = false;
+          const headers = { "Content-Type" : "application/json" }
+          if (localStorage.AuthToken) {
+            headers.Authorization = 'Bearer ' + localStorage.AuthToken
+          }
           const requestOptions = {
               method : "POST",
-              headers: { "Content-Type" : "application/json" },
+              headers,
               body: JSON.stringify({
                 "name" : this.name,
                 "info": this.info,

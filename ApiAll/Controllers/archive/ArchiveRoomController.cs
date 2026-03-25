@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiAll.Contex;
 using ApiAll.Model.archive;
-using ApiAll.Model.tekistil;
+using ApiAll.Model;
 using Newtonsoft.Json.Linq;
 
 namespace ApiAll.Controllers.archive
@@ -25,9 +25,9 @@ namespace ApiAll.Controllers.archive
         }
 
         [HttpGet("getPagination")]
-        public async Task<ActionResult<TexPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<ArchiveRoom> categoryList = await _context.ArchiveRoom
                 .Where(p => p.active_status == true)
                 .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();

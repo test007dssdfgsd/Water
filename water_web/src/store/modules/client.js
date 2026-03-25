@@ -11,7 +11,11 @@ export default {
     },
     actions: {
         async fetchClient(ctx) {
-            const res = await fetch(ctx.rootState.hostname + '/WaterClients/getPagination?page=0&size=100');
+            const headers = {}
+            if (localStorage.AuthToken) {
+                headers.Authorization = 'Bearer ' + localStorage.AuthToken
+            }
+            const res = await fetch(ctx.rootState.hostname + '/WaterClients/getPagination?page=0&size=100', { headers });
             const res_data = await res.json();
             // console.log(ctx.rootState.hostname);
             ctx.commit('updateClient', res_data);

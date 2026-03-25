@@ -103,7 +103,9 @@ export default {
     {
       if(this.id > 0)
       {
-        const res = await fetch(this.$store.state.hostname + '/WaterTumen/' + this.id);
+        const res = await fetch(this.$store.state.hostname + '/WaterTumen/' + this.id, {
+          headers: this.authHeaders()
+        });
         const data = await res.json();
         console.log(data);
         this.name = data.name
@@ -117,6 +119,13 @@ export default {
     computed:mapGetters(['allCompany']),
   methods:{
     ...mapActions(['fetchCompany']),
+    authHeaders () {
+      const headers = {}
+      if (localStorage.AuthToken) {
+        headers.Authorization = 'Bearer ' + localStorage.AuthToken
+      }
+      return headers
+    },
     selectOption(option){
       this.comp_name = option.name
       this.comp_id = option.id
@@ -136,7 +145,10 @@ export default {
         }
         const requestOptions = {
             method : "POST",
-            headers: { "Content-Type" : "application/json" },
+            headers: {
+              "Content-Type" : "application/json",
+              ...this.authHeaders()
+            },
             body: JSON.stringify({
               "name" : this.name,
               "waterViloyatid": this.comp_id,

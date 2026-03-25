@@ -136,6 +136,7 @@ export default {
     localStorage.postavchikAuthId = null;
     localStorage.postavchikId = null;
     localStorage.postavchikName = '';
+    localStorage.AuthToken = '';
 
     localStorage.size_value = 50
     localStorage.numPage = 1
@@ -150,7 +151,7 @@ export default {
       localStorage.CompName = "Company"
       localStorage.sidebar = false;
       localStorage.Type = 0;
-      this.$router.push('/user')
+      // this.$router.push('/user')
     }
   },
   computed: mapGetters(['allUser']),
@@ -213,9 +214,10 @@ export default {
             console.log('data')
             console.log(data)
           if(response.status == '200' || response.status == '201'){
-            localStorage.Login = data.password;
+            localStorage.AuthToken = data.token || '';
+            localStorage.Login = data.token || this.login;
             localStorage.AuthId = data.id;
-            localStorage.CompId = 1;
+            localStorage.CompId = data.company_id;
             localStorage.UserId = data.waterUserid;
             localStorage.Type = data.user_type;
             localStorage.AccessType = data.user_type;
@@ -243,7 +245,11 @@ export default {
     async fetchUserName(id){
       try{
       this.loading = true;
-      const res = await fetch(this.$store.state.hostname + '/WaterUsers/'+ id);
+      const headers = {}
+      if (localStorage.AuthToken) {
+        headers.Authorization = 'Bearer ' + localStorage.AuthToken
+      }
+      const res = await fetch(this.$store.state.hostname + '/WaterUsers/'+ id, { headers });
       this.loading = false;
       if(res.status == 200 || res.status == 201){
         const data = await res.json()

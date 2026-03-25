@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiAll.Contex;
 using ApiAll.Model.water;
-using ApiAll.Model.tekistil;
+using ApiAll.Model;
 using Newtonsoft.Json.Linq;
 
 namespace ApiAll.Controllers.water
@@ -26,9 +26,27 @@ namespace ApiAll.Controllers.water
 
         // GET: api/WaterUsers
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<WaterUser>>> GetWaterUser()
+        public async Task<ActionResult<IEnumerable<WaterUser>>> GetWaterUser([FromQuery] long? company_id = null)
         {
-            List< WaterUser > users = await _context.WaterUser.ToListAsync();
+            IQueryable<WaterUser> query = _context.WaterUser.AsQueryable();
+            long? tokenCompanyId = null;
+            var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long parsedCompanyId))
+            {
+                tokenCompanyId = parsedCompanyId;
+            }
+
+            // Token scope has priority. If token is not provided, fallback to query parameter.
+            if (tokenCompanyId != null && tokenCompanyId > 0)
+            {
+                query = query.Where(p => p.company_id == tokenCompanyId);
+            }
+            else if (company_id != null)
+            {
+                query = query.Where(p => p.company_id == company_id);
+            }
+
+            List< WaterUser > users = await query.ToListAsync();
             foreach (WaterUser it in users) {
                 List<WaterAuth> waterAuths = await _context.WaterAuth.Where(p => p.WaterUserid == it.id).ToListAsync();
                 if (waterAuths != null && waterAuths.Count > 0) {
@@ -40,6 +58,7 @@ namespace ApiAll.Controllers.water
 
             return users;
         }
+        
 
         // GET: api/WaterUsers/5
         [HttpGet("{id}")]
@@ -93,6 +112,12 @@ namespace ApiAll.Controllers.water
         [HttpPost]
         public async Task<ActionResult<WaterUser>> PostWaterUser(WaterUser waterUser)
         {
+            var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long tokenCompanyId) && tokenCompanyId > 0)
+            {
+                waterUser.company_id = tokenCompanyId;
+            }
+
             _context.WaterUser.Update(waterUser);
             await _context.SaveChangesAsync();
 
@@ -101,9 +126,9 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPagination")]
-        public async Task<ActionResult<TexPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterUser> categoryList = await _context.WaterUser
                 .Where(p => p.active_status == true)
                 .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();

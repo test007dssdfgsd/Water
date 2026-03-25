@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiAll.Contex;
 using ApiAll.Model.water;
-using ApiAll.Model.tekistil;
+using ApiAll.Model;
 using Newtonsoft.Json.Linq;
 
 namespace ApiAll.Controllers.water
@@ -28,7 +28,18 @@ namespace ApiAll.Controllers.water
         [HttpGet]
         public async Task<ActionResult<IEnumerable<WaterProduct>>> GetWaterProduct()
         {
-            return await _context.WaterProduct.ToListAsync();
+            IQueryable<WaterProduct> query = _context.WaterProduct.AsQueryable();
+            long? tokenCompanyId = null;
+            var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long parsedCompanyId))
+            {
+                tokenCompanyId = parsedCompanyId;
+            }
+            if (tokenCompanyId != null && tokenCompanyId > 0)
+            {
+                query = query.Where(p => p.company_id == tokenCompanyId);
+            }
+            return await query.ToListAsync();
         }
 
         // GET: api/WaterProducts/5
@@ -42,14 +53,23 @@ namespace ApiAll.Controllers.water
                 return NotFound();
             }
 
+            var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long tokenCompanyId) && tokenCompanyId > 0)
+            {
+                if (waterProduct.company_id != tokenCompanyId)
+                {
+                    return NotFound();
+                }
+            }
+
             return waterProduct;
         }
 
 
         [HttpGet("getPagination")]
-        public async Task<ActionResult<TexPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterProduct> categoryList = await _context.WaterProduct
                 .Where(p => p.active_status == true)
                 .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
@@ -65,29 +85,34 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationMainProduct")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationMainProduct([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationMainProduct([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
-            List<WaterProduct> categoryList = await _context.WaterProduct
-                .Where(p => p.active_status == true
-                && p.main_product == true)
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
+            IQueryable<WaterProduct> query = _context.WaterProduct.Where(p => p.active_status == true && p.main_product == true);
+
+            var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long tokenCompanyId) && tokenCompanyId > 0)
+            {
+                query = query.Where(p => p.company_id == tokenCompanyId);
+            }
+
+            List<WaterProduct> categoryList = await query
                 .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
             if (categoryList == null)
             {
                 categoryList = new List<WaterProduct>();
             }
             paginationModel.items_list = JArray.FromObject(categoryList);
-            paginationModel.items_count = await _context.WaterProduct.Where(p => p.active_status == true
-            && p.main_product == true).CountAsync();
+            paginationModel.items_count = await query.CountAsync();
             paginationModel.current_item_count = categoryList.Count();
             paginationModel.current_page = page;
             return paginationModel;
         }
 
         [HttpGet("getPaginationSearchByName")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationSearchByName([FromQuery] int page, [FromQuery] int size,[FromQuery] String name)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationSearchByName([FromQuery] int page, [FromQuery] int size,[FromQuery] String name)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterProduct> categoryList = await _context.WaterProduct
                 .Where(p => p.active_status == true  && p.name.ToLower().Contains(name.ToLower()))
                 .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
@@ -142,6 +167,16 @@ namespace ApiAll.Controllers.water
         [HttpPost]
         public async Task<ActionResult<WaterProduct>> PostWaterProduct(WaterProduct waterProduct)
         {
+            var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long tokenCompanyId) && tokenCompanyId > 0)
+            {
+                waterProduct.company_id = tokenCompanyId;
+            }
+
+            if (waterProduct.company_id == null || waterProduct.company_id <= 0)
+            {
+                return BadRequest("company_id is required");
+            }
             _context.WaterProduct.Update(waterProduct);
             await _context.SaveChangesAsync();
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiAll.Contex;
 using ApiAll.Model.water;
-using ApiAll.Model.tekistil;
+using ApiAll.Model;
 using Newtonsoft.Json.Linq;
 
 namespace ApiAll.Controllers.water
@@ -24,6 +24,16 @@ namespace ApiAll.Controllers.water
             _context = context;
         }
 
+        private long? GetTokenCompanyId()
+        {
+            var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long parsedCompanyId) && parsedCompanyId > 0)
+            {
+                return parsedCompanyId;
+            }
+            return null;
+        }
+
         // GET: api/WaterClientBottleInfoes
         [HttpGet]
         public async Task<ActionResult<IEnumerable<WaterClientBottleInfo>>> GetWaterClientBottleInfo()
@@ -32,9 +42,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPagination")]
-        public async Task<ActionResult<TexPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientBottleInfo> categoryList = await _context.WaterClientBottleInfo
                 .Include(p => p.product)
                 .Include(p => p.client)
@@ -53,9 +63,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationClientId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationClientId([FromQuery] int page, [FromQuery] int size,[FromQuery] long client_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationClientId([FromQuery] int page, [FromQuery] int size,[FromQuery] long client_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientBottleInfo> categoryList = await _context.WaterClientBottleInfo
                 .Include(p => p.product)
                 .Include(p => p.client)
@@ -74,9 +84,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationClientIdAndAddressId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationClientIdAndAddressId([FromQuery] int page, [FromQuery] int size, [FromQuery] long client_id,[FromQuery] long address_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationClientIdAndAddressId([FromQuery] int page, [FromQuery] int size, [FromQuery] long client_id,[FromQuery] long address_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientBottleInfo> categoryList = await _context.WaterClientBottleInfo
                 .Include(p => p.product)
                 .Include(p => p.client)
@@ -100,9 +110,9 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationClientIdAndAddressIdAndProductId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationClientIdAndAddressIdAndProductId([FromQuery] int page, [FromQuery] int size, [FromQuery] long client_id, [FromQuery] long address_id,[FromQuery] long product_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationClientIdAndAddressIdAndProductId([FromQuery] int page, [FromQuery] int size, [FromQuery] long client_id, [FromQuery] long address_id,[FromQuery] long product_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientBottleInfo> categoryList = await _context.WaterClientBottleInfo
                 .Include(p => p.product)
                 .Include(p => p.client)
@@ -127,9 +137,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationAddressId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationAddressId([FromQuery] int page, [FromQuery] int size, [FromQuery] long addres_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationAddressId([FromQuery] int page, [FromQuery] int size, [FromQuery] long addres_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientBottleInfo> categoryList = await _context.WaterClientBottleInfo
                 .Include(p => p.product)
                 .Include(p => p.client)
@@ -148,9 +158,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationSerachByClientName")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationSerachByClientName([FromQuery] int page, [FromQuery] int size,[FromQuery] String client_name)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationSerachByClientName([FromQuery] int page, [FromQuery] int size,[FromQuery] String client_name)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterClientBottleInfo> categoryList = await _context.WaterClientBottleInfo
                 .Include(p => p.product)
                 .Include(p => p.client)
@@ -189,11 +199,23 @@ namespace ApiAll.Controllers.water
         [HttpGet("checkBottleExitsOrNotByAddressId")]
         public async Task<ActionResult<WaterClientBottleInfo>> checkBottleExitsOrNotByAddressId([FromQuery]long adress_id)
         {
+            var tokenCompanyId = GetTokenCompanyId();
+            var address = await _context.WaterClientAddress.FindAsync(adress_id);
+            if (address == null)
+            {
+                return NotFound();
+            }
+            if (tokenCompanyId != null && address.company_id != tokenCompanyId)
+            {
+                return NotFound();
+            }
+
             var waterClientBottleInfo = await _context.WaterClientBottleInfo
                 .Include(p => p.product)
                 .Include(p => p.client)
                 .Include(p => p.address)
-                .Where(p => p.id == adress_id).ToListAsync();
+                .Where(p => p.WaterClientAddressid == adress_id
+                    && (tokenCompanyId == null || p.company_id == tokenCompanyId)).ToListAsync();
 
             if (waterClientBottleInfo == null || waterClientBottleInfo.Count == 0)
             {
@@ -323,6 +345,12 @@ namespace ApiAll.Controllers.water
         {
             var waterClientAddress = await _context.WaterClientAddress.FindAsync(adress_id);
             if (waterClientAddress == null)
+            {
+                return NotFound();
+            }
+
+            var tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null && waterClientAddress.company_id != tokenCompanyId)
             {
                 return NotFound();
             }

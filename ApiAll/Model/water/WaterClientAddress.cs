@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using Newtonsoft.Json.Linq;
 
@@ -34,5 +34,10 @@ namespace ApiAll.Model.water
         public double? bottle_count { get; set; }
         [NotMapped]
         public double? bottle_count_real { get; set; }
+    
+        public long? company_id { get; set; }
+
+        [ForeignKey("company_id")]
+        public WaterCompany Company { get; set; }
     }
 }

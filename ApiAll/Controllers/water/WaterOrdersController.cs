@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiAll.Contex;
 using ApiAll.Model.water;
-using ApiAll.Model.tekistil;
+using ApiAll.Model;
 using Newtonsoft.Json.Linq;
 
 namespace ApiAll.Controllers.water
@@ -25,11 +25,37 @@ namespace ApiAll.Controllers.water
             _context = context;
         }
 
+        private long? GetTokenCompanyId()
+        {
+            var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long parsedCompanyId) && parsedCompanyId > 0)
+            {
+                return parsedCompanyId;
+            }
+            return null;
+        }
+
+        private long? GetTokenWaterUserId()
+        {
+            var claimUserId = User?.Claims?.FirstOrDefault(c => c.Type == "water_user_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimUserId) && long.TryParse(claimUserId, out long parsedUserId) && parsedUserId > 0)
+            {
+                return parsedUserId;
+            }
+            return null;
+        }
+
         // GET: api/WaterOrders
         [HttpGet]
         public async Task<ActionResult<IEnumerable<WaterOrder>>> GetWaterOrder()
         {
-            return await _context.WaterOrder.ToListAsync();
+            IQueryable<WaterOrder> query = _context.WaterOrder.AsQueryable();
+            var tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null && tokenCompanyId > 0)
+            {
+                query = query.Where(p => p.company_id == tokenCompanyId);
+            }
+            return await query.ToListAsync();
         }
 
         public class CloseOrderDto
@@ -116,9 +142,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationOrderByClientId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationOrderByClientId([FromQuery] int page, [FromQuery] int size, [FromQuery] long client_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationOrderByClientId([FromQuery] int page, [FromQuery] int size, [FromQuery] long client_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                .Include(p => p.client)
                .Include(p => p.address)
@@ -498,6 +524,11 @@ namespace ApiAll.Controllers.water
             {
                 return NotFound();
             }
+            var tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null && tokenCompanyId > 0 && waterOrder.company_id != tokenCompanyId)
+            {
+                return NotFound();
+            }
             waterOrder.deleivered_user_auth_id = null;
             _context.WaterOrder.Update(waterOrder);
             await _context.SaveChangesAsync();
@@ -821,9 +852,9 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPagination")]
-        public async Task<ActionResult<TexPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -874,10 +905,10 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationAllByDateTme")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationAllByDateTme([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationAllByDateTme([FromQuery] int page,
             [FromQuery] int size, [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -931,16 +962,24 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationAllAcceptedByDateTme")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationAllAcceptedByDateTme([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationAllAcceptedByDateTme([FromQuery] int page,
     [FromQuery] int size, [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
-            List<WaterOrder> categoryList = await _context.WaterOrder
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
+            IQueryable<WaterOrder> query = _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
                 .Include(p => p.address)
                 .Where(p => p.accepted_status == true
-                && (p.order_date >= begin_date && p.order_date <= end_date))
+                && (p.order_date >= begin_date && p.order_date <= end_date));
+
+            var tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null && tokenCompanyId > 0)
+            {
+                query = query.Where(p => p.company_id == tokenCompanyId);
+            }
+
+            List<WaterOrder> categoryList = await query
                 .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
             if (categoryList == null)
             {
@@ -979,18 +1018,17 @@ namespace ApiAll.Controllers.water
 
             }
             paginationModel.items_list = JArray.FromObject(categoryList);
-            paginationModel.items_count = await _context.WaterOrder.Where(p => p.accepted_status == true
-            && (p.order_date >= begin_date && p.order_date <= end_date)).CountAsync();
+            paginationModel.items_count = await query.CountAsync();
             paginationModel.current_item_count = categoryList.Count();
             paginationModel.current_page = page;
             return paginationModel;
         }
 
         [HttpGet("getPaginationAllNotAcceptedByDateTme")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationAllNotAcceptedByDateTme([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationAllNotAcceptedByDateTme([FromQuery] int page,
 [FromQuery] int size, [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -1044,14 +1082,22 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationOpenOrdersList")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationOpenOrdersList([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationOpenOrdersList([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
-            List<WaterOrder> categoryList = await _context.WaterOrder
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
+            IQueryable<WaterOrder> query = _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
                 .Include(p => p.address)
-                .Where(p => p.active_status == true && p.accepted_status == false)
+                .Where(p => p.active_status == true && p.accepted_status == false);
+
+            var tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null && tokenCompanyId > 0)
+            {
+                query = query.Where(p => p.company_id == tokenCompanyId);
+            }
+
+            List<WaterOrder> categoryList = await query
                 .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
             if (categoryList == null)
             {
@@ -1129,7 +1175,7 @@ namespace ApiAll.Controllers.water
             }
 
             paginationModel.items_list = JArray.FromObject(categoryList);
-            paginationModel.items_count = await _context.WaterOrder.Where(p => p.active_status == true && p.accepted_status == false).CountAsync();
+            paginationModel.items_count = await query.CountAsync();
             paginationModel.current_item_count = categoryList.Count();
             paginationModel.current_page = page;
             return paginationModel;
@@ -1137,11 +1183,11 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationBeatweanDateWithoutTimeOpenOrdersListByAuthIdAsc")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersListByAuthIdAsc([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersListByAuthIdAsc([FromQuery] int page,
 [FromQuery] int size,
 [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date, [FromQuery] long user_auth_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -1199,11 +1245,11 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationBeatweanDateWithoutTimeOpenOrdersListByAuthId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersListByAuthId([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersListByAuthId([FromQuery] int page,
     [FromQuery] int size,
     [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date,[FromQuery] long user_auth_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -1260,11 +1306,11 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationBeatweanDateWithoutTimeOpenOrdersListByNotAddedAnyUser")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersListByNotAddedAnyUser([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersListByNotAddedAnyUser([FromQuery] int page,
     [FromQuery] int size,
     [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -1321,15 +1367,23 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationBeatweanDateWithoutTimeOpenOrdersList")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersList([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationBeatweanDateWithoutTimeOpenOrdersList([FromQuery] int page,
             [FromQuery] int size,
             [FromQuery] DateTime begin_date,[FromQuery] DateTime end_date)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
-            List<WaterOrder> categoryList = await _context.WaterOrder
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
+            IQueryable<WaterOrder> query = _context.WaterOrder
                 .Where(p => p.active_status == true
                 && p.accepted_status == false
-                && (p.order_date >= begin_date && p.order_date<= end_date))
+                && (p.order_date >= begin_date && p.order_date <= end_date));
+
+            var tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null && tokenCompanyId > 0)
+            {
+                query = query.Where(p => p.company_id == tokenCompanyId);
+            }
+
+            List<WaterOrder> categoryList = await query
                 .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
             if (categoryList == null)
             {
@@ -1369,20 +1423,18 @@ namespace ApiAll.Controllers.water
             }
 
             paginationModel.items_list = JArray.FromObject(categoryList);
-            paginationModel.items_count = await _context.WaterOrder.Where(p => p.active_status == true
-            && p.accepted_status == false
-            && (p.order_date >= begin_date && p.order_date <= end_date)).CountAsync();
+            paginationModel.items_count = await query.CountAsync();
             paginationModel.current_item_count = categoryList.Count();
             paginationModel.current_page = page;
             return paginationModel;
         }
 
         [HttpGet("getPaginationBeatweanDateWithoutTimeClosedOrdersList")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationBeatweanDateWithoutTimeClosedOrdersList([FromQuery] int page,
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationBeatweanDateWithoutTimeClosedOrdersList([FromQuery] int page,
     [FromQuery] int size,
     [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -1435,9 +1487,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationClosedOrdersList")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationClosedOrdersList([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationClosedOrdersList([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterOrder> categoryList = await _context.WaterOrder
                 .Include(p => p.user)
                 .Include(p => p.client)
@@ -1524,6 +1576,39 @@ namespace ApiAll.Controllers.water
         [HttpPost]
         public async Task<ActionResult<WaterOrder>> PostWaterOrder(WaterOrder waterOrder)
         {
+            var tokenCompanyId = GetTokenCompanyId();
+            var tokenWaterUserId = GetTokenWaterUserId();
+
+            if (tokenCompanyId != null && tokenCompanyId > 0)
+            {
+                waterOrder.company_id = tokenCompanyId;
+            }
+
+            if (tokenWaterUserId != null && tokenWaterUserId > 0)
+            {
+                waterOrder.reserverd_numeric_id_3 = Convert.ToDouble(tokenWaterUserId.Value);
+            }
+
+            if (waterOrder.items != null && waterOrder.items.Count > 0)
+            {
+                foreach (var item in waterOrder.items)
+                {
+                    if (tokenCompanyId != null && tokenCompanyId > 0)
+                    {
+                        item.company_id = tokenCompanyId;
+                    }
+                    if (tokenWaterUserId != null && tokenWaterUserId > 0)
+                    {
+                        item.reserverd_numeric_id_3 = Convert.ToDouble(tokenWaterUserId.Value);
+                    }
+                }
+            }
+
+            if (waterOrder.company_id == null || waterOrder.company_id <= 0)
+            {
+                return BadRequest("company_id is required");
+            }
+
             _context.WaterOrder.Update(waterOrder);
             await _context.SaveChangesAsync();
 
@@ -2025,6 +2110,11 @@ namespace ApiAll.Controllers.water
         {
             var waterOrder = await _context.WaterOrder.FindAsync(id);
             if (waterOrder == null)
+            {
+                return NotFound();
+            }
+            var tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null && tokenCompanyId > 0 && waterOrder.company_id != tokenCompanyId)
             {
                 return NotFound();
             }

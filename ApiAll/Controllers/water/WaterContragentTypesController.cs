@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,11 +22,37 @@ namespace ApiAll.Controllers.water
             _context = context;
         }
 
+        private long? GetTokenCompanyId()
+        {
+            var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long parsedCompanyId) && parsedCompanyId > 0)
+            {
+                return parsedCompanyId;
+            }
+            return null;
+        }
+
+        private long? GetTokenWaterUserId()
+        {
+            var claimUserId = User?.Claims?.FirstOrDefault(c => c.Type == "water_user_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimUserId) && long.TryParse(claimUserId, out long parsedUserId) && parsedUserId > 0)
+            {
+                return parsedUserId;
+            }
+            return null;
+        }
+
         // GET: api/WaterContragentTypes
         [HttpGet]
         public async Task<ActionResult<IEnumerable<WaterContragentType>>> GetWaterContragentType()
         {
-            return await _context.WaterContragentType.ToListAsync();
+            IQueryable<WaterContragentType> query = _context.WaterContragentType.AsQueryable();
+            long? tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null)
+            {
+                query = query.Where(p => p.company_id == tokenCompanyId);
+            }
+            return await query.ToListAsync();
         }
 
         // GET: api/WaterContragentTypes/5
@@ -36,6 +62,12 @@ namespace ApiAll.Controllers.water
             var waterContragentType = await _context.WaterContragentType.FindAsync(id);
 
             if (waterContragentType == null)
+            {
+                return NotFound();
+            }
+
+            long? tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null && waterContragentType.company_id != tokenCompanyId)
             {
                 return NotFound();
             }
@@ -81,6 +113,22 @@ namespace ApiAll.Controllers.water
         [HttpPost]
         public async Task<ActionResult<WaterContragentType>> PostWaterContragentType(WaterContragentType waterContragentType)
         {
+            long? tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null)
+            {
+                waterContragentType.company_id = tokenCompanyId;
+            }
+            if (waterContragentType.company_id == null || waterContragentType.company_id <= 0)
+            {
+                return BadRequest("company_id is required");
+            }
+
+            long? tokenWaterUserId = GetTokenWaterUserId();
+            if (tokenWaterUserId != null)
+            {
+                waterContragentType.reserverd_numeric_id_3 = Convert.ToDouble(tokenWaterUserId.Value);
+            }
+
             _context.WaterContragentType.Update(waterContragentType);
             await _context.SaveChangesAsync();
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ApiAll.Model.water
@@ -37,5 +37,9 @@ namespace ApiAll.Model.water
         [NotMapped]
         public String product_name_list_pp_2 { get; set; }
 
+        public long? company_id { get; set; }
+
+        [ForeignKey("company_id")]
+        public WaterCompany Company { get; set; }
     }
 }

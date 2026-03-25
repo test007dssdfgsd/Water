@@ -358,6 +358,13 @@ export default {
 
   methods:{
     ...mapActions(['fetch_district_t', 'fetchClient', 'fetch_contragent_t','fetchDepartment', 'fetchLevel']),
+    authHeaders () {
+      const headers = {}
+      if (localStorage.AuthToken) {
+        headers.Authorization = 'Bearer ' + localStorage.AuthToken
+      }
+      return headers
+    },
     async searchClient(){
       if(this.name == ''){
         this.get_client_list = [];
@@ -365,7 +372,9 @@ export default {
       else{
         try{
           if(this.name != ''){
-            const res = await fetch(this.$store.state.hostname + '/WaterClients/getPaginationByName?page=0&size=100&fio=' + this.name);
+            const res = await fetch(this.$store.state.hostname + '/WaterClients/getPaginationByName?page=0&size=100&fio=' + this.name, {
+              headers: this.authHeaders()
+            });
             const data = await res.json();
             // console.log(data)
             this.get_client_list = data.items_list;
@@ -380,7 +389,9 @@ export default {
       }
     },
     async updateClient(id){
-      const res = await fetch(this.$store.state.hostname + '/WaterClients/' + id);
+      const res = await fetch(this.$store.state.hostname + '/WaterClients/' + id, {
+        headers: this.authHeaders()
+      });
       const data = await res.json();
       // console.log('this is by id')
       // console.log(data)
@@ -417,6 +428,7 @@ export default {
       if(this.phoneList[i].id>0){
         const requestOptions = {
             method : "delete",
+            headers: this.authHeaders()
           };
         const response = await fetch(this.$store.state.hostname + "/WaterClients/deletePhoneNumber?phone_id=" + this.phoneList[i].id, requestOptions);
         const data = await response.json();
@@ -663,7 +675,10 @@ export default {
 
         const requestOptions = {
             method : "POST",
-            headers: { "Content-Type" : "application/json" },
+            headers: {
+              "Content-Type" : "application/json",
+              ...this.authHeaders()
+            },
             body: JSON.stringify({
               "fio" : this.name,
               "phone_numbers_list": phoneFunList,

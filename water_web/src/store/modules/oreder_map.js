@@ -5,7 +5,11 @@ export default {
     },
     actions: {
         async fetchOrder_list(ctx) {
-            const res = await fetch(ctx.rootState.hostname + '/WaterOrders/getPaginationOpenOrdersList?page=0&size=500');
+            const headers = {};
+            if (localStorage.AuthToken) {
+                headers.Authorization = 'Bearer ' + localStorage.AuthToken;
+            }
+            const res = await fetch(ctx.rootState.hostname + '/WaterOrders/getPaginationOpenOrdersList?page=0&size=500', { headers });
             const res_data = await res.json();
             // console.log(ctx.rootState.hostname);
             ctx.commit('updateDevice', res_data);

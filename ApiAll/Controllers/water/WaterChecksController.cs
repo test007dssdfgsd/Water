@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiAll.Contex;
 using ApiAll.Model.water;
-using ApiAll.Model.tekistil;
+using ApiAll.Model;
 using Newtonsoft.Json.Linq;
 
 namespace ApiAll.Controllers.water
@@ -72,9 +72,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPagination")]
-        public async Task<ActionResult<TexPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<JsonPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterCheck> categoryList = await _context.WaterCheck
                 .Include(p => p.auth)
                 .Where(p => p.active_status == true)
@@ -91,9 +91,9 @@ namespace ApiAll.Controllers.water
         }
 
         // [HttpGet("getPaginationByDateTime")]
-        // public async Task<ActionResult<TexPaginationModel>> getPaginationByDateTime([FromQuery] int page, [FromQuery] int size,[FromQuery] DateTime begin_date,[FromQuery] DateTime end_date)
+        // public async Task<ActionResult<JsonPaginationModel>> getPaginationByDateTime([FromQuery] int page, [FromQuery] int size,[FromQuery] DateTime begin_date,[FromQuery] DateTime end_date)
         // {
-        //     TexPaginationModel paginationModel = new TexPaginationModel();
+        //     JsonPaginationModel paginationModel = new JsonPaginationModel();
         //     List<WaterCheck> categoryList = await _context.WaterCheck
         //         .Include(p => p.auth)
         //         .Where(p => p.active_status == true && ( p.created_date_time >= begin_date && p.created_date_time <= end_date))
@@ -143,14 +143,14 @@ namespace ApiAll.Controllers.water
 
 
         [HttpGet("getPaginationByDateTime")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationByDateTime(
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationByDateTime(
             [FromQuery] int page, 
             [FromQuery] int size,
             [FromQuery] DateTime begin_date,
             [FromQuery] DateTime end_date,
             [FromQuery] string search = "")
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
 
             var query = _context.WaterCheck
                 .Include(p => p.auth)
@@ -228,9 +228,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationByAuthIdByDateTime")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationByAuthIdByDateTime([FromQuery] int page, [FromQuery] int size, [FromQuery] long auth_id, [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationByAuthIdByDateTime([FromQuery] int page, [FromQuery] int size, [FromQuery] long auth_id, [FromQuery] DateTime begin_date, [FromQuery] DateTime end_date)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterCheck> categoryList = await _context.WaterCheck
                 .Include(p => p.auth)
                 .Where(p => p.active_status == true
@@ -281,9 +281,9 @@ namespace ApiAll.Controllers.water
         }
 
         [HttpGet("getPaginationByAuthId")]
-        public async Task<ActionResult<TexPaginationModel>> getPaginationByAuthId([FromQuery] int page, [FromQuery] int size,[FromQuery] long auth_id)
+        public async Task<ActionResult<JsonPaginationModel>> getPaginationByAuthId([FromQuery] int page, [FromQuery] int size,[FromQuery] long auth_id)
         {
-            TexPaginationModel paginationModel = new TexPaginationModel();
+            JsonPaginationModel paginationModel = new JsonPaginationModel();
             List<WaterCheck> categoryList = await _context.WaterCheck
                 .Include(p => p.auth)
                 .Where(p => p.active_status == true && p.WaterAuthid == auth_id)

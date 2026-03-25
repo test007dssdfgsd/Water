@@ -71,8 +71,13 @@ export default {
       },
       async for_delete(del_data,index)
       {
+         const headers = {}
+         if (localStorage.AuthToken) {
+           headers.Authorization = 'Bearer ' + localStorage.AuthToken
+         }
          const requestOptions = {
             method : "delete",
+            headers
           };
           const response = await fetch(this.$store.state.hostname + "/WaterProducts/" + del_data.id, requestOptions);
           const data = await response.text();
@@ -109,10 +114,10 @@ export default {
   padding: 16px;
 }
 
-.product-main {
-  max-width: 1600px;
-  margin: 0 auto;
-}
+// .product-main {
+//   max-width: 1000px;
+//   margin: 0 auto;
+// }
 
 // Header section
 .product-header {
@@ -173,10 +178,6 @@ export default {
       }
     }
   }
-}
-
-.table-section {
-  // Table komponenti o'zining dizayniga ega, shuning uchun faqat wrapper qo'shamiz
 }
 
 @media (max-width: 768px) {

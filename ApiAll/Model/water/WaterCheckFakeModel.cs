@@ -1,4 +1,6 @@
-﻿using System;
+using System;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace ApiAll.Model.water
 {
     public class WaterCheckFakeModel
@@ -9,8 +11,10 @@ namespace ApiAll.Model.water
         public double? debit { get; set; }
         public double? rasxod { get; set; }
         public String fio { get; set; }
-        
+
+        public long? company_id { get; set; }
+
+        [ForeignKey("company_id")]
+        public WaterCompany Company { get; set; }
     }
 }
-
-

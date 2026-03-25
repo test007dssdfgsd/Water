@@ -194,7 +194,9 @@ export default {
      
       if(this.id > 0)
       {
-        const res = await fetch(this.$store.state.hostname + '/WaterContragents/' + this.id);
+        const res = await fetch(this.$store.state.hostname + '/WaterContragents/' + this.id, {
+          headers: this.authHeaders()
+        });
         const data = await res.json();
         console.log('this is by id')
         console.log(data)
@@ -214,6 +216,13 @@ export default {
 
   methods:{
     ...mapActions(['fetchLevel']),
+    authHeaders () {
+      const headers = {}
+      if (localStorage.AuthToken) {
+        headers.Authorization = 'Bearer ' + localStorage.AuthToken
+      }
+      return headers
+    },
     selectOption(option){
       this.type_name = option.name
       this.type_id = option.id
@@ -238,9 +247,13 @@ export default {
           }
         else{ 
           this.alert_danger = false;
+          const headers = {
+            "Content-Type" : "application/json",
+            ...this.authHeaders()
+          }
           const requestOptions = {
               method : "POST",
-              headers: { "Content-Type" : "application/json" },
+              headers,
               body: JSON.stringify({
                 "name" : this.name,
                 "note": this.note,

@@ -13,6 +13,7 @@ import LoginLayout from "@/layouts/LoginLayout"
 import EmptyLayout from "@/layouts/EmptyLayout"
 import MainLayout from "@/layouts/MainLayout"
 import NavbarLayout from "@/layouts/NavbarLayout"
+import AdminLayout from "@/layouts/AdminLayout"
 
 export default
 {
@@ -31,7 +32,8 @@ export default
 
   components:{
     LoginLayout,EmptyLayout,
-    MainLayout, NavbarLayout
+    MainLayout, NavbarLayout,
+    AdminLayout
   },
   // methods:{
   //     ...mapActions(['fetchUsers']),

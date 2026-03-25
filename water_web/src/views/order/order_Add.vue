@@ -529,6 +529,13 @@ export default {
 
   methods:{
     ...mapActions(['fetch_district_t', 'fetchClient', 'fetch_contragent_t','fetchDepartment', 'fetchLevel', 'fetchClient', 'fetch_product_t', 'fetchOrder_list']),
+    authHeaders() {
+      const headers = { "Content-Type": "application/json" };
+      if (localStorage.AuthToken) {
+        headers.Authorization = 'Bearer ' + localStorage.AuthToken;
+      }
+      return headers;
+    },
     formatPhone(phone) {
       if (!phone) return ''
       // Telefon raqamini formatlash: 99 777 22 47
@@ -720,11 +727,20 @@ export default {
       this.productList[option.index].product_id = option.data.id;
     },
     async fetch_main_product(){
-      const response = await fetch(this.$store.state.hostname + "/WaterProducts/getPaginationMainProduct?page=0&size=1");
+      const headers = {};
+      if (localStorage.AuthToken) {
+        headers.Authorization = 'Bearer ' + localStorage.AuthToken;
+      }
+      const response = await fetch(this.$store.state.hostname + "/WaterProducts/getPaginationMainProduct?page=0&size=1", { headers });
       const data = await response.json();
       console.log(data);
-      this.main_product_name = data.items_list[0].name;
-      this.main_product_id = data.items_list[0].id;
+      if (data.items_list && data.items_list.length > 0) {
+        this.main_product_name = data.items_list[0].name;
+        this.main_product_id = data.items_list[0].id;
+      } else {
+        this.main_product_name = '';
+        this.main_product_id = null;
+      }
     },
     async chooseAddress(i, data){
       console.log(data)
@@ -781,7 +797,7 @@ export default {
           // this.alert_danger = false;
           const requestOptions = {
             method : "POST",
-            headers: { "Content-Type" : "application/json" },
+            headers: this.authHeaders(),
             body: JSON.stringify({
               "order_date" : this.order_date + 'T12:00:00.000Z',
               "waterClientid": this.main_client_id,
@@ -876,7 +892,7 @@ export default {
         // this.alert_danger = false;
         const requestOptions = {
           method : "POST",
-          headers: { "Content-Type" : "application/json" },
+          headers: this.authHeaders(),
           body: JSON.stringify({
             "order_date" : this.order_date + 'T12:00:00.000Z',
             "waterClientid": this.main_client_id,
@@ -1351,9 +1367,6 @@ export default {
   span {
     margin-left: 10px;
   }
-}
-
-.free_day {
 }
 
 .week_day_item {

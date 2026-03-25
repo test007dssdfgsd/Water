@@ -252,6 +252,13 @@ export default {
   },
   methods: {
   ...mapActions(['fetchOrder_list']),
+    authHeaders() {
+      const headers = {};
+      if (localStorage.AuthToken) {
+        headers.Authorization = 'Bearer ' + localStorage.AuthToken;
+      }
+      return headers;
+    },
     async fetchTodayOrderList(){
       let date = new Date();
       this.today_date = date.toISOString().slice(0,10);
@@ -295,7 +302,9 @@ export default {
       this.show_order_list = false;
       try{
         this.loading = true;
-        const res = await fetch(this.$store.state.hostname + '/WaterOrders/getPaginationBeatweanDateWithoutTimeOpenOrdersList?page=0&size=1000&begin_date='+ date.b_date+'&end_date=' + date.e_date);
+        const res = await fetch(this.$store.state.hostname + '/WaterOrders/getPaginationBeatweanDateWithoutTimeOpenOrdersList?page=0&size=1000&begin_date='+ date.b_date+'&end_date=' + date.e_date, {
+          headers: this.authHeaders()
+        });
         const data = await res.json();
         this.loading = false;
         if(res.status == 200 || res.status == 201){
@@ -350,7 +359,9 @@ export default {
     {
       console.log(data)
       try{
-        const res = await fetch(this.$store.state.hostname + '/WaterOrders/addDeOrderToUsersWithAuthidRemoveCar?id='+ data.id);
+        const res = await fetch(this.$store.state.hostname + '/WaterOrders/addDeOrderToUsersWithAuthidRemoveCar?id='+ data.id, {
+          headers: this.authHeaders()
+        });
 
         
         if(res.status == 200 || res.status == 201){
@@ -410,6 +421,7 @@ export default {
     async promise(){
       const requestOptions = {
         method : "delete",
+        headers: this.authHeaders()
       };
       try{
         const response = await fetch(this.$store.state.hostname + "/WaterOrders/" + this.order_id, requestOptions);

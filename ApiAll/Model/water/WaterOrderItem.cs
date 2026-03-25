@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
@@ -27,5 +27,10 @@ namespace ApiAll.Model.water
      
 
 
+    
+        public long? company_id { get; set; }
+
+        [ForeignKey("company_id")]
+        public WaterCompany Company { get; set; }
     }
 }

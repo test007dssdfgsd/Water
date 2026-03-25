@@ -1,10 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using ApiAll.Contex;
 using ApiAll.Model.water;
 
@@ -16,10 +21,12 @@ namespace ApiAll.Controllers.water
     public class WaterAuthsController : ControllerBase
     {
         private readonly ApplicationContext _context;
+        private readonly IConfiguration _configuration;
 
-        public WaterAuthsController(ApplicationContext context)
+        public WaterAuthsController(ApplicationContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         // GET: api/WaterAuths
@@ -61,7 +68,7 @@ namespace ApiAll.Controllers.water
 
         // GET: api/WaterAuths/5
         [HttpGet("checkAuth")]
-        public async Task<ActionResult<WaterAuth>> checkAuth([FromQuery] String login,[FromQuery] String password)
+        public async Task<ActionResult<object>> checkAuth([FromQuery] String login,[FromQuery] String password)
         {
             var waterAuth = await _context.WaterAuth
                 .Where(p => p.password == password && p.login == login)
@@ -72,7 +79,44 @@ namespace ApiAll.Controllers.water
                 return NotFound();
             }
 
-            return waterAuth.First();
+            WaterAuth auth = waterAuth.First();
+            var claims = new List<Claim>
+            {
+                new Claim("auth_id", auth.id.ToString()),
+                new Claim("company_id", (auth.company_id ?? 0).ToString()),
+                new Claim("water_user_id", auth.WaterUserid.ToString()),
+                new Claim("user_type", auth.user_type.ToString()),
+                new Claim(ClaimTypes.Name, auth.login ?? "")
+            };
+
+            var keyString = _configuration["Jwt:Key"];
+            if (String.IsNullOrWhiteSpace(keyString))
+            {
+                keyString = "WATER_DEFAULT_SUPER_SECRET_KEY_2026_CHANGE_ME";
+            }
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddDays(7),
+                signingCredentials: credentials
+            );
+
+            var tokenValue = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return Ok(new
+            {
+                token = tokenValue,
+                id = auth.id,
+                login = auth.login,
+                user_type = auth.user_type,
+                company_id = auth.company_id,
+                waterUserid = auth.WaterUserid
+            });
         }
 
 
@@ -115,6 +159,30 @@ namespace ApiAll.Controllers.water
         [HttpPost]
         public async Task<ActionResult<WaterAuth>> PostWaterAuth(WaterAuth waterAuth)
         {
+            if (waterAuth.company_id == null || waterAuth.company_id <= 0)
+            {
+                var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+                if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long tokenCompanyId) && tokenCompanyId > 0)
+                {
+                    waterAuth.company_id = tokenCompanyId;
+                }
+            }
+
+            // Legacy pages may not send company_id; fallback from related WaterUser.
+            if ((waterAuth.company_id == null || waterAuth.company_id <= 0) && waterAuth.WaterUserid > 0)
+            {
+                var relatedUser = await _context.WaterUser.FindAsync(waterAuth.WaterUserid);
+                if (relatedUser != null && relatedUser.company_id != null && relatedUser.company_id > 0)
+                {
+                    waterAuth.company_id = relatedUser.company_id;
+                }
+            }
+
+            if (waterAuth.company_id == null || waterAuth.company_id <= 0)
+            {
+                return BadRequest("company_id is required");
+            }
+
             _context.WaterAuth.Update(waterAuth);
             await _context.SaveChangesAsync();
             return waterAuth;

@@ -110,7 +110,11 @@ export default {
     async searchFunc(){
       try{
         if(this.url != '' && this.name != ''){
-          const res = await fetch(this.$store.state.hostname + this.url + this.name);
+          const headers = {}
+          if (localStorage.AuthToken) {
+            headers.Authorization = 'Bearer ' + localStorage.AuthToken
+          }
+          const res = await fetch(this.$store.state.hostname + this.url + this.name, { headers });
           const data = await res.json();
           console.log(data)
           this.list = data.items_list;

@@ -207,9 +207,13 @@ export default {
           return
         }else{
           this.alert_danger = false;
+          const headers = { "Content-Type" : "application/json" }
+          if (localStorage.AuthToken) {
+            headers.Authorization = 'Bearer ' + localStorage.AuthToken
+          }
           const requestOptions = {
               method : "POST",
-              headers: { "Content-Type" : "application/json" },
+              headers,
               body: JSON.stringify({
                 "id": this.id,
                 "waterUserid": localStorage.UserIdForAuth,

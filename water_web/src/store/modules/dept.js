@@ -9,7 +9,11 @@ export default {
     },
     actions: {
         async fetchDepartment(ctx) {
-            const res = await fetch(ctx.rootState.hostname + '/WaterTumen');
+            const headers = {}
+            if (localStorage.AuthToken) {
+                headers.Authorization = 'Bearer ' + localStorage.AuthToken
+            }
+            const res = await fetch(ctx.rootState.hostname + '/WaterTumen', { headers });
             const res_data = await res.json();
             // console.log(ctx.rootState.hostname);
             ctx.commit('updateDepartment', res_data);

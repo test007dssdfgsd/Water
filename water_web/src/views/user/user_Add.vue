@@ -194,9 +194,13 @@ export default {
 
         else{ 
           this.alert_danger = false;
+          const headers = { "Content-Type": "application/json" }
+          if (localStorage.AuthToken) {
+            headers.Authorization = 'Bearer ' + localStorage.AuthToken
+          }
           const requestOptions = {
               method : "POST",
-              headers: { "Content-Type" : "application/json" },
+              headers,
               body: JSON.stringify({
                 "fio" : this.name,
                 "phone_number": this.phoneNumber,

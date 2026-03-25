@@ -1,4 +1,5 @@
-﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
+using System;
 namespace ApiAll.Model.water
 {
     public class WaterStatistikaFakeReport
@@ -10,5 +11,10 @@ namespace ApiAll.Model.water
         public double? olgan_suv_soni { get; set; } = 0;
         public double? bakalashka_soni1 { get; set; } = 0;
         
+    
+        public long? company_id { get; set; }
+
+        [ForeignKey("company_id")]
+        public WaterCompany Company { get; set; }
     }
 }

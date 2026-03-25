@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using Newtonsoft.Json.Linq;
 
@@ -19,5 +19,10 @@ namespace ApiAll.Model.water
         [NotMapped]
         public JObject clinet_obj { get; set; }
 
+    
+        public long? company_id { get; set; }
+
+        [ForeignKey("company_id")]
+        public WaterCompany Company { get; set; }
     }
 }

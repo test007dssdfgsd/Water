@@ -16,10 +16,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.FileProviders;
 using System;
 using Newtonsoft;
-using Microsoft.AspNetCore.Authentication.Certificate;
 using System.IO;
 using ApiAll.Settings;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace ApiAll
 {
@@ -37,9 +39,29 @@ namespace ApiAll
         {
             services.AddHttpClient();
             string connection = Configuration.GetConnectionString("DefaultConnection");
-            services.AddAuthentication(
-        CertificateAuthenticationDefaults.AuthenticationScheme)
-        .AddCertificate();
+            var jwtKey = Configuration["Jwt:Key"];
+            if (string.IsNullOrWhiteSpace(jwtKey))
+            {
+                jwtKey = "WATER_DEFAULT_SUPER_SECRET_KEY_2026_CHANGE_ME";
+            }
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = Configuration["Jwt:Issuer"],
+                    ValidAudience = Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
               services.AddCors(c =>
               {
                   c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin());
@@ -98,7 +120,6 @@ namespace ApiAll
                 .SetIsOriginAllowed(origin => true) // allow any origin
                 .AllowCredentials()); // allow credentials
 
-             app.UseAuthentication();
              app.UseHttpsRedirection();
              app.UseSwagger();
              app.UseSwaggerUI(c =>
@@ -118,10 +139,9 @@ namespace ApiAll
 
 
           
-            app.UseHttpsRedirection();
-
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

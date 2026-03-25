@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,7 +28,18 @@ namespace ApiAll.Controllers.water
         [HttpGet]
         public async Task<ActionResult<IEnumerable<WaterProduct>>> GetWaterProduct()
         {
-            return await _context.WaterProduct.ToListAsync();
+            IQueryable<WaterProduct> query = _context.WaterProduct.AsQueryable();
+            long? tokenCompanyId = null;
+            var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long parsedCompanyId))
+            {
+                tokenCompanyId = parsedCompanyId;
+            }
+            if (tokenCompanyId != null && tokenCompanyId > 0)
+            {
+                query = query.Where(p => p.company_id == tokenCompanyId);
+            }
+            return await query.ToListAsync();
         }
 
         // GET: api/WaterProducts/5
@@ -40,6 +51,15 @@ namespace ApiAll.Controllers.water
             if (waterProduct == null)
             {
                 return NotFound();
+            }
+
+            var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long tokenCompanyId) && tokenCompanyId > 0)
+            {
+                if (waterProduct.company_id != tokenCompanyId)
+                {
+                    return NotFound();
+                }
             }
 
             return waterProduct;
@@ -68,17 +88,22 @@ namespace ApiAll.Controllers.water
         public async Task<ActionResult<JsonPaginationModel>> getPaginationMainProduct([FromQuery] int page, [FromQuery] int size)
         {
             JsonPaginationModel paginationModel = new JsonPaginationModel();
-            List<WaterProduct> categoryList = await _context.WaterProduct
-                .Where(p => p.active_status == true
-                && p.main_product == true)
+            IQueryable<WaterProduct> query = _context.WaterProduct.Where(p => p.active_status == true && p.main_product == true);
+
+            var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long tokenCompanyId) && tokenCompanyId > 0)
+            {
+                query = query.Where(p => p.company_id == tokenCompanyId);
+            }
+
+            List<WaterProduct> categoryList = await query
                 .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
             if (categoryList == null)
             {
                 categoryList = new List<WaterProduct>();
             }
             paginationModel.items_list = JArray.FromObject(categoryList);
-            paginationModel.items_count = await _context.WaterProduct.Where(p => p.active_status == true
-            && p.main_product == true).CountAsync();
+            paginationModel.items_count = await query.CountAsync();
             paginationModel.current_item_count = categoryList.Count();
             paginationModel.current_page = page;
             return paginationModel;
@@ -142,6 +167,16 @@ namespace ApiAll.Controllers.water
         [HttpPost]
         public async Task<ActionResult<WaterProduct>> PostWaterProduct(WaterProduct waterProduct)
         {
+            var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long tokenCompanyId) && tokenCompanyId > 0)
+            {
+                waterProduct.company_id = tokenCompanyId;
+            }
+
+            if (waterProduct.company_id == null || waterProduct.company_id <= 0)
+            {
+                return BadRequest("company_id is required");
+            }
             _context.WaterProduct.Update(waterProduct);
             await _context.SaveChangesAsync();
 

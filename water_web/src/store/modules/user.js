@@ -10,7 +10,11 @@ export default {
     },
     actions: {
         async fetchUser(ctx) {
-            const res = await fetch(ctx.rootState.hostname + '/WaterUsers');
+            const headers = {}
+            if (localStorage.AuthToken) {
+                headers.Authorization = 'Bearer ' + localStorage.AuthToken
+            }
+            const res = await fetch(ctx.rootState.hostname + '/WaterUsers', { headers });
             const res_data = await res.json();
             // console.log(ctx.rootState.hostname);
             ctx.commit('updateUser', res_data);

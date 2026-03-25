@@ -167,11 +167,20 @@ export default {
   },
   methods: {
   ...mapActions(['fetchOrder_list']),
+    authHeaders() {
+      const headers = {};
+      if (localStorage.AuthToken) {
+        headers.Authorization = 'Bearer ' + localStorage.AuthToken;
+      }
+      return headers;
+    },
     async fetchDateOrderList(date){
       this.show_order_list = false;
       try{
         this.loading = true;
-        const res = await fetch(this.$store.state.hostname + '/WaterOrders/getPaginationAllAcceptedByDateTme?page=0&size=1000&begin_date='+ date.b_date+'&end_date=' + date.e_date);
+        const res = await fetch(this.$store.state.hostname + '/WaterOrders/getPaginationAllAcceptedByDateTme?page=0&size=1000&begin_date='+ date.b_date+'&end_date=' + date.e_date, {
+          headers: this.authHeaders()
+        });
         const data = await res.json();
         this.loading = false;
         if(res.status == 200 || res.status == 201){

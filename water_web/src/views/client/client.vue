@@ -81,6 +81,13 @@ export default {
   methods: {
     ...mapActions(['fetchClient', ]),
     ...mapMutations(['client_delete_row', 'product_delete_row', 'update_pagination_first']),
+      authHeaders () {
+        const headers = {}
+        if (localStorage.AuthToken) {
+          headers.Authorization = 'Bearer ' + localStorage.AuthToken
+        }
+        return headers
+      },
   
       for_edit(edit_data)
       {
@@ -89,7 +96,9 @@ export default {
       async for_delete(del_data,index,note)
       {
         console.log(index)
-          const response = await fetch(this.$store.state.hostname + "/WaterClients/deleteClientByIdAndNote?id=" + del_data.id + '&note=!' + note);
+          const response = await fetch(this.$store.state.hostname + "/WaterClients/deleteClientByIdAndNote?id=" + del_data.id + '&note=!' + note, {
+            headers: this.authHeaders()
+          });
           const data = await response.json();
           if(response.status == 201 || response.status == 200)
           {
@@ -109,7 +118,9 @@ export default {
         this.refresh();
       },
       async refresh(){
-        const res = await fetch(this.$store.state.hostname + '/WaterClients/getPagination?page=' + this.get_pagination.page + '&size=' + this.get_pagination.size);
+        const res = await fetch(this.$store.state.hostname + '/WaterClients/getPagination?page=' + this.get_pagination.page + '&size=' + this.get_pagination.size, {
+          headers: this.authHeaders()
+        });
         const res_data = await res.json();
         // await this.update_column();
         this.update_pagination_first({current_item_count: res_data.current_item_count, current_page: res_data.current_page+1, items_count: res_data.items_count});
@@ -121,7 +132,9 @@ export default {
           await this.refresh();
         }
         else{
-          const res = await fetch(this.$store.state.hostname + '/WaterClients/getPaginationByName?page=' + this.get_pagination.page + '&size=' + this.get_pagination.size + '&fio=' + this.search);
+          const res = await fetch(this.$store.state.hostname + '/WaterClients/getPaginationByName?page=' + this.get_pagination.page + '&size=' + this.get_pagination.size + '&fio=' + this.search, {
+            headers: this.authHeaders()
+          });
           const res_data = await res.json();
           console.log('dasd')
           console.log(res_data)
@@ -153,10 +166,10 @@ export default {
   padding: 16px;
 }
 
-.page-main {
-  max-width: 1600px;
-  margin: 0 auto;
-}
+// .page-main {
+//   max-width: 1600px;
+//   margin: 0 auto;
+// }
 
 .page-header {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
@@ -231,10 +244,6 @@ export default {
     max-width: 400px;
     border-radius: 8px;
   }
-}
-
-.table-section {
-  // Table komponenti o'zining dizayniga ega
 }
 
 @media (max-width: 768px) {

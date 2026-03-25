@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ApiAll.Model.water
@@ -10,5 +10,10 @@ namespace ApiAll.Model.water
         public long WaterClientid { get; set; }
         public double summ { get; set; }
         public double real_summ { get; set; }
+    
+        public long? company_id { get; set; }
+
+        [ForeignKey("company_id")]
+        public WaterCompany Company { get; set; }
     }
 }

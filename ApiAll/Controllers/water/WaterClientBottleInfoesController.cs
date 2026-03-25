@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,6 +22,16 @@ namespace ApiAll.Controllers.water
         public WaterClientBottleInfoesController(ApplicationContext context)
         {
             _context = context;
+        }
+
+        private long? GetTokenCompanyId()
+        {
+            var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long parsedCompanyId) && parsedCompanyId > 0)
+            {
+                return parsedCompanyId;
+            }
+            return null;
         }
 
         // GET: api/WaterClientBottleInfoes
@@ -189,11 +199,23 @@ namespace ApiAll.Controllers.water
         [HttpGet("checkBottleExitsOrNotByAddressId")]
         public async Task<ActionResult<WaterClientBottleInfo>> checkBottleExitsOrNotByAddressId([FromQuery]long adress_id)
         {
+            var tokenCompanyId = GetTokenCompanyId();
+            var address = await _context.WaterClientAddress.FindAsync(adress_id);
+            if (address == null)
+            {
+                return NotFound();
+            }
+            if (tokenCompanyId != null && address.company_id != tokenCompanyId)
+            {
+                return NotFound();
+            }
+
             var waterClientBottleInfo = await _context.WaterClientBottleInfo
                 .Include(p => p.product)
                 .Include(p => p.client)
                 .Include(p => p.address)
-                .Where(p => p.id == adress_id).ToListAsync();
+                .Where(p => p.WaterClientAddressid == adress_id
+                    && (tokenCompanyId == null || p.company_id == tokenCompanyId)).ToListAsync();
 
             if (waterClientBottleInfo == null || waterClientBottleInfo.Count == 0)
             {
@@ -323,6 +345,12 @@ namespace ApiAll.Controllers.water
         {
             var waterClientAddress = await _context.WaterClientAddress.FindAsync(adress_id);
             if (waterClientAddress == null)
+            {
+                return NotFound();
+            }
+
+            var tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null && waterClientAddress.company_id != tokenCompanyId)
             {
                 return NotFound();
             }

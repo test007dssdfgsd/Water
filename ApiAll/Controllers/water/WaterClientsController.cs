@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,6 +27,26 @@ namespace ApiAll.Controllers.water
         {
             _context = context;
             _httpClientFactory = httpClientFactory;
+        }
+
+        private long? GetTokenCompanyId()
+        {
+            var claimCompany = User?.Claims?.FirstOrDefault(c => c.Type == "company_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimCompany) && long.TryParse(claimCompany, out long parsedCompanyId) && parsedCompanyId > 0)
+            {
+                return parsedCompanyId;
+            }
+            return null;
+        }
+
+        private long? GetTokenWaterUserId()
+        {
+            var claimUserId = User?.Claims?.FirstOrDefault(c => c.Type == "water_user_id")?.Value;
+            if (!String.IsNullOrWhiteSpace(claimUserId) && long.TryParse(claimUserId, out long parsedUserId) && parsedUserId > 0)
+            {
+                return parsedUserId;
+            }
+            return null;
         }
 
         public class TelegramMessageDto
@@ -79,7 +99,13 @@ namespace ApiAll.Controllers.water
         [HttpGet]
         public async Task<ActionResult<IEnumerable<WaterClient>>> GetWaterClient()
         {
-            return await _context.WaterClient.ToListAsync();
+            IQueryable<WaterClient> query = _context.WaterClient.AsQueryable();
+            long? tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null)
+            {
+                query = query.Where(p => p.company_id == tokenCompanyId);
+            }
+            return await query.ToListAsync();
         }
 
         [HttpGet("getInfoAboutMoney")]
@@ -148,6 +174,12 @@ namespace ApiAll.Controllers.water
                 .Where( p=> p.id == id).ToListAsync();
 
             if (waterClient == null || waterClient.Count == 0)
+            {
+                return NotFound();
+            }
+
+            long? tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null && waterClient.First().company_id != tokenCompanyId)
             {
                 return NotFound();
             }
@@ -412,18 +444,23 @@ namespace ApiAll.Controllers.water
         public async Task<ActionResult<JsonPaginationModel>> getPagination([FromQuery] int page, [FromQuery] int size)
         {
             JsonPaginationModel paginationModel = new JsonPaginationModel();
-            List<WaterClient> categoryList = await _context.WaterClient
+            IQueryable<WaterClient> query = _context.WaterClient
                 .Include(p => p.tuman)
                 .Include(p => p.addresses)
                 .Include(p =>p.phone_numbers_list)
-                .Where(p => p.active_status == true)
-                .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
+                .Where(p => p.active_status == true);
+            long? tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null)
+            {
+                query = query.Where(p => p.company_id == tokenCompanyId);
+            }
+            List<WaterClient> categoryList = await query.Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
             if (categoryList == null)
             {
                 categoryList = new List<WaterClient>();
             }
             paginationModel.items_list = JArray.FromObject(categoryList);
-            paginationModel.items_count = await _context.WaterClient.Where(p => p.active_status == true).CountAsync();
+            paginationModel.items_count = await query.CountAsync();
             paginationModel.current_item_count = categoryList.Count();
             paginationModel.current_page = page;
             return paginationModel;
@@ -832,11 +869,16 @@ namespace ApiAll.Controllers.water
         public async Task<ActionResult<JsonPaginationModel>> getPaginationSearchByPhoneNumberFromArray([FromQuery] int page, [FromQuery] int size, [FromQuery] String phone_number)
         {
             JsonPaginationModel paginationModel = new JsonPaginationModel();
-            List<WaterClientPhoneNumber> categoryList = await _context.WaterClientPhoneNumber
+            IQueryable<WaterClientPhoneNumber> query = _context.WaterClientPhoneNumber
                 .Include(p => p.client)
                 .Where(p => p.active_status == true
-                && (p.phone_number.ToLower().Contains(phone_number.ToLower())))
-                .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
+                && (p.phone_number.ToLower().Contains(phone_number.ToLower())));
+            long? tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null)
+            {
+                query = query.Where(p => p.client.company_id == tokenCompanyId);
+            }
+            List<WaterClientPhoneNumber> categoryList = await query.Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
             if (categoryList == null)
             {
                 categoryList = new List<WaterClientPhoneNumber>();
@@ -851,8 +893,7 @@ namespace ApiAll.Controllers.water
             }
 
             paginationModel.items_list = JArray.FromObject(categoryList);
-            paginationModel.items_count = await _context.WaterClientPhoneNumber.Where(p => p.active_status == true
-                && (p.phone_number.ToLower().Contains(phone_number.ToLower()))).CountAsync();
+            paginationModel.items_count = await query.CountAsync();
             paginationModel.current_item_count = categoryList.Count();
             paginationModel.current_page = page;
             return paginationModel;
@@ -862,11 +903,16 @@ namespace ApiAll.Controllers.water
         public async Task<ActionResult<JsonPaginationModel>> getPaginationSearchByAddressFromArray([FromQuery] int page, [FromQuery] int size, [FromQuery] String address)
         {
             JsonPaginationModel paginationModel = new JsonPaginationModel();
-            List<WaterClientAddress> categoryList = await _context.WaterClientAddress
+            IQueryable<WaterClientAddress> query = _context.WaterClientAddress
                 .Include(p => p.client)
                 .Where(p => p.active_status == true
-                && (p.address.ToLower().Contains(address.ToLower())))
-                .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
+                && (p.address.ToLower().Contains(address.ToLower())));
+            long? tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null)
+            {
+                query = query.Where(p => p.client.company_id == tokenCompanyId);
+            }
+            List<WaterClientAddress> categoryList = await query.Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
             if (categoryList == null)
             {
                 categoryList = new List<WaterClientAddress>();
@@ -881,8 +927,7 @@ namespace ApiAll.Controllers.water
                 it.clinet_obj = JObject.FromObject(clientPhoneNumbers.First());
             }
             paginationModel.items_list = JArray.FromObject(categoryList);
-            paginationModel.items_count = await _context.WaterClientAddress.Where(p => p.active_status == true
-                && (p.address.ToLower().Contains(address.ToLower()))).CountAsync();
+            paginationModel.items_count = await query.CountAsync();
             paginationModel.current_item_count = categoryList.Count();
             paginationModel.current_page = page;
             return paginationModel;
@@ -944,18 +989,23 @@ namespace ApiAll.Controllers.water
         public async Task<ActionResult<JsonPaginationModel>> getPaginationByName([FromQuery] int page, [FromQuery] int size, [FromQuery] String fio)
         {
             JsonPaginationModel paginationModel = new JsonPaginationModel();
-            List<WaterClient> categoryList = await _context.WaterClient
+            IQueryable<WaterClient> query = _context.WaterClient
                 .Include(p => p.tuman)
                 .Include(p => p.addresses)
                 .Include(p => p.phone_numbers_list)
-                .Where(p => p.active_status == true && p.fio.ToLower().Contains(fio.ToLower()))
-                .Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
+                .Where(p => p.active_status == true && p.fio.ToLower().Contains(fio.ToLower()));
+            long? tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null)
+            {
+                query = query.Where(p => p.company_id == tokenCompanyId);
+            }
+            List<WaterClient> categoryList = await query.Skip(page * size).Take(size).OrderByDescending(p => p.id).ToListAsync();
             if (categoryList == null)
             {
                 categoryList = new List<WaterClient>();
             }
             paginationModel.items_list = JArray.FromObject(categoryList);
-            paginationModel.items_count = await _context.WaterClient.Where(p => p.active_status == true && p.fio.ToLower().Contains(fio.ToLower())).CountAsync();
+            paginationModel.items_count = await query.CountAsync();
             paginationModel.current_item_count = categoryList.Count();
             paginationModel.current_page = page;
             return paginationModel;
@@ -1000,6 +1050,44 @@ namespace ApiAll.Controllers.water
         [HttpPost]
         public async Task<ActionResult<WaterClient>> PostWaterClient(WaterClient waterClient)
         {
+            long? tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null)
+            {
+                waterClient.company_id = tokenCompanyId;
+            }
+            if (waterClient.company_id == null || waterClient.company_id <= 0)
+            {
+                return BadRequest("company_id is required");
+            }
+            long? tokenWaterUserId = GetTokenWaterUserId();
+            if (tokenWaterUserId != null)
+            {
+                waterClient.reserverd_numeric_id_3 = Convert.ToDouble(tokenWaterUserId.Value);
+            }
+
+            if (waterClient.addresses != null && waterClient.addresses.Count > 0)
+            {
+                foreach (var address in waterClient.addresses)
+                {
+                    address.company_id = waterClient.company_id;
+                    if (tokenWaterUserId != null)
+                    {
+                        address.reserverd_numeric_id_3 = Convert.ToDouble(tokenWaterUserId.Value);
+                    }
+                }
+            }
+            if (waterClient.phone_numbers_list != null && waterClient.phone_numbers_list.Count > 0)
+            {
+                foreach (var phone in waterClient.phone_numbers_list)
+                {
+                    phone.company_id = waterClient.company_id;
+                    if (tokenWaterUserId != null)
+                    {
+                        phone.reserverd_numeric_id_3 = Convert.ToDouble(tokenWaterUserId.Value);
+                    }
+                }
+            }
+
             _context.WaterClient.Update(waterClient);
             await _context.SaveChangesAsync();
 
@@ -1042,6 +1130,12 @@ namespace ApiAll.Controllers.water
         {
             var waterClient = await _context.WaterClientPhoneNumber.FindAsync(phone_id);
             if (waterClient == null)
+            {
+                return NotFound();
+            }
+
+            long? tokenCompanyId = GetTokenCompanyId();
+            if (tokenCompanyId != null && waterClient.company_id != tokenCompanyId)
             {
                 return NotFound();
             }

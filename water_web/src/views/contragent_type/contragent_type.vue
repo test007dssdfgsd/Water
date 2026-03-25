@@ -64,6 +64,13 @@ export default {
   methods: {
     ...mapActions(['fetchLevel', ]),
     ...mapMutations(['level_delete_row']),
+      authHeaders () {
+        const headers = {}
+        if (localStorage.AuthToken) {
+          headers.Authorization = 'Bearer ' + localStorage.AuthToken
+        }
+        return headers
+      },
   
       for_edit(edit_data)
       {
@@ -73,6 +80,7 @@ export default {
       {
          const requestOptions = {
             method : "delete",
+            headers: this.authHeaders()
           };
           const response = await fetch(this.$store.state.hostname + "/WaterContragentTypes/" + del_data.id, requestOptions);
           const data = await response.text();
@@ -109,10 +117,10 @@ export default {
   padding: 16px;
 }
 
-.page-main {
-  max-width: 1600px;
-  margin: 0 auto;
-}
+// .page-main {
+//   max-width: 1600px;
+//   margin: 0 auto;
+// }
 
 .page-header {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
@@ -172,10 +180,6 @@ export default {
       }
     }
   }
-}
-
-.table-section {
-  // Table komponenti o'zining dizayniga ega
 }
 
 @media (max-width: 768px) {

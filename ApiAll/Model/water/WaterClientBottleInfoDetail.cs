@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ApiAll.Model.water
@@ -13,5 +13,10 @@ namespace ApiAll.Model.water
          public long bottle_count_get { get; set; } = 0;
          public bool get_or_give { get; set; } = false;
          public DateTime last_order_item_accepted_date_time { get; set; } = DateTime.Now;
+    
+        public long? company_id { get; set; }
+
+        [ForeignKey("company_id")]
+        public WaterCompany Company { get; set; }
     }
 }

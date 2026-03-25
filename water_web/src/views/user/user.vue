@@ -109,10 +109,10 @@ export default {
   padding: 16px;
 }
 
-.page-main {
-  max-width: 1600px;
-  margin: 0 auto;
-}
+// .page-main {
+//   max-width: 1600px;
+//   margin: 0 auto;
+// }
 
 .page-header {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);

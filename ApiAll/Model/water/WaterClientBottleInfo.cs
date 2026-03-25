@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -19,5 +19,10 @@ namespace ApiAll.Model.water
 
         public WaterProduct product { get; set; }
         public long WaterProductid { get; set; }
+    
+        public long? company_id { get; set; }
+
+        [ForeignKey("company_id")]
+        public WaterCompany Company { get; set; }
     }
 }

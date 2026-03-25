@@ -348,6 +348,16 @@ export default {
 
   methods:{
     ...mapActions(['fetch_district_t', 'fetchClient', 'fetch_contragent_t','fetchDepartment', 'fetchLevel']),
+    authHeaders(contentType = false) {
+      const headers = {};
+      if (contentType) {
+        headers["Content-Type"] = "application/json";
+      }
+      if (localStorage.AuthToken) {
+        headers.Authorization = 'Bearer ' + localStorage.AuthToken;
+      }
+      return headers;
+    },
     async searchClient(){
       if(this.name == ''){
         this.get_client_list = [];
@@ -355,7 +365,9 @@ export default {
       else{
         try{
           if(this.name != ''){
-            const res = await fetch(this.$store.state.hostname + '/WaterClients/getPaginationByName?page=0&size=100&fio=' + this.name);
+            const res = await fetch(this.$store.state.hostname + '/WaterClients/getPaginationByName?page=0&size=100&fio=' + this.name, {
+              headers: this.authHeaders()
+            });
             const data = await res.json();
             console.log(data)
             this.get_client_list = data.items_list
@@ -370,7 +382,9 @@ export default {
       }
     },
     async updateClient(id){
-      const res = await fetch(this.$store.state.hostname + '/WaterClients/' + id);
+      const res = await fetch(this.$store.state.hostname + '/WaterClients/' + id, {
+        headers: this.authHeaders()
+      });
       const data = await res.json();
       console.log('this is by id')
       console.log(data)
@@ -407,6 +421,7 @@ export default {
       if(this.phoneList[i].id>0){
         const requestOptions = {
             method : "delete",
+            headers: this.authHeaders()
           };
         const response = await fetch(this.$store.state.hostname + "/WaterClients/deletePhoneNumber?phone_id=" + this.phoneList[i].id, requestOptions);
         const data = await response.json();
@@ -427,7 +442,9 @@ export default {
     },
     async checkBootleToAddress(id, index){
       try{
-      const response = await fetch(this.$store.state.hostname + "/WaterClientBottleInfoes/checkBottleExitsOrNotByAddressId?adress_id=" + id);
+      const response = await fetch(this.$store.state.hostname + "/WaterClientBottleInfoes/checkBottleExitsOrNotByAddressId?adress_id=" + id, {
+        headers: this.authHeaders()
+      });
       // this.loading = false;
       if(response.status == 201 || response.status == 200)
       {
@@ -440,6 +457,7 @@ export default {
       else{
          const requestOptions = {
             method : "delete",
+            headers: this.authHeaders()
           };
           const response = await fetch(this.$store.state.hostname + "/WaterClientBottleInfoes/deleteAdressWithoutCheking?adress_id=" + id, requestOptions);
           const res = await response.text();
@@ -707,12 +725,14 @@ export default {
 
         const requestOptions = {
             method : "POST",
-            headers: { "Content-Type" : "application/json" },
+            headers: this.authHeaders(true),
             body: JSON.stringify({
               "fio" : this.name,
               "phone_numbers_list": phoneFunList,
               "addresses": addressL,
               "waterTumanid": this.district_id,
+              "company_id": Number(localStorage.CompId) || null,
+              "reserverd_numeric_id_3": Number(localStorage.AuthId) || null,
               "note4": this.image_url,
               "note": this.note,
               "id" : this.id,
@@ -774,7 +794,7 @@ export default {
       try{
         const requestOptions = {
           method : "POST",
-          headers: { "Content-Type" : "application/json" },
+          headers: this.authHeaders(true),
           body: JSON.stringify({
             "image_base_64" : img,
           })
@@ -826,7 +846,7 @@ export default {
         this.loading = true;
         await fetch(this.$store.state.hostname + "/WaterClients/send-telegram", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: this.authHeaders(true),
           body: JSON.stringify({ text: message })
         })
         .then(res => res.json())
@@ -878,7 +898,7 @@ export default {
         this.loading = true;
         await fetch(this.$store.state.hostname + "/WaterClients/send-location", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: this.authHeaders(true),
           body: JSON.stringify({
             latitude: lat,
             longitude: long
@@ -914,9 +934,6 @@ export default {
     margin-left: 10px;
 }
 
-.free_day{
-
-}
 .week_day_item{
   cursor: pointer;
 }

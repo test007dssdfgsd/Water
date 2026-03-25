@@ -18,5 +18,10 @@ namespace ApiAll.Model.water
         public WaterAuth auth { get; set; }
         [NotMapped]
         public long? auth_id { get; set; }
+
+        public long? company_id { get; set; }
+
+        [ForeignKey("company_id")]
+        public WaterCompany Company { get; set; }
     }
 }

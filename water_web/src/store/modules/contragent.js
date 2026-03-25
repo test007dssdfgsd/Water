@@ -9,7 +9,11 @@ export default {
     },
     actions: {
         async fetch_contragent_t(ctx) {
-            const res = await fetch(ctx.rootState.hostname + '/WaterContragents');
+            const headers = {}
+            if (localStorage.AuthToken) {
+                headers.Authorization = 'Bearer ' + localStorage.AuthToken
+            }
+            const res = await fetch(ctx.rootState.hostname + '/WaterContragents', { headers });
             const res_data = await res.json();
             // console.log(ctx.rootState.hostname);
             ctx.commit('update_contragent_t', res_data);

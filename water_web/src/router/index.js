@@ -40,6 +40,13 @@ const routes = [{
             import ('../views/admin/AdminCompanies.vue')
     },
     {
+        path: '/admin/companies/:companyId/users',
+        name: 'adminCompanyUsers',
+        meta: { layout: 'admin' },
+        component: () =>
+            import ('../views/admin/AdminCompanyUsers.vue')
+    },
+    {
         path: '/province',
         name: 'province',
         meta: { layout: 'main' },

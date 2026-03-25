@@ -1,15 +1,18 @@
 <template>
-  <div class="admin-users admin-companies">
+  <div class="admin-users">
     <loader v-if="loading"/>
 
     <div class="admin-users__hero">
       <div class="admin-users__hero-text">
+        <button type="button" class="admin-users__back" @click="$router.push('/admin/companies')">
+          <i class="fas fa-chevron-left"/>
+        </button>
         <div class="admin-users__badge">
-          <i class="fas fa-building"/>
+          <i class="fas fa-users"/>
         </div>
         <div>
-          <h1 class="admin-users__title">{{ $t('company_name') }}</h1>
-          <p class="admin-users__desc">{{ $t('Add_company') }}</p>
+          <h1 class="admin-users__title">{{ company.name || ('Company #' + companyId) }} — {{ $t('user') }}</h1>
+          <p class="admin-users__desc">{{ $t('Add_user') }}</p>
         </div>
       </div>
       <button type="button" class="admin-users__cta" @click="openModal(null)">
@@ -26,14 +29,10 @@
 
       <div v-if="!list.length" class="admin-users__empty">
         <div class="admin-users__empty-icon">
-          <i class="fas fa-building"/>
+          <i class="fas fa-users"/>
         </div>
         <p class="admin-users__empty-title">Нет записей</p>
-        <p class="admin-users__empty-hint">Нажмите «{{ $t('add') }}», чтобы добавить компанию</p>
-        <button type="button" class="admin-users__cta admin-users__cta--ghost" @click="openModal(null)">
-          <i class="fas fa-plus"/>
-          {{ $t('add') }}
-        </button>
+        <p class="admin-users__empty-hint">Нажмите «{{ $t('add') }}», чтобы добавить сотрудника</p>
       </div>
 
       <div v-else class="admin-users__table-wrap">
@@ -41,32 +40,32 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>{{ $t('company_name') }}</th>
+              <th>{{ $t('fio') }}</th>
               <th>{{ $t('phoneNumber') }}</th>
-              <th>{{ $t('address') }}</th>
-              <th>{{ $t('payment_date') }}</th>
-              <th>{{ $t('sum') }}</th>
+              <th>{{ $t('position') }}</th>
+              <th>Login</th>
               <th class="admin-users__th-actions"/>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in list" :key="row.id" class="admin-companies__row" @click="goToCompanyUsers(row)">
+            <tr v-for="row in list" :key="row.id">
               <td>
                 <span class="admin-users__id">{{ row.id }}</span>
               </td>
               <td>
-                <span class="admin-users__name">{{ row.name || '—' }}</span>
+                <span class="admin-users__name">{{ row.fio || '—' }}</span>
               </td>
               <td>{{ row.phone_number ? formatPhoneDisplay(row.phone_number) : '—' }}</td>
-              <td>{{ row.address || '—' }}</td>
-              <td class="admin-companies__cell-date">{{ formatTableDate(row.payment_date) }}</td>
-              <td>{{ formatMoney(row.payment_amount) }}</td>
+              <td>{{ row.position || '—' }}</td>
+              <td>
+                <span class="admin-users__login">{{ row.auth && row.auth.login ? row.auth.login : '—' }}</span>
+              </td>
               <td class="admin-users__cell-actions">
                 <button
                   type="button"
                   class="admin-users__icon-btn admin-users__icon-btn--edit"
                   :title="$t('edit')"
-                  @click.stop="openModal(row)"
+                  @click="openModal(row)"
                 >
                   <i class="fas fa-pen"/>
                 </button>
@@ -74,7 +73,7 @@
                   type="button"
                   class="admin-users__icon-btn admin-users__icon-btn--danger"
                   :title="$t('delete')"
-                  @click.stop="remove(row)"
+                  @click="remove(row)"
                 >
                   <i class="fas fa-trash-alt"/>
                 </button>
@@ -89,16 +88,17 @@
       :show="modalOpen"
       headerbackColor="primary"
       titlecolor="white"
-      :title="isEditing ? $t('edit') : $t('Add_company')"
+      :title="isEditing ? $t('edit') : $t('Add_user')"
       width="520px"
       @close="closeModal"
     >
       <template v-slot:body>
         <div class="admin-modal">
-          <form class="admin-modal__form" @submit.prevent="submitCompany">
+          <form class="admin-modal__form" @submit.prevent="submitUser">
+            <p class="admin-modal__section">{{ $t('user') }}</p>
             <div class="admin-modal__field">
-              <label>{{ $t('company_name') }} *</label>
-              <input v-model.trim="form.name" type="text" class="admin-modal__input" required>
+              <label>{{ $t('fio') }} *</label>
+              <input v-model.trim="form.fio" type="text" class="admin-modal__input" required>
             </div>
             <div class="admin-modal__field">
               <label>{{ $t('phoneNumber') }}</label>
@@ -114,27 +114,33 @@
               >
             </div>
             <div class="admin-modal__field">
+              <label>{{ $t('position') }}</label>
+              <input v-model.trim="form.position" type="text" class="admin-modal__input">
+            </div>
+            <div class="admin-modal__field">
               <label>{{ $t('address') }}</label>
-              <input v-model.trim="form.address" type="text" class="admin-modal__input">
+              <input v-model.trim="form.addrress" type="text" class="admin-modal__input">
             </div>
             <div class="admin-modal__field">
-              <label>{{ $t('start_date') }}</label>
-              <input v-model="form.start_date" type="date" class="admin-modal__input">
+              <label>{{ $t('note') }}</label>
+              <textarea v-model.trim="form.note" class="admin-modal__input admin-modal__input--area" rows="2"/>
+            </div>
+
+            <p class="admin-modal__section">{{ $t('authorization') }}</p>
+            <div class="admin-modal__field">
+              <label>Login *</label>
+              <input v-model.trim="form.login" type="text" class="admin-modal__input" required autocomplete="username">
             </div>
             <div class="admin-modal__field">
-              <label>{{ $t('payment_date') }}</label>
-              <input v-model="form.payment_date" type="date" class="admin-modal__input">
-            </div>
-            <div class="admin-modal__field">
-              <label>{{ $t('payment_amount') }}</label>
+              <label>{{ $t('password') }}{{ isEditing ? '' : ' *' }}</label>
               <input
-                :value="payment_amount_display"
-                type="text"
-                inputmode="decimal"
+                v-model="form.password"
+                type="password"
                 class="admin-modal__input"
-                placeholder="2 000"
-                @input="onPaymentAmountInput"
+                :required="!isEditing"
+                autocomplete="new-password"
               >
+              <p v-if="isEditing" class="admin-modal__hint">{{ $t('password_leave_blank') }}</p>
             </div>
 
             <div class="admin-modal__footer">
@@ -156,69 +162,53 @@
 </template>
 
 <script>
+import md5 from 'js-md5'
+
 export default {
-  name: 'AdminCompanies',
+  name: 'AdminCompanyUsers',
   data () {
     return {
       loading: false,
       saving: false,
       modalOpen: false,
       list: [],
+      company: {},
       form: {
-        id: 0,
-        name: '',
+        userId: 0,
+        authId: 0,
+        fio: '',
         phone_number: '',
-        address: '',
-        start_date: '',
-        payment_date: '',
-        payment_amount: 0
-      },
-      payment_amount_display: ''
+        position: '',
+        addrress: '',
+        note: '',
+        login: '',
+        password: ''
+      }
     }
   },
   computed: {
+    companyId () {
+      const id = Number(this.$route.params.companyId)
+      return isNaN(id) ? 0 : id
+    },
     isEditing () {
-      return this.form.id > 0
+      return this.form.userId > 0
     }
   },
   mounted () {
-    this.loadList()
+    this.initPage()
   },
   methods: {
     api () {
       return this.$store.state.hostname
     },
-    toInputDate (v) {
-      if (v == null || v === '') return ''
-      const d = new Date(v)
-      if (isNaN(d.getTime())) return ''
-      const y = d.getFullYear()
-      const m = String(d.getMonth() + 1).padStart(2, '0')
-      const day = String(d.getDate()).padStart(2, '0')
-      return `${y}-${m}-${day}`
+    authHeaders () {
+      const headers = {}
+      if (localStorage.AuthToken) {
+        headers.Authorization = 'Bearer ' + localStorage.AuthToken
+      }
+      return headers
     },
-    toIsoDate (yyyyMmDd) {
-      if (!yyyyMmDd) return null
-      const d = new Date(yyyyMmDd + 'T12:00:00')
-      return isNaN(d.getTime()) ? null : d.toISOString()
-    },
-    formatMoney (n) {
-      if (n == null || n === '') return '—'
-      const x = Number(n)
-      if (isNaN(x)) return '—'
-      return x.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })
-    },
-    /** Jadvalda sana: DD.MM.YYYY */
-    formatTableDate (v) {
-      if (v == null || v === '') return '—'
-      const d = new Date(v)
-      if (isNaN(d.getTime())) return '—'
-      const day = String(d.getDate()).padStart(2, '0')
-      const m = String(d.getMonth() + 1).padStart(2, '0')
-      const y = d.getFullYear()
-      return `${day}.${m}.${y}`
-    },
-    /** (XX) XXX-XXXX — 9 raqamgacha, inputPhone.vue bilan mos */
     formatPhoneDisplay (raw) {
       const d = String(raw || '').replace(/\D/g, '').slice(0, 9)
       const x = d.match(/(\d{0,2})(\d{0,3})(\d{0,4})/)
@@ -228,73 +218,30 @@ export default {
     onPhoneInput (e) {
       this.form.phone_number = this.formatPhoneDisplay(e.target.value)
     },
-    /** Mingliklar bo‘shliq bilan: 2000 → "2 000", kasr — nuqta */
-    formatAmountSpaces (num) {
-      if (num == null || num === '' || (typeof num === 'number' && isNaN(num))) return ''
-      const n = Number(num)
-      if (isNaN(n)) return ''
-      const fixed = n.toFixed(2)
-      const [intp, dec] = fixed.split('.')
-      const intWithSpaces = intp.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-      if (dec === '00') return intWithSpaces
-      return intWithSpaces + '.' + dec
-    },
-    onPaymentAmountInput (e) {
-      let raw = String(e.target.value || '').replace(/\s/g, '').replace(',', '.')
-      if (raw === '' || raw === '.') {
-        this.payment_amount_display = ''
-        this.form.payment_amount = 0
+    async initPage () {
+      if (!this.companyId) {
+        this.$router.push('/admin/companies')
         return
       }
-      const dotCount = (raw.match(/\./g) || []).length
-      if (dotCount > 1) {
-        raw = raw.replace(/\.(?=.*\.)/g, '')
-      }
-      const n = parseFloat(raw)
-      if (isNaN(n) || n < 0) {
-        return
-      }
-      this.form.payment_amount = n
-      this.payment_amount_display = this.formatAmountSpaces(n)
+      await this.loadCompany()
+      await this.loadList()
     },
-    openModal (row) {
-      this.resetForm()
-      if (row && row.id) {
-        this.form.id = row.id
-        this.form.name = row.name || ''
-        this.form.phone_number = this.formatPhoneDisplay(row.phone_number || '')
-        this.form.address = row.address || ''
-        this.form.start_date = this.toInputDate(row.start_date)
-        this.form.payment_date = this.toInputDate(row.payment_date)
-        this.form.payment_amount = row.payment_amount != null ? Number(row.payment_amount) : 0
-        this.payment_amount_display = this.formatAmountSpaces(this.form.payment_amount)
+    async loadCompany () {
+      try {
+        const res = await fetch(this.api() + '/WaterCompanies/' + this.companyId)
+        if (res.status === 200 || res.status === 201) {
+          this.company = await res.json()
+        }
+      } catch (e) {
+        this.company = {}
       }
-      this.modalOpen = true
-    },
-    closeModal () {
-      this.modalOpen = false
-      this.resetForm()
-    },
-    resetForm () {
-      this.form = {
-        id: 0,
-        name: '',
-        phone_number: '',
-        address: '',
-        start_date: '',
-        payment_date: '',
-        payment_amount: 0
-      }
-      this.payment_amount_display = ''
-    },
-    goToCompanyUsers (row) {
-      if (!row || !row.id) return
-      this.$router.push('/admin/companies/' + row.id + '/users')
     },
     async loadList () {
       try {
         this.loading = true
-        const res = await fetch(this.api() + '/WaterCompanies')
+        const res = await fetch(this.api() + '/WaterUsers?company_id=' + this.companyId, {
+          headers: this.authHeaders()
+        })
         this.loading = false
         if (res.status === 200 || res.status === 201) {
           const data = await res.json()
@@ -307,30 +254,114 @@ export default {
         this.$refs.message && this.$refs.message.error('network_ne_connect')
       }
     },
-    async submitCompany () {
-      if (!this.form.name) {
+    openModal (row) {
+      this.resetForm()
+      if (row && row.id) {
+        this.form.userId = row.id
+        this.form.authId = row.auth_id || (row.auth && row.auth.id) || 0
+        this.form.fio = row.fio || ''
+        this.form.phone_number = this.formatPhoneDisplay(row.phone_number || '')
+        this.form.position = row.position || ''
+        this.form.addrress = row.addrress || ''
+        this.form.note = row.note || ''
+        this.form.login = (row.auth && row.auth.login) ? row.auth.login : ''
+        this.form.password = ''
+      }
+      this.modalOpen = true
+    },
+    closeModal () {
+      this.modalOpen = false
+      this.resetForm()
+    },
+    resetForm () {
+      this.form = {
+        userId: 0,
+        authId: 0,
+        fio: '',
+        phone_number: '',
+        position: '',
+        addrress: '',
+        note: '',
+        login: '',
+        password: ''
+      }
+    },
+    async submitUser () {
+      const isEdit = this.isEditing
+      if (!this.form.fio || !this.form.login) {
+        this.$refs.message && this.$refs.message.warning('please_fill')
+        return
+      }
+      if (!isEdit && !this.form.password) {
         this.$refs.message && this.$refs.message.warning('please_fill')
         return
       }
       try {
         this.saving = true
-        const body = {
-          id: this.isEditing ? this.form.id : 0,
-          active_status: true,
-          name: this.form.name,
-          phone_number: this.form.phone_number || null,
-          address: this.form.address || null,
-          start_date: this.toIsoDate(this.form.start_date),
-          payment_date: this.toIsoDate(this.form.payment_date),
-          payment_amount: Number(this.form.payment_amount) || 0
+        let passwordHash = null
+        if (isEdit) {
+          if (this.form.password) {
+            passwordHash = md5(this.form.password)
+          } else if (this.form.authId) {
+            const resAuthGet = await fetch(this.api() + '/WaterAuths/' + this.form.authId)
+            if (resAuthGet.status !== 200) {
+              this.saving = false
+              this.$refs.message && this.$refs.message.error('network_ne_connect')
+              return
+            }
+            const existingAuth = await resAuthGet.json()
+            passwordHash = existingAuth.password != null ? existingAuth.password : existingAuth.Password
+          } else {
+            this.saving = false
+            this.$refs.message && this.$refs.message.warning('please_fill')
+            return
+          }
+        } else {
+          passwordHash = md5(this.form.password)
         }
-        const res = await fetch(this.api() + '/WaterCompanies', {
+
+        const userBody = {
+          id: isEdit ? this.form.userId : 0,
+          active_status: true,
+          fio: this.form.fio,
+          phone_number: this.form.phone_number || null,
+          position: this.form.position || null,
+          addrress: this.form.addrress || null,
+          note: this.form.note || null,
+          car_number: null,
+          telegram_phonenumber: null,
+          bot_id: null,
+          company_id: this.companyId
+        }
+        const resUser = await fetch(this.api() + '/WaterUsers', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
+          body: JSON.stringify(userBody)
+        })
+        if (resUser.status !== 200 && resUser.status !== 201) {
+          this.saving = false
+          this.$refs.message && this.$refs.message.error('Failed_to_add')
+          return
+        }
+        const created = await resUser.json()
+        const uid = isEdit ? this.form.userId : (created.id != null ? created.id : created.Id)
+        const authBody = {
+          id: isEdit ? this.form.authId : 0,
+          active_status: true,
+          login: this.form.login,
+          password: passwordHash,
+          user_type: 0,
+          client_type_info: 0,
+          waterUserid: uid,
+          company_id: this.companyId
+        }
+        const resAuth = await fetch(this.api() + '/WaterAuths', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(authBody)
         })
         this.saving = false
-        if (res.status === 200 || res.status === 201) {
+        if (resAuth.status === 200 || resAuth.status === 201) {
           this.$refs.message && this.$refs.message.success('Added_successfully')
           this.closeModal()
           await this.loadList()
@@ -347,12 +378,16 @@ export default {
       if (!window.confirm('OK?')) return
       try {
         this.loading = true
-        const res = await fetch(this.api() + '/WaterCompanies/' + row.id, { method: 'DELETE' })
+        if (row.auth_id || (row.auth && row.auth.id)) {
+          const aid = row.auth_id || (row.auth && row.auth.id)
+          await fetch(this.api() + '/WaterAuths/' + aid, { method: 'DELETE' })
+        }
+        const res = await fetch(this.api() + '/WaterUsers/' + row.id, { method: 'DELETE' })
         this.loading = false
         if (res.status === 200 || res.status === 201) {
           await this.loadList()
         } else {
-          this.$refs.message && this.$refs.message.error('Failed_to_delete')
+          this.$refs.message && this.$refs.message.error('Failed_to_add')
         }
       } catch (e) {
         this.loading = false
@@ -389,6 +424,16 @@ export default {
   gap: 0.65rem;
 }
 
+.admin-users__back {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #fff;
+  color: #475569;
+}
+
 .admin-users__badge {
   width: 36px;
   height: 36px;
@@ -406,7 +451,6 @@ export default {
   font-size: 0.95rem;
   font-weight: 700;
   color: #334155;
-  letter-spacing: -0.01em;
 }
 
 .admin-users__desc {
@@ -427,21 +471,6 @@ export default {
   cursor: pointer;
   color: #4338ca;
   background: #fff;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  transition: border-color 0.15s, box-shadow 0.15s;
-  &:hover {
-    border-color: #c7d2fe;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  }
-}
-.admin-users__cta--ghost {
-  background: #fff;
-  color: #4338ca;
-  border: 1px solid #e2e8f0;
-  margin-top: 0.35rem;
-  &:hover {
-    background: #f8fafc;
-  }
 }
 
 .admin-users__panel {
@@ -459,11 +488,13 @@ export default {
   font-size: 0.7rem;
   color: #94a3b8;
 }
+
 .admin-users__count {
   font-weight: 700;
   color: #475569;
   font-size: 0.8rem;
 }
+
 .admin-users__count-label {
   margin-left: 0.25rem;
 }
@@ -472,6 +503,7 @@ export default {
   padding: 1.75rem 0.85rem;
   text-align: center;
 }
+
 .admin-users__empty-icon {
   width: 48px;
   height: 48px;
@@ -484,78 +516,51 @@ export default {
   justify-content: center;
   font-size: 1.1rem;
 }
+
 .admin-users__empty-title {
   margin: 0;
   font-size: 0.8rem;
   font-weight: 600;
   color: #64748b;
 }
+
 .admin-users__empty-hint {
   margin: 0.35rem 0 0;
   font-size: 0.68rem;
   color: #a8b0bd;
-  max-width: 280px;
-  margin-left: auto;
-  margin-right: auto;
-  line-height: 1.35;
 }
 
 .admin-users__table-wrap {
   overflow-x: auto;
 }
-.admin-companies {
-  .admin-users__table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.58rem;
-    th {
-      text-align: left;
-      padding: 0.28rem 0.4rem;
-      font-weight: 600;
-      color: #94a3b8;
-      font-size: 0.59rem;
-      text-transform: uppercase;
-      letter-spacing: 0.02em;
-      background: #fafbfc;
-    }
-    td {
-      padding: 0.28rem 0.4rem;
-      border-top: 1px solid #f1f3f6;
-      color: #475569;
-      vertical-align: middle;
-      font-size: 0.75rem;
-    }
-    tbody tr {
-      transition: background 0.12s;
-    }
-    tbody tr:hover {
-      background: #fafbff;
-    }
-  }
-  .admin-users__th-actions {
-    width: 62px;
-  }
-  .admin-users__id {
-    font-size: 0.54rem;
-    padding: 0.06rem 0.28rem;
-  }
-  .admin-users__name {
-    font-size: 0.69rem;
-  }
-  .admin-companies__cell-date {
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-    color: #64748b;
-  }
-  .admin-companies__row {
-    cursor: pointer;
-  }
-  .admin-users__icon-btn {
-    width: 24px;
-    height: 24px;
+
+.admin-users__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.72rem;
+  th {
+    text-align: left;
+    padding: 0.28rem 0.4rem;
+    font-weight: 600;
+    color: #94a3b8;
     font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: #fafbfc;
+  }
+  td {
+    padding: 0.28rem 0.4rem;
+    border-top: 1px solid #f1f3f6;
+    color: #475569;
+    vertical-align: middle;
+    font-size: 0.75rem;
   }
 }
+
+.admin-users__th-actions {
+  width: 68px;
+}
+
 .admin-users__id {
   display: inline-block;
   min-width: 1.5rem;
@@ -566,18 +571,27 @@ export default {
   font-weight: 600;
   color: #64748b;
 }
+
 .admin-users__name {
   font-weight: 600;
   color: #334155;
   font-size: 0.72rem;
 }
+
+.admin-users__login {
+  font-family: ui-monospace, monospace;
+  font-size: 0.68rem;
+  color: #6366f1;
+}
+
 .admin-users__cell-actions {
   text-align: right;
   white-space: nowrap;
 }
+
 .admin-users__icon-btn {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -585,24 +599,16 @@ export default {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s, color 0.15s;
-  vertical-align: middle;
   & + & {
     margin-left: 0.2rem;
   }
   &--edit {
     background: #eef2ff;
     color: #4338ca;
-    &:hover {
-      background: #e0e7ff;
-    }
   }
   &--danger {
     background: #fef2f2;
     color: #dc2626;
-    &:hover {
-      background: #fee2e2;
-    }
   }
 }
 </style>
@@ -610,6 +616,19 @@ export default {
 <style lang="scss">
 .admin-modal {
   padding: 0.55rem 0.75rem 0.75rem;
+}
+.admin-modal__section {
+  margin: 0 0 0.45rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #a8b0bd;
+}
+.admin-modal__section:not(:first-child) {
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #ebeef2;
 }
 .admin-modal__field {
   margin-bottom: 0.5rem;
@@ -621,18 +640,21 @@ export default {
     margin-bottom: 0.2rem;
   }
 }
+.admin-modal__hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.62rem;
+  color: #94a3b8;
+}
 .admin-modal__input {
   width: 100%;
   border: 1px solid #e2e8f0;
   border-radius: 7px;
   padding: 0.35rem 0.5rem;
   font-size: 0.75rem;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  &:focus {
-    outline: none;
-    border-color: #a5b4fc;
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
-  }
+}
+.admin-modal__input--area {
+  resize: vertical;
+  min-height: 44px;
 }
 .admin-modal__footer {
   display: flex;
@@ -652,16 +674,10 @@ export default {
   &--muted {
     background: #f1f5f9;
     color: #64748b;
-    &:hover {
-      background: #e2e8f0;
-    }
   }
   &--primary {
     background: linear-gradient(90deg, #6366f1, #818cf8);
     color: #fff;
-    &:hover:not(:disabled) {
-      filter: brightness(1.03);
-    }
   }
   &:disabled {
     opacity: 0.65;
